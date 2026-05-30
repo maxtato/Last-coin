@@ -82,9 +82,9 @@ const SYM_INFO = [
 
 // ===== Table de gains (multiplicateurs de mise) =====
 // 3 identiques (le joker complète) :
-const PAY3 = { coin: 20, star: 36, house: 50, diamond: 70, crown: 300, bolt: 20, eye: 25, joker: 360 };
+const PAY3 = { coin: 3, star: 9, house: 13, diamond: 19, crown: 75, bolt: 5, eye: 7, joker: 95 };
 // 2 identiques sans joker (petit gain) :
-const PAY2 = { coin: 5, star: 9, house: 11, diamond: 14, crown: 30, bolt: 6, eye: 9 };
+const PAY2 = { coin: 1, star: 2, house: 2.5, diamond: 3, crown: 7, bolt: 1.5, eye: 2 };
 const NEG = { skull: true, crack: true };           // symboles "danger"
 const PAY_ROW = ["coin", "star", "house", "diamond", "crown"]; // affichés dans la mini-table
 
