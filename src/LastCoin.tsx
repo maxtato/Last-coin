@@ -73,7 +73,7 @@ const SYM_INFO = [
   ["house", "patrimoine"],
   ["diamond", "luxe — pierre précieuse"],
   ["crown", "revanche — rare, gros gain"],
-  ["bolt",  "machine — chaque éclair tiré donne 1 jeton HOLD (max 9)"],
+  ["bolt",  "machine — paire = 1 carte HOLD · triple = 2 cartes (max 9)"],
   ["eye",   "prédiction — effet à venir (Phase 3)"],
   ["joker", "WILD — remplace n'importe quel symbole · 3 = jackpot"],
   ["skull", "DANGER — 3 alignés = tu perds la mise (crise en Phase 2)"],
@@ -117,8 +117,8 @@ function fmt(n) {
   }
   return n + "$";
 }
-// chance décroissante : la machine est clémente au garage, plus dure ensuite
-const luck = (c) => (c < 50 ? 4 : c < 300 ? 2.5 : c < 3000 ? 1.5 : c < 40000 ? 1.1 : 1);
+// chance de gain constante : la mise et les multiplicateurs n'agissent plus selon le cash
+const luck = () => 1;
 
 // ===== Patrimoine par FAMILLES. Un nouveau palier REMPLACE l'ancien (reprise de l'ancien). =====
 // Toutes les familles déterminent la CLASSE SOCIALE = le niveau (statut). "business" donne en plus du revenu.
@@ -254,6 +254,7 @@ export default function LastCoin() {
   const [winFx, setWinFx] = useState(null);        // { a, k } : montant gagné animé au bac
   const [burst, setBurst] = useState(null);        // pluie de $ sur un 3-aligné
   const [levelUp, setLevelUp] = useState(null);    // écran "NIVEAU X" à la montée de classe
+  const [cardNotif, setCardNotif] = useState(null); // notification "+N HOLD" à l'obtention d'une carte
   const [winLine, setWinLine] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [machineW, setMachineW] = useState(0);
@@ -335,6 +336,7 @@ export default function LastCoin() {
     setLastWin(null); setFlash(""); setLampOn(false); setWinLine(false);
     setStrips(REELS.map((_, r) => restStrip(r))); setPhase("idle"); setSpinning(false);
     setHeld([false, false, false]); setHoldCharges(0); setSpinHeld([false, false, false]);
+    setCardNotif(null); setLevelUp(null); setBurst(null); setWinFx(null);
     setOverlay(null); setConfirmReset(false); setScreen("intro");   // repasse par l'intro pour rappeler le contexte
   };
 
@@ -344,9 +346,14 @@ export default function LastCoin() {
     setCash((c) => c + payout + income);   // c = cash déjà amputé de la mise au lancement
     setPulls((p) => p + 1);
 
-    // Bolt = charges HOLD : chaque éclair gagné donne un jeton de blocage de rouleau, plafonné à 9
+    // Bolt = cartes HOLD : seules les paires et triples d'eclair sortent une carte (rare)
     const bolts = targets.filter((t) => t === "bolt").length;
-    if (bolts > 0) setHoldCharges((c) => Math.min(9, c + bolts));
+    const cardGain = bolts >= 3 ? 2 : bolts >= 2 ? 1 : 0;
+    if (cardGain > 0) {
+      setHoldCharges((c) => Math.min(9, c + cardGain));
+      setCardNotif({ n: cardGain, k: Date.now() });
+      setTimeout(() => setCardNotif(null), 2400);
+    }
 
     // --- Phase 2 : Risk / Hope / panne / crises ---
     const skull = res.kind === -1 && res.sym === "skull";
@@ -402,7 +409,7 @@ export default function LastCoin() {
   const spin = () => {
     if (spinning || screen !== "play" || jammed || crisis) return;
     if (bet < 1) return;                       // à sec : le bouton invite à vendre
-    const lk = luck(cash - bet);               // boost figé au point bas du tour
+    const lk = luck();                          // multiplicateur constant : la machine ne triche plus selon le porte-monnaie
     const snap = { frac: bet / Math.max(1, cash), nw: netWorth, risk, hope, has: hasAssets };
     if (lampTimer.current) clearTimeout(lampTimer.current);
     setFlash(""); setLastWin(null); setLampOn(false); setWinLine(false); setWinFx(null); setBurst(null);
@@ -786,7 +793,7 @@ export default function LastCoin() {
             <div className="lc-acth">HOLD · bloquer un rouleau</div>
             <div className="lc-rule">
               <Ink k="bolt" size={26} />
-              <div className="lc-rule-txt"><b>Jetons HOLD</b><i>chaque Bolt tiré te donne un jeton (plafond 9). Avant de tirer, tape un rouleau pour le bloquer : il garde son symbole au tour suivant. Coût : 1 jeton par rouleau bloqué.</i></div>
+              <div className="lc-rule-txt"><b>Cartes HOLD</b><i>une paire de Bolt fait tomber 1 carte, un triple en fait tomber 2 (plafond 9). Avant de tirer, tape un rouleau pour le bloquer : il garde son symbole au tour suivant. Coût : 1 carte par rouleau bloqué.</i></div>
             </div>
           </div>
           <p className="lc-ms">petite mise = sûr mais lent · grosse mise = gros gains ou ruine</p>
@@ -845,6 +852,16 @@ export default function LastCoin() {
           <div className="lc-lu-n">{levelUp.cls}</div>
         </div>
       )}
+
+      {cardNotif && (
+        <div className="lc-cardnotif" key={cardNotif.k}>
+          <Ink k="bolt" size={32} />
+          <div className="lc-cn-body">
+            <span className="lc-cn-l">carte HOLD</span>
+            <span className="lc-cn-n">+{cardNotif.n}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -895,6 +912,11 @@ const CSS = `
 .lc-lu-c{font-size:15px;letter-spacing:4px;text-transform:uppercase;margin-top:6px;}
 .lc-lu-p{font-size:11px;letter-spacing:1px;color:#777;margin-top:10px;}
 @keyframes luwrap{0%{opacity:0;transform:scale(.8);}12%{opacity:1;transform:scale(1.04);}24%{transform:scale(1);}74%{opacity:1;}100%{opacity:0;transform:scale(1.02);}}
+.lc-cardnotif{position:fixed;left:50%;top:28%;transform:translateX(-50%);z-index:38;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #141414;padding:12px 20px 12px 18px;pointer-events:none;animation:cardpop 2.4s cubic-bezier(.2,.9,.2,1) forwards;box-shadow:0 4px 20px rgba(20,20,20,.15);}
+.lc-cn-body{display:flex;flex-direction:column;align-items:flex-start;gap:2px;}
+.lc-cn-l{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#707070;}
+.lc-cn-n{font-size:22px;font-weight:600;letter-spacing:1px;line-height:1;}
+@keyframes cardpop{0%{opacity:0;transform:translate(-50%,18px) scale(.9);}10%{opacity:1;transform:translate(-50%,0) scale(1.06);}22%{transform:translate(-50%,0) scale(1);}82%{opacity:1;transform:translate(-50%,0) scale(1);}100%{opacity:0;transform:translate(-50%,-8px) scale(1);}}
 .lc-img{width:100%;height:100%;display:block;pointer-events:none;}
 .lc-sp{position:absolute;pointer-events:none;transition:opacity .12s ease;}
 .lc-dome{position:absolute;left:35%;top:0;width:30%;height:18%;border-radius:50%;opacity:0;pointer-events:none;z-index:4;
