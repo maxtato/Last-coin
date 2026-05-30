@@ -74,7 +74,7 @@ const SYM_INFO = [
   ["diamond", "luxe — pierre précieuse"],
   ["crown", "revanche — rare, gros gain"],
   ["bolt",  "machine — paire = 1 carte HOLD · triple = 2 cartes (max 9)"],
-  ["eye",   "prédiction — effet à venir (Phase 3)"],
+  ["eye",   "prédiction — paire = 1 carte NUDGE · triple = 2 cartes (max 9)"],
   ["joker", "WILD — remplace n'importe quel symbole · 3 = jackpot"],
   ["skull", "DANGER — 3 alignés = tu perds la mise (crise en Phase 2)"],
   ["crack", "DANGER — 3 alignés = panne (réparation en Phase 2)"],
@@ -279,6 +279,10 @@ export default function LastCoin() {
   const [held, setHeld] = useState([false, false, false]);                 // rouleaux marqués HOLD avant le tour
   const [holdCharges, setHoldCharges] = useState(() => init.holdCharges || 0);  // jetons HOLD dispos (gagnés via Bolt)
   const [spinHeld, setSpinHeld] = useState([false, false, false]);         // rouleaux figés pendant l'anim du tour
+  const [nudgeCharges, setNudgeCharges] = useState(() => init.nudgeCharges || 0);   // cartes NUDGE (gagnées via Eye)
+  const [nudgeAvail, setNudgeAvail] = useState(false);                     // fenêtre de NUDGE ouverte après le tour
+  const [lastSpin, setLastSpin] = useState(null);                          // {targets, spend, lk, scale, payout} pour re-eval apres nudge
+  const [nudgeAnim, setNudgeAnim] = useState([false, false, false]);       // transition douce sur le rouleau qu'on decale
   const machineRef = useRef(null);
   const lampTimer = useRef(null);                    // gyro : timer de 5 s
 
@@ -328,8 +332,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges })); } catch {}
-  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges, nudgeCharges })); } catch {}
+  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges, nudgeCharges]);
 
   // fin de partie : à sec et plus rien à vendre
   useEffect(() => {
@@ -345,6 +349,7 @@ export default function LastCoin() {
     setLastWin(null); setFlash(""); setLampOn(false); setWinLine(false);
     setStrips(REELS.map((_, r) => restStrip(r))); setPhase("idle"); setSpinning(false);
     setHeld([false, false, false]); setHoldCharges(0); setSpinHeld([false, false, false]);
+    setNudgeCharges(0); setNudgeAvail(false); setLastSpin(null); setNudgeAnim([false, false, false]);
     setCardNotif(null); setLevelUp(null); setBurst(null); setWinFx(null);
     setOverlay(null); setConfirmReset(false); setScreen("intro");   // repasse par l'intro pour rappeler le contexte
   };
@@ -358,12 +363,24 @@ export default function LastCoin() {
 
     // Bolt = cartes HOLD : seules les paires et triples d'eclair sortent une carte (rare)
     const bolts = targets.filter((t) => t === "bolt").length;
-    const cardGain = bolts >= 3 ? 2 : bolts >= 2 ? 1 : 0;
-    if (cardGain > 0) {
-      setHoldCharges((c) => Math.min(9, c + cardGain));
-      setCardNotif({ n: cardGain, k: Date.now() });
+    const holdGain = bolts >= 3 ? 2 : bolts >= 2 ? 1 : 0;
+    if (holdGain > 0) setHoldCharges((c) => Math.min(9, c + holdGain));
+
+    // Eye = cartes NUDGE : memes regles que Bolt mais sur le symbole oeil
+    const eyes = targets.filter((t) => t === "eye").length;
+    const nudgeGain = eyes >= 3 ? 2 : eyes >= 2 ? 1 : 0;
+    if (nudgeGain > 0) setNudgeCharges((c) => Math.min(9, c + nudgeGain));
+
+    // une seule notification a la fois : on privilegie celle qui vient d'apparaitre (NUDGE en dernier, ecrase HOLD si les deux tombent)
+    if (holdGain > 0 || nudgeGain > 0) {
+      const last = nudgeGain > 0 ? { n: nudgeGain, type: "nudge" } : { n: holdGain, type: "hold" };
+      setCardNotif({ ...last, k: Date.now() });
       setTimeout(() => setCardNotif(null), 2400);
     }
+
+    // memorise le tour pour pouvoir re-evaluer apres un nudge ; ouvre la fenetre si on a des cartes NUDGE
+    setLastSpin({ targets: targets.slice(), spend, lk, scale, payout });
+    if ((nudgeCharges + nudgeGain) > 0) setNudgeAvail(true);
 
     // --- Phase 2 : Risk / Hope / panne / crises ---
     const skull = res.kind === -1 && res.sym === "skull";
@@ -423,6 +440,7 @@ export default function LastCoin() {
     const snap = { frac: bet / Math.max(1, cash), nw: netWorth, risk, hope, has: hasAssets };
     if (lampTimer.current) clearTimeout(lampTimer.current);
     setFlash(""); setLastWin(null); setLampOn(false); setWinLine(false); setWinFx(null); setBurst(null);
+    setNudgeAvail(false); setLastSpin(null); setNudgeAnim([false, false, false]);   // ferme la fenetre de nudge precedente
     setPressed(true); setTimeout(() => setPressed(false), 600);
     setCash((c) => c - bet);
     setSpinning(true);
@@ -522,6 +540,37 @@ export default function LastCoin() {
     });
   };
 
+  // NUDGE : decale un rouleau de 1 cran apres le spin, recalcule le gain et paie le bonus eventuel
+  const nudge = (r, dir) => {
+    if (!nudgeAvail || nudgeCharges < 1 || !lastSpin || spinning) return;
+    const strip = strips[r];
+    const newT = strip.t + dir;
+    if (newT < 0 || newT >= strip.cells.length) return;     // garde-fou : on reste dans les cells deja generees
+    const newSym = strip.cells[newT];
+    // anim courte sur ce rouleau, sans toucher aux autres
+    setNudgeAnim((n) => n.map((v, i) => (i === r ? true : v)));
+    setStrips((s) => s.map((sv, i) => (i === r ? { cells: sv.cells, t: newT } : sv)));
+    setTimeout(() => setNudgeAnim((n) => n.map((v, i) => (i === r ? false : v))), 320);
+
+    const newTargets = lastSpin.targets.slice();
+    newTargets[r] = newSym;
+    const newRes = evaluate(newTargets);
+    const newPayout = newRes.kind > 0 ? Math.round(lastSpin.spend * newRes.mult * lastSpin.lk * lastSpin.scale) : 0;
+    const delta = newPayout - lastSpin.payout;
+    if (delta > 0) {
+      setCash((c) => c + delta);
+      setLampOn(true); setWinLine(true);
+      if (lampTimer.current) clearTimeout(lampTimer.current);
+      lampTimer.current = setTimeout(() => setLampOn(false), 3500);
+      setWinFx({ a: delta, k: Date.now() });
+      setTimeout(() => setWinLine(false), 1400);
+      setTimeout(() => setWinFx(null), 2400);
+    }
+    setLastSpin((p) => ({ ...p, targets: newTargets, payout: Math.max(p.payout, newPayout) }));
+    setNudgeCharges((c) => c - 1);
+    setNudgeAvail(false);                                   // une seule manip par fenetre
+  };
+
   const betDown = () => setBetIdx((i) => Math.max(0, i - 1));
   const betUp = () => setBetIdx((i) => Math.min(maxBetIdx, i + 1));
   const betMax = () => setBetIdx(maxBetIdx);
@@ -558,17 +607,22 @@ export default function LastCoin() {
         <img src={COVER_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_COVER.left + "%", top: LEV_COVER.top + "%", width: LEV_COVER.w + "%", height: LEV_COVER.h + "%", opacity: pressed ? 1 : 0 }} />
         <img src={PRESS_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_DOWN.left + "%", top: LEV_DOWN.top + "%", width: LEV_DOWN.w + "%", height: LEV_DOWN.h + "%", opacity: pressed ? 1 : 0 }} />
         {REELS.map((R, r) => {
-          const canHold = !spinning && !jammed && !crisis && screen === "play" && (held[r] || holdCharges > 0);
+          const canNudge = !spinning && nudgeAvail && nudgeCharges > 0 && screen === "play";
+          const canHold = !canNudge && !spinning && !jammed && !crisis && screen === "play" && (held[r] || holdCharges > 0);
           return (
             <div
               key={r}
-              className={"lc-reel" + (held[r] ? " held" : "") + (canHold ? " holdable" : "")}
+              className={"lc-reel" + (held[r] ? " held" : "") + (canHold ? " holdable" : "") + (canNudge ? " nudgable" : "")}
               onClick={canHold ? () => toggleHold(r) : undefined}
               style={{ left: R.l + "%", top: WIN_TOP + "%", width: R.w + "%", height: WIN_H + "%" }}
             >
               <div className="lc-strip" style={{
                 transform: "translateY(" + reelY(r) + "px)",
-                transition: (phase === "run" && !spinHeld[r]) ? ("transform " + durations[r] + "s cubic-bezier(.13,.66,.18,1)") : "none",
+                transition: nudgeAnim[r]
+                  ? "transform .3s ease-out"
+                  : (phase === "run" && !spinHeld[r])
+                    ? ("transform " + durations[r] + "s cubic-bezier(.13,.66,.18,1)")
+                    : "none",
               }}>
                 {strips[r].cells.map((k, i) => (
                   <div key={i} className="lc-cell" style={{ height: cellH }}>
@@ -576,6 +630,12 @@ export default function LastCoin() {
                   </div>
                 ))}
               </div>
+              {canNudge && (
+                <>
+                  <button className="lc-nudgebtn up" onClick={(e) => { e.stopPropagation(); nudge(r, +1); }} aria-label="nudge haut">▲</button>
+                  <button className="lc-nudgebtn dn" onClick={(e) => { e.stopPropagation(); nudge(r, -1); }} aria-label="nudge bas">▼</button>
+                </>
+              )}
             </div>
           );
         })}
@@ -635,11 +695,20 @@ export default function LastCoin() {
         <Gauge kind="risk" pct={risk} hot={hot} />
       </div>
 
-      {(holdCharges > 0 || held.some(Boolean)) && (
+      {(holdCharges > 0 || nudgeCharges > 0 || held.some(Boolean) || nudgeAvail) && (
         <div className="lc-holdbar">
-          <Ink k="bolt" size={13} />
-          <b>×{holdCharges}</b>
-          <em>{held.some(Boolean) ? "rouleau bloqué · tire le levier" : "tape un rouleau pour le bloquer"}</em>
+          {holdCharges > 0 && (
+            <span className="lc-hb-item"><Ink k="bolt" size={13} /><b>×{holdCharges}</b></span>
+          )}
+          {nudgeCharges > 0 && (
+            <span className="lc-hb-item"><Ink k="eye" size={13} /><b>×{nudgeCharges}</b></span>
+          )}
+          <em>
+            {nudgeAvail && nudgeCharges > 0 ? "ajuste un rouleau · ▲ ou ▼"
+              : held.some(Boolean) ? "rouleau bloqué · tire le levier"
+              : holdCharges > 0 ? "tape un rouleau pour le bloquer"
+              : ""}
+          </em>
         </div>
       )}
 
@@ -805,6 +874,11 @@ export default function LastCoin() {
               <Ink k="bolt" size={26} />
               <div className="lc-rule-txt"><b>Cartes HOLD</b><i>une paire de Bolt fait tomber 1 carte, un triple en fait tomber 2 (plafond 9). Avant de tirer, tape un rouleau pour le bloquer : il garde son symbole au tour suivant. Coût : 1 carte par rouleau bloqué.</i></div>
             </div>
+            <div className="lc-acth">NUDGE · décaler après le spin</div>
+            <div className="lc-rule">
+              <Ink k="eye" size={26} />
+              <div className="lc-rule-txt"><b>Cartes NUDGE</b><i>une paire d'Eye fait tomber 1 carte, un triple en fait tomber 2 (plafond 9). Après un tour, des flèches ▲ ▼ apparaissent sur les rouleaux : un clic décale le rouleau d'un cran et te paie le bonus si le nouveau combo est meilleur. Une seule manipulation par tour.</i></div>
+            </div>
           </div>
           <p className="lc-ms">petite mise = sûr mais lent · grosse mise = gros gains ou ruine</p>
           <button className="lc-btn" onClick={() => setOverlay(null)}>retour</button>
@@ -865,9 +939,9 @@ export default function LastCoin() {
 
       {cardNotif && (
         <div className="lc-cardnotif" key={cardNotif.k}>
-          <Ink k="bolt" size={32} />
+          <Ink k={cardNotif.type === "nudge" ? "eye" : "bolt"} size={32} />
           <div className="lc-cn-body">
-            <span className="lc-cn-l">carte HOLD</span>
+            <span className="lc-cn-l">carte {cardNotif.type === "nudge" ? "NUDGE" : "HOLD"}</span>
             <span className="lc-cn-n">+{cardNotif.n}</span>
           </div>
         </div>
@@ -953,6 +1027,12 @@ const CSS = `
 .lc-reel.holdable{cursor:pointer;}
 .lc-reel.held{outline:2px solid #141414;outline-offset:-2px;}
 .lc-reel.held::after{content:"HOLD";position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#fff;background:#141414;padding:1px 6px;pointer-events:none;z-index:3;}
+.lc-reel.nudgable{outline:1px dashed #141414;outline-offset:-1px;}
+.lc-nudgebtn{position:absolute;left:50%;transform:translateX(-50%);width:60%;height:14%;background:rgba(255,255,255,.78);border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;z-index:6;padding:0;color:#141414;font-family:inherit;transition:.12s;backdrop-filter:blur(2px);}
+.lc-nudgebtn.up{top:2px;}
+.lc-nudgebtn.dn{bottom:2px;}
+.lc-nudgebtn:hover{background:#141414;color:#fff;}
+.lc-nudgebtn:active{transform:translateX(-50%) scale(.92);}
 .lc-shadow{position:absolute;pointer-events:none;z-index:2;
   background:linear-gradient(to bottom,rgba(70,70,70,.55) 0%,rgba(70,70,70,.24) 50%,rgba(255,255,255,0) 100%);}
 .lc-strip{position:absolute;left:0;top:0;width:100%;}
@@ -966,7 +1046,8 @@ const CSS = `
 .lc-pullhint svg{width:100%;height:100%;display:block;overflow:visible;}
 @keyframes pullbob{0%,100%{transform:translateY(-6%);opacity:.55;}50%{transform:translateY(15%);opacity:.95;}}
 .lc-gauges{display:flex;gap:40px;align-items:flex-start;justify-content:center;}
-.lc-holdbar{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:1px;color:#444;margin-top:-4px;}
+.lc-holdbar{display:flex;align-items:center;gap:12px;font-size:11px;letter-spacing:1px;color:#444;margin-top:-4px;flex-wrap:wrap;justify-content:center;}
+.lc-hb-item{display:flex;align-items:center;gap:4px;}
 .lc-holdbar b{font-weight:600;letter-spacing:.5px;}
 .lc-holdbar em{font-style:normal;font-size:10px;letter-spacing:.3px;color:#888;}
 .lc-gauge{display:flex;flex-direction:column;align-items:center;gap:3px;}
