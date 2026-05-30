@@ -798,7 +798,7 @@ const CSS = `
 .lc{min-height:100vh;width:100%;background:#fafafa;color:#141414;display:flex;flex-direction:column;
   align-items:center;justify-content:flex-start;gap:13px;padding:22px 20px 44px;overflow-x:hidden;
   font-family:'Jost',-apple-system,sans-serif;font-weight:300;}
-.lc-bar{width:100%;max-width:330px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+.lc-bar{width:100%;max-width:330px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:flex-start;gap:12px;}
 .lc-barleft{display:flex;align-items:flex-start;gap:11px;}
 .lc-menu{display:flex;gap:3px;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;padding:0;flex-shrink:0;align-self:center;transition:.15s;}
 .lc-menu i{width:3px;height:11px;background:#141414;display:block;transition:.15s;}
