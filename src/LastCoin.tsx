@@ -119,6 +119,15 @@ function fmt(n) {
 }
 // chance de gain constante : la mise et les multiplicateurs n'agissent plus selon le cash
 const luck = () => 1;
+// avarice : au-dela de 10K la machine rabote les gains. Progression plus dure en mid/end game.
+// la PROBABILITE de gain reste inchangee, seul le MONTANT paye baisse.
+const cashScale = (nw) =>
+  nw >= 5e6 ? 0.35
+  : nw >= 1e6 ? 0.45
+  : nw >= 250000 ? 0.55
+  : nw >= 50000 ? 0.7
+  : nw >= 10000 ? 0.85
+  : 1;
 
 // ===== Patrimoine par FAMILLES. Un nouveau palier REMPLACE l'ancien (reprise de l'ancien). =====
 // Toutes les familles déterminent la CLASSE SOCIALE = le niveau (statut). "business" donne en plus du revenu.
@@ -342,7 +351,8 @@ export default function LastCoin() {
 
   const resolveAll = useCallback((targets, spend, lk, snap) => {
     const res = evaluate(targets);
-    const payout = res.kind > 0 ? Math.round(spend * res.mult * lk) : 0;
+    const scale = cashScale(snap.nw);            // gains rabotes en mid/end game (palier des 10K)
+    const payout = res.kind > 0 ? Math.round(spend * res.mult * lk * scale) : 0;
     setCash((c) => c + payout + income);   // c = cash déjà amputé de la mise au lancement
     setPulls((p) => p + 1);
 
