@@ -347,10 +347,15 @@ export default function LastCoin() {
     const newHope = clamp(snap.hope + dHope, 0, 100);
     setHope(newHope);
     if (crack) setJammed(true);                            // panne : réparer avant de rejouer
+    // les événements ne tombent QUE quand le risque devient élevé (zone chaude)
+    const RISK_TRIG = 66;
     let trig = null;
     if (newHope <= 0) trig = "spirale";
-    else if (!crack && skull && Math.random() < 0.5) trig = "cambriolage";
-    else if (!crack && Math.random() < (newRisk / 100) * 0.11) trig = "roll";
+    else if (newRisk >= RISK_TRIG) {
+      const over = (newRisk - RISK_TRIG) / (100 - RISK_TRIG);   // 0..1 dans la zone chaude
+      if (!crack && skull && Math.random() < 0.5) trig = "cambriolage";
+      else if (!crack && Math.random() < over * 0.18) trig = "roll";
+    }
     if (trig) setCrisis(makeCrisis(trig, snap.nw, snap.has));
 
     const first = pulls === 0;
