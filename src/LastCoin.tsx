@@ -925,7 +925,7 @@ const CSS = `
 @keyframes domeglow{0%,100%{opacity:0;}50%{opacity:1;}}
 .lc-gyrocoin{position:absolute;left:50.1%;top:6.9%;transform:translate(-50%,-50%);z-index:4;pointer-events:none;}
 .lc-gc{width:100%;height:100%;border-radius:50%;filter:blur(1.6px);transform:scaleX(.18);
-  background:radial-gradient(50% 50% at 50% 50%,rgba(30,30,30,.55),rgba(30,30,30,.28) 55%,rgba(30,30,30,0) 100%);}
+  background:radial-gradient(50% 50% at 50% 50%,rgba(15,15,15,.95),rgba(15,15,15,.7) 55%,rgba(15,15,15,0) 100%);}
 .lc-gyrocoin.on .lc-gc{animation:coinspin .5s linear infinite;}
 @keyframes coinspin{0%{transform:scaleX(1);}25%{transform:scaleX(.1);}50%{transform:scaleX(1);}75%{transform:scaleX(.1);}100%{transform:scaleX(1);}}
 .lc-rays{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;z-index:4;}
