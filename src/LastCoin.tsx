@@ -73,7 +73,7 @@ const SYM_INFO = [
   ["house", "patrimoine"],
   ["diamond", "luxe — pierre précieuse"],
   ["crown", "revanche — rare, gros gain"],
-  ["bolt",  "machine — effet à venir (Phase 3)"],
+  ["bolt",  "machine — chaque éclair tiré donne 1 jeton HOLD (max 9)"],
   ["eye",   "prédiction — effet à venir (Phase 3)"],
   ["joker", "WILD — remplace n'importe quel symbole · 3 = jackpot"],
   ["skull", "DANGER — 3 alignés = tu perds la mise (crise en Phase 2)"],
@@ -111,11 +111,11 @@ const BET_STEPS = (() => { const out = []; for (let e = 0; e <= 12; e++) for (co
 function fmt(n) {
   n = Math.round(n);
   const a = Math.abs(n);
-  if (a < 1000) return n + " $";
+  if (a < 1000) return n + "$";
   for (const [s, v] of [["T", 1e12], ["B", 1e9], ["M", 1e6], ["K", 1e3]]) {
-    if (a >= v) { const x = n / v; return (Math.abs(x) >= 100 ? Math.round(x) : +x.toFixed(1)) + s + " $"; }
+    if (a >= v) { const x = n / v; return (Math.abs(x) >= 100 ? Math.round(x) : +x.toFixed(1)) + s + "$"; }
   }
-  return n + " $";
+  return n + "$";
 }
 // chance décroissante : la machine est clémente au garage, plus dure ensuite
 const luck = (c) => (c < 50 ? 4 : c < 300 ? 2.5 : c < 3000 ? 1.5 : c < 40000 ? 1.1 : 1);
@@ -266,6 +266,9 @@ export default function LastCoin() {
   const [wonEmpire, setWonEmpire] = useState(() => !!init.empire);
   const [confirmReset, setConfirmReset] = useState(false);   // pause : confirmation avant de recommencer
   const [durations] = useState([1.6, 2.25, 2.9]);   // roulement plus long
+  const [held, setHeld] = useState([false, false, false]);                 // rouleaux marqués HOLD avant le tour
+  const [holdCharges, setHoldCharges] = useState(() => init.holdCharges || 0);  // jetons HOLD dispos (gagnés via Bolt)
+  const [spinHeld, setSpinHeld] = useState([false, false, false]);         // rouleaux figés pendant l'anim du tour
   const machineRef = useRef(null);
   const lampTimer = useRef(null);                    // gyro : timer de 5 s
 
@@ -300,7 +303,11 @@ export default function LastCoin() {
   const cellH = visHpx / 1.75;
   const restY = (t) => -(t * cellH) + (visHpx - cellH) / 2 + topExtraPx;
   const symSizeFor = (r) => Math.min(cellH, machineW * REELS[r].w / 100) * 0.90;
-  const reelY = (r) => (!cellH ? 0 : phase === "start" ? 0 : restY(strips[r].t));
+  const reelY = (r) => {
+    if (!cellH) return 0;
+    if (spinHeld[r]) return restY(strips[r].t);                 // rouleau bloqué : reste sur place
+    return phase === "start" ? 0 : restY(strips[r].t);
+  };
 
   useLayoutEffect(() => {
     const el = machineRef.current; if (!el) return;
@@ -311,8 +318,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire })); } catch {}
-  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges })); } catch {}
+  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges]);
 
   // fin de partie : à sec et plus rien à vendre
   useEffect(() => {
@@ -327,6 +334,7 @@ export default function LastCoin() {
     setHope(HOPE0); setRisk(0); setJammed(false); setCrisis(null); setWonEmpire(false);
     setLastWin(null); setFlash(""); setLampOn(false); setWinLine(false);
     setStrips(REELS.map((_, r) => restStrip(r))); setPhase("idle"); setSpinning(false);
+    setHeld([false, false, false]); setHoldCharges(0); setSpinHeld([false, false, false]);
     setOverlay(null); setConfirmReset(false); setScreen("intro");   // repasse par l'intro pour rappeler le contexte
   };
 
@@ -335,6 +343,10 @@ export default function LastCoin() {
     const payout = res.kind > 0 ? Math.round(spend * res.mult * lk) : 0;
     setCash((c) => c + payout + income);   // c = cash déjà amputé de la mise au lancement
     setPulls((p) => p + 1);
+
+    // Bolt = charges HOLD : chaque éclair gagné donne un jeton de blocage de rouleau, plafonné à 9
+    const bolts = targets.filter((t) => t === "bolt").length;
+    if (bolts > 0) setHoldCharges((c) => Math.min(9, c + bolts));
 
     // --- Phase 2 : Risk / Hope / panne / crises ---
     const skull = res.kind === -1 && res.sym === "skull";
@@ -398,23 +410,40 @@ export default function LastCoin() {
     setCash((c) => c - bet);
     setSpinning(true);
 
+    // HOLD : on plafonne par le nombre de charges dispos. Si l'utilisateur a marqué plus que disponible (impossible via UI mais sécurité), on ignore les surplus dans l'ordre.
+    const holdSnap = held.slice();
+    let avail = holdCharges;
+    for (let r = 0; r < 3; r++) { if (holdSnap[r] && avail > 0) avail--; else holdSnap[r] = false; }
+    const consumed = holdSnap.filter(Boolean).length;
+    setSpinHeld(holdSnap);
+    if (consumed > 0) setHoldCharges((c) => c - consumed);
+    setHeld([false, false, false]);
+
     const run = 28;
     const first = pulls === 0;
-    const stops = [], targets = [];
-    REELS.forEach((_, r) => {
+    const targets = [];
+    const newStrips = REELS.map((_, r) => {
+      if (holdSnap[r]) {                              // rouleau bloqué : on garde tel quel
+        targets.push(strips[r].cells[strips[r].t]);
+        return strips[r];
+      }
       const band = BANDS[r];
       let want = first ? "coin" : pick(POOL);          // 1er tirage garanti : la machine "recrache"
       let positions = [];
       for (let i = 0; i < band.length; i++) if (band[i] === want) positions.push(i);
       if (positions.length === 0) { const idx = (Math.random() * band.length) | 0; positions = [idx]; want = band[idx]; }
       const stop = positions[(Math.random() * positions.length) | 0];
-      stops.push(stop); targets.push(bandAt(band, stop));
+      targets.push(bandAt(band, stop));
+      return makeStrip(band, stop, run);
     });
 
-    setStrips(REELS.map((_, r) => makeStrip(BANDS[r], stops[r], run)));
+    setStrips(newStrips);
     setPhase("start");
     requestAnimationFrame(() => requestAnimationFrame(() => setPhase("run")));
-    setTimeout(() => { resolveAll(targets, bet, lk, snap); setPhase("idle"); setSpinning(false); }, 3150);
+    setTimeout(() => {
+      resolveAll(targets, bet, lk, snap);
+      setPhase("idle"); setSpinning(false); setSpinHeld([false, false, false]);
+    }, 3150);
   };
 
   const buyNext = (f) => {                       // monte d'un palier (remplace l'ancien, reprise déduite)
@@ -466,6 +495,16 @@ export default function LastCoin() {
   };
   const refuseCrisis = () => { setHope((h) => clamp(h - 18, 0, 100)); setRisk((r) => clamp(r + 10, 0, 100)); setCrisis(null); };
 
+  const toggleHold = (r) => {
+    if (spinning || screen !== "play" || jammed || crisis) return;
+    setHeld((h) => {
+      const next = h.slice();
+      if (next[r]) { next[r] = false; return next; }                 // déverrouillage : toujours autorisé
+      if (next.filter(Boolean).length < holdCharges) next[r] = true; // sinon plafond = jetons dispos
+      return next;
+    });
+  };
+
   const betDown = () => setBetIdx((i) => Math.max(0, i - 1));
   const betUp = () => setBetIdx((i) => Math.min(maxBetIdx, i + 1));
   const betMax = () => setBetIdx(maxBetIdx);
@@ -501,20 +540,28 @@ export default function LastCoin() {
         <img src={UP_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_UP.left + "%", top: LEV_UP.top + "%", width: LEV_UP.w + "%", height: LEV_UP.h + "%", opacity: pressed ? 0 : 1 }} />
         <img src={COVER_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_COVER.left + "%", top: LEV_COVER.top + "%", width: LEV_COVER.w + "%", height: LEV_COVER.h + "%", opacity: pressed ? 1 : 0 }} />
         <img src={PRESS_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_DOWN.left + "%", top: LEV_DOWN.top + "%", width: LEV_DOWN.w + "%", height: LEV_DOWN.h + "%", opacity: pressed ? 1 : 0 }} />
-        {REELS.map((R, r) => (
-          <div key={r} className="lc-reel" style={{ left: R.l + "%", top: WIN_TOP + "%", width: R.w + "%", height: WIN_H + "%" }}>
-            <div className="lc-strip" style={{
-              transform: "translateY(" + reelY(r) + "px)",
-              transition: phase === "run" ? ("transform " + durations[r] + "s cubic-bezier(.13,.66,.18,1)") : "none",
-            }}>
-              {strips[r].cells.map((k, i) => (
-                <div key={i} className="lc-cell" style={{ height: cellH }}>
-                  {cellH > 0 && <Ink k={k} size={symSizeFor(r)} />}
-                </div>
-              ))}
+        {REELS.map((R, r) => {
+          const canHold = !spinning && !jammed && !crisis && screen === "play" && (held[r] || holdCharges > 0);
+          return (
+            <div
+              key={r}
+              className={"lc-reel" + (held[r] ? " held" : "") + (canHold ? " holdable" : "")}
+              onClick={canHold ? () => toggleHold(r) : undefined}
+              style={{ left: R.l + "%", top: WIN_TOP + "%", width: R.w + "%", height: WIN_H + "%" }}
+            >
+              <div className="lc-strip" style={{
+                transform: "translateY(" + reelY(r) + "px)",
+                transition: (phase === "run" && !spinHeld[r]) ? ("transform " + durations[r] + "s cubic-bezier(.13,.66,.18,1)") : "none",
+              }}>
+                {strips[r].cells.map((k, i) => (
+                  <div key={i} className="lc-cell" style={{ height: cellH }}>
+                    {cellH > 0 && <Ink k={k} size={symSizeFor(r)} />}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div className="lc-shadow" style={{ top: WIN_TOP + "%", left: REELS[0].l + "%", width: (REELS[2].l + REELS[2].w - REELS[0].l) + "%", height: (WIN_H * 0.16) + "%" }} />
         {winLine && <div className="lc-winline" style={{ top: (VIS_TOP + VIS_H / 2) + "%", left: REELS[0].l + "%", width: (REELS[2].l + REELS[2].w - REELS[0].l) + "%" }} />}
         {/* gyrophare : halo + rayons + pièce qui tourne comme une toupie sur un gain */}
@@ -570,6 +617,14 @@ export default function LastCoin() {
         <Gauge kind="hope" pct={hope} hot={hope <= 25} />
         <Gauge kind="risk" pct={risk} hot={hot} />
       </div>
+
+      {(holdCharges > 0 || held.some(Boolean)) && (
+        <div className="lc-holdbar">
+          <Ink k="bolt" size={13} />
+          <b>×{holdCharges}</b>
+          <em>{held.some(Boolean) ? "rouleau bloqué · tire le levier" : "tape un rouleau pour le bloquer"}</em>
+        </div>
+      )}
 
       <div className="lc-ctrl">
         {jammed
@@ -728,6 +783,11 @@ export default function LastCoin() {
               <Gauge kind="risk" pct={80} />
               <div className="lc-rule-txt"><b>Risque (le triangle)</b><i>ton exposition au danger. Monte quand tu mises gros et quand ton train de vie est voyant. Plus il est haut, plus les crises tombent souvent (loyer, fisc, cambriolage, saisie). Il redescend tout seul si tu joues petit.</i></div>
             </div>
+            <div className="lc-acth">HOLD · bloquer un rouleau</div>
+            <div className="lc-rule">
+              <Ink k="bolt" size={26} />
+              <div className="lc-rule-txt"><b>Jetons HOLD</b><i>chaque Bolt tiré te donne un jeton (plafond 9). Avant de tirer, tape un rouleau pour le bloquer : il garde son symbole au tour suivant. Coût : 1 jeton par rouleau bloqué.</i></div>
+            </div>
           </div>
           <p className="lc-ms">petite mise = sûr mais lent · grosse mise = gros gains ou ruine</p>
           <button className="lc-btn" onClick={() => setOverlay(null)}>retour</button>
@@ -857,7 +917,10 @@ const CSS = `
 @keyframes pamt{0%{opacity:0;transform:translateY(8px) scale(.8);}8%{opacity:1;transform:translateY(0) scale(1.14);}16%{transform:translateY(0) scale(1);}68%{opacity:1;transform:translateY(-3px) scale(1);}100%{opacity:0;transform:translateY(-42px) scale(1);}}
 .lc-ring{position:absolute;width:2.4em;height:2.4em;border:1px solid rgba(255,255,255,.7);border-radius:50%;animation:pring 1s ease-out forwards;}
 @keyframes pring{0%{opacity:.5;transform:scale(.3);}100%{opacity:0;transform:scale(1.3);}}
-.lc-reel{position:absolute;overflow:hidden;background:#fff;}
+.lc-reel{position:absolute;overflow:hidden;background:#fff;transition:outline-color .15s;}
+.lc-reel.holdable{cursor:pointer;}
+.lc-reel.held{outline:2px solid #141414;outline-offset:-2px;}
+.lc-reel.held::after{content:"HOLD";position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#fff;background:#141414;padding:1px 6px;pointer-events:none;z-index:3;}
 .lc-shadow{position:absolute;pointer-events:none;z-index:2;
   background:linear-gradient(to bottom,rgba(70,70,70,.55) 0%,rgba(70,70,70,.24) 50%,rgba(255,255,255,0) 100%);}
 .lc-strip{position:absolute;left:0;top:0;width:100%;}
@@ -871,6 +934,9 @@ const CSS = `
 .lc-pullhint svg{width:100%;height:100%;display:block;overflow:visible;}
 @keyframes pullbob{0%,100%{transform:translateY(-6%);opacity:.55;}50%{transform:translateY(15%);opacity:.95;}}
 .lc-gauges{display:flex;gap:40px;align-items:flex-start;justify-content:center;}
+.lc-holdbar{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:1px;color:#444;margin-top:-4px;}
+.lc-holdbar b{font-weight:600;letter-spacing:.5px;}
+.lc-holdbar em{font-style:normal;font-size:10px;letter-spacing:.3px;color:#888;}
 .lc-gauge{display:flex;flex-direction:column;align-items:center;gap:3px;}
 .lc-gauge svg{width:30px;height:30px;display:block;}
 .lc-gauge span{font-size:8px;letter-spacing:2px;color:#707070;text-transform:uppercase;}
