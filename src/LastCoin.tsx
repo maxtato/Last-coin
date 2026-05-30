@@ -327,7 +327,7 @@ export default function LastCoin() {
     setHope(HOPE0); setRisk(0); setJammed(false); setCrisis(null); setWonEmpire(false);
     setLastWin(null); setFlash(""); setLampOn(false); setWinLine(false);
     setStrips(REELS.map((_, r) => restStrip(r))); setPhase("idle"); setSpinning(false);
-    setOverlay(null); setScreen("play");
+    setOverlay(null); setConfirmReset(false); setScreen("intro");   // repasse par l'intro pour rappeler le contexte
   };
 
   const resolveAll = useCallback((targets, spend, lk, snap) => {
@@ -520,9 +520,9 @@ export default function LastCoin() {
         {/* gyrophare : halo + rayons + pièce qui tourne comme une toupie sur un gain */}
         <div className={"lc-dome" + (lampOn ? " on" : "")} />
         <svg className={"lc-rays" + (lampOn ? " on" : "")} viewBox="0 0 720 786" preserveAspectRatio="none" aria-hidden="true">
-          <g stroke="#141414" strokeWidth="3" strokeLinecap="round">
-            <line x1="322" y1="32" x2="300" y2="16" /><line x1="312" y1="52" x2="285" y2="49" /><line x1="320" y1="73" x2="298" y2="86" />
-            <line x1="398" y1="32" x2="420" y2="16" /><line x1="408" y1="52" x2="435" y2="49" /><line x1="400" y1="73" x2="422" y2="86" />
+          <g className="lc-raygrp" stroke="#141414" strokeWidth="3" strokeLinecap="round">
+            <line x1="307" y1="32" x2="285" y2="16" /><line x1="297" y1="52" x2="270" y2="49" /><line x1="305" y1="73" x2="283" y2="86" />
+            <line x1="416" y1="32" x2="438" y2="16" /><line x1="426" y1="52" x2="453" y2="49" /><line x1="418" y1="73" x2="440" y2="86" />
           </g>
         </svg>
         <div className={"lc-gyrocoin" + (lampOn ? " on" : "")} style={{ width: Math.max(6, machineW * 0.053) + "px", height: Math.max(10, machineW * 0.111) + "px" }}>
@@ -595,7 +595,7 @@ export default function LastCoin() {
       </div>
 
       <div className="lc-shopbtns">
-        <button className="lc-sb" disabled={spinning} onClick={() => setOverlay("buy")}>Buy</button>
+        <button className="lc-sb" disabled={spinning} onClick={() => setOverlay("buy")}>Acheter</button>
         <button className="lc-sb" disabled={spinning} onClick={() => setOverlay("assets")}>Ma vie{ownedCount ? " · " + ownedCount : ""}</button>
       </div>
 
@@ -635,10 +635,8 @@ export default function LastCoin() {
           ) : (
             <div className="lc-menucol">
               <p className="lc-mb">tout perdre et repartir d'une seule pièce ?</p>
-              <div className="lc-crow">
-                <button className="lc-btn" onClick={newGame}>oui</button>
-                <button className="lc-btn ghost" onClick={() => setConfirmReset(false)}>non</button>
-              </div>
+              <button className="lc-btn" onClick={newGame}>oui</button>
+              <button className="lc-btn ghost" onClick={() => setConfirmReset(false)}>non</button>
             </div>
           )}
           <p className="lc-disc">argent fictif · aucun paiement réel</p>
@@ -850,7 +848,10 @@ const CSS = `
 @keyframes coinspin{0%{transform:scaleX(1);}25%{transform:scaleX(.1);}50%{transform:scaleX(1);}75%{transform:scaleX(.1);}100%{transform:scaleX(1);}}
 .lc-rays{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;z-index:4;}
 .lc-rays.on{animation:raysflash .5s ease-in-out infinite;}
+.lc-raygrp{transform-origin:361px 50px;transform-box:view-box;}
+.lc-rays.on .lc-raygrp{animation:raysstretch .5s ease-in-out infinite;}
 @keyframes raysflash{0%,100%{opacity:.18;}50%{opacity:1;}}
+@keyframes raysstretch{0%,100%{transform:scale(1);}50%{transform:scale(1.22);}}
 .lc-payout{position:absolute;left:50%;top:85%;transform:translateX(-50%);z-index:5;pointer-events:none;display:flex;align-items:center;justify-content:center;}
 .lc-pamt{position:relative;font-weight:600;letter-spacing:.5px;color:#fff;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 2px rgba(0,0,0,.75);animation:pamt 2.4s ease-out forwards;}
 @keyframes pamt{0%{opacity:0;transform:translateY(8px) scale(.8);}8%{opacity:1;transform:translateY(0) scale(1.14);}16%{transform:translateY(0) scale(1);}68%{opacity:1;transform:translateY(-3px) scale(1);}100%{opacity:0;transform:translateY(-42px) scale(1);}}
