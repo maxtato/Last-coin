@@ -592,7 +592,6 @@ export default function LastCoin() {
       <div className="lc-shopbtns">
         <button className="lc-sb" disabled={spinning} onClick={() => setOverlay("buy")}>Buy</button>
         <button className="lc-sb" disabled={spinning} onClick={() => setOverlay("assets")}>Ma vie{ownedCount ? " · " + ownedCount : ""}</button>
-        <button className="lc-sb" onClick={() => setOverlay("rules")} aria-label="règles">Règles</button>
       </div>
 
       <div className="lc-pay">
