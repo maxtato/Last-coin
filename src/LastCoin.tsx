@@ -222,6 +222,8 @@ const N = {
 // ===== Phase 2 : Hope, Risk, crises =====
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const HOPE0 = 70;
+// stats agregees sur la partie : alimentees par les hooks de gameplay, persistees, affichees pause/over/empire
+const STATS0 = { biggestWin: 0, peakWorth: 0, cardsEarned: 0, crisesSurvived: 0, crisesRefused: 0, totalBet: 0, totalWon: 0 };
 // risque de fond selon le train de vie : plus tu exhibes, plus tu es exposé
 const luxBase = (nw) => (nw >= 5e6 ? 14 : nw >= 5e5 ? 9 : nw >= 50000 ? 5 : nw >= 5000 ? 2 : 0);
 const CRISIS = {
@@ -285,6 +287,7 @@ export default function LastCoin() {
   const [nudgeAnim, setNudgeAnim] = useState([false, false, false]);       // transition douce sur le rouleau qu'on decale
   const [repullCharges, setRepullCharges] = useState(() => init.repullCharges || 0); // cartes REPULL (gagnées via Crown)
   const [repullAvail, setRepullAvail] = useState(false);                   // fenêtre de REPULL ouverte après le tour
+  const [stats, setStats] = useState(() => ({ ...STATS0, ...(init.stats || {}) }));
   const machineRef = useRef(null);
   const lampTimer = useRef(null);                    // gyro : timer de 5 s
 
@@ -334,8 +337,13 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges })); } catch {}
-  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges, nudgeCharges, repullCharges]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats })); } catch {}
+  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats]);
+
+  // peak du patrimoine : suivi en permanence des qu'il monte (acceuil cash + achats)
+  useEffect(() => {
+    setStats((s) => (netWorth > s.peakWorth ? { ...s, peakWorth: netWorth } : s));
+  }, [netWorth]);
 
   // fin de partie : à sec et plus rien à vendre
   useEffect(() => {
@@ -353,6 +361,7 @@ export default function LastCoin() {
     setHeld([false, false, false]); setHoldCharges(0); setSpinHeld([false, false, false]);
     setNudgeCharges(0); setNudgeAvail(false); setLastSpin(null); setNudgeAnim([false, false, false]);
     setRepullCharges(0); setRepullAvail(false);
+    setStats({ ...STATS0 });
     setCardNotif(null); setLevelUp(null); setBurst(null); setWinFx(null);
     setOverlay(null); setConfirmReset(false); setScreen("intro");   // repasse par l'intro pour rappeler le contexte
   };
@@ -392,6 +401,15 @@ export default function LastCoin() {
     setLastSpin({ targets: targets.slice(), spend, lk, scale, payout });
     if ((nudgeCharges + nudgeGain) > 0) setNudgeAvail(true);
     if ((repullCharges + repullGain) > 0) setRepullAvail(true);
+
+    // stats agregees : mise totale, gains cumules, plus gros gain, cartes obtenues
+    setStats((s) => ({
+      ...s,
+      totalBet: s.totalBet + spend,
+      totalWon: s.totalWon + payout,
+      biggestWin: Math.max(s.biggestWin, payout),
+      cardsEarned: s.cardsEarned + holdGain + nudgeGain + repullGain,
+    }));
 
     // --- Phase 2 : Risk / Hope / panne / crises ---
     const skull = res.kind === -1 && res.sym === "skull";
@@ -538,8 +556,12 @@ export default function LastCoin() {
     else if (c.id === "venteforcee") { forceSell(); setHope((h) => clamp(h - 10, 0, 100)); }
     else if (c.id === "spirale") { setCash((x) => Math.round(x * 0.7)); dropTop(); setHope(28); setRisk(0); }
     say(N_CRISIS[c.id] || ""); setCrisis(null);
+    setStats((s) => ({ ...s, crisesSurvived: s.crisesSurvived + 1 }));
   };
-  const refuseCrisis = () => { setHope((h) => clamp(h - 18, 0, 100)); setRisk((r) => clamp(r + 10, 0, 100)); setCrisis(null); };
+  const refuseCrisis = () => {
+    setHope((h) => clamp(h - 18, 0, 100)); setRisk((r) => clamp(r + 10, 0, 100)); setCrisis(null);
+    setStats((s) => ({ ...s, crisesRefused: s.crisesRefused + 1 }));
+  };
 
   const toggleHold = (r) => {
     if (spinning || screen !== "play" || jammed || crisis) return;
@@ -581,6 +603,7 @@ export default function LastCoin() {
     setNudgeCharges((c) => c - 1);
     setNudgeAvail(false);                                   // une seule manip par fenetre
     setRepullAvail(false);                                  // une capacite par fenetre, toutes confondues
+    if (delta > 0) setStats((s) => ({ ...s, totalWon: s.totalWon + delta, biggestWin: Math.max(s.biggestWin, newPayout) }));
   };
 
   // REPULL : un rouleau entier rejoue, les deux autres restent bloques. Re-evalue le combo.
@@ -623,6 +646,7 @@ export default function LastCoin() {
       setRepullAvail(false);
       setNudgeAvail(false);                                 // une seule capacite par fenetre
       setPhase("idle"); setSpinning(false); setSpinHeld([false, false, false]);
+      if (delta > 0) setStats((s) => ({ ...s, totalWon: s.totalWon + delta, biggestWin: Math.max(s.biggestWin, newPayout) }));
     }, 1850);
   };
 
@@ -831,11 +855,20 @@ export default function LastCoin() {
           <div className="lc-mh">PAUSE</div>
           <p className="lc-ms">niveau {level} · {socialClass} · {fmt(netWorth)}</p>
           {!confirmReset ? (
-            <div className="lc-menucol">
-              <button className="lc-btn" onClick={() => setScreen("play")}>reprendre</button>
-              <button className="lc-btn ghost" onClick={() => { setScreen("play"); setOverlay("rules"); }}>règles</button>
-              <button className="lc-btn ghost" onClick={() => setConfirmReset(true)}>recommencer</button>
-            </div>
+            <>
+              <div className="lc-statbox">
+                <div className="lc-stat-row"><span>tours joués</span><b>{pulls}</b></div>
+                <div className="lc-stat-row"><span>plus gros gain</span><b>{fmt(stats.biggestWin)}</b></div>
+                <div className="lc-stat-row"><span>patrimoine peak</span><b>{fmt(stats.peakWorth)}</b></div>
+                <div className="lc-stat-row"><span>crises endurées</span><b>{stats.crisesSurvived}</b></div>
+                <div className="lc-stat-row"><span>cartes obtenues</span><b>{stats.cardsEarned}</b></div>
+              </div>
+              <div className="lc-menucol">
+                <button className="lc-btn" onClick={() => setScreen("play")}>reprendre</button>
+                <button className="lc-btn ghost" onClick={() => { setScreen("play"); setOverlay("rules"); }}>règles</button>
+                <button className="lc-btn ghost" onClick={() => setConfirmReset(true)}>recommencer</button>
+              </div>
+            </>
           ) : (
             <div className="lc-menucol">
               <p className="lc-mb">tout perdre et repartir d'une seule pièce ?</p>
@@ -980,6 +1013,14 @@ export default function LastCoin() {
           <div className="lc-mh">EMPIRE</div>
           <p className="lc-ms">la ville a ton nom</p>
           <p className="lc-mb">Parti d'une pièce. Regarde-toi.</p>
+          <div className="lc-statbox">
+            <div className="lc-stat-row"><span>tours joués</span><b>{pulls}</b></div>
+            <div className="lc-stat-row"><span>plus gros gain</span><b>{fmt(stats.biggestWin)}</b></div>
+            <div className="lc-stat-row"><span>patrimoine peak</span><b>{fmt(stats.peakWorth)}</b></div>
+            <div className="lc-stat-row"><span>crises endurées</span><b>{stats.crisesSurvived}</b></div>
+            <div className="lc-stat-row"><span>cartes obtenues</span><b>{stats.cardsEarned}</b></div>
+            <div className="lc-stat-row"><span>net</span><b>{fmt(stats.totalWon - stats.totalBet)}</b></div>
+          </div>
           <p className="lc-tag">« La ville porte ton nom. La machine veut encore une pièce. »</p>
           <div className="lc-crow">
             <button className="lc-btn" onClick={() => setScreen("play")}>encore un tour</button>
@@ -992,7 +1033,14 @@ export default function LastCoin() {
         <Ovl><div className="lc-modal">
           <div className="lc-mh">À SEC</div>
           <p className="lc-ms">tout est parti</p>
-          <p className="lc-mb">patrimoine atteint : {fmt(netWorth)}</p>
+          <div className="lc-statbox">
+            <div className="lc-stat-row"><span>tours joués</span><b>{pulls}</b></div>
+            <div className="lc-stat-row"><span>plus gros gain</span><b>{fmt(stats.biggestWin)}</b></div>
+            <div className="lc-stat-row"><span>patrimoine peak</span><b>{fmt(stats.peakWorth)}</b></div>
+            <div className="lc-stat-row"><span>crises endurées</span><b>{stats.crisesSurvived}</b>{stats.crisesRefused > 0 ? <i> · {stats.crisesRefused} refus</i> : null}</div>
+            <div className="lc-stat-row"><span>cartes obtenues</span><b>{stats.cardsEarned}</b></div>
+            <div className="lc-stat-row"><span>net</span><b>{fmt(stats.totalWon - stats.totalBet)}</b></div>
+          </div>
           <p className="lc-tag">« Une dernière pièce. La machine attend. »</p>
           <button className="lc-btn" onClick={newGame}>recommencer</button>
         </div></Ovl>
@@ -1185,6 +1233,11 @@ const CSS = `
 .lc-mh{font-size:16px;font-weight:500;letter-spacing:6px;}
 .lc-ms{font-size:11px;letter-spacing:2px;color:#707070;margin:7px 0 18px;}
 .lc-mb{font-size:12px;letter-spacing:1px;color:#555;margin:8px 0 4px;}
+.lc-statbox{display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid #ededed;padding:12px 14px;margin:14px 0 16px;background:#fafafa;}
+.lc-stat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:11px;letter-spacing:.5px;color:#444;}
+.lc-stat-row span{color:#7a7a7a;text-transform:uppercase;letter-spacing:1.5px;font-size:9px;}
+.lc-stat-row b{font-weight:600;font-size:13px;letter-spacing:.5px;color:#141414;}
+.lc-stat-row i{font-style:normal;font-size:10px;color:#9a9a9a;letter-spacing:1px;margin-left:4px;}
 .lc-rules{text-align:left;display:flex;flex-direction:column;gap:11px;font-size:13px;line-height:1.55;color:#444;margin-bottom:22px;}
 .lc-rules b{color:#141414;font-weight:500;}
 .lc-tag{color:#141414;font-style:italic;letter-spacing:.5px;text-align:center;margin-top:4px;}
