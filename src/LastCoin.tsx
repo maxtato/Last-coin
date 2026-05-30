@@ -197,6 +197,49 @@ const bandAt = (band, idx) => band[((idx % band.length) + band.length) % band.le
 // ===== Sauvegarde =====
 function loadSave() { try { const r = localStorage.getItem(SAVE_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
 
+// ===== Sons (Web Audio, synthese pure, aucun asset externe) =====
+let _audioCtx = null;
+function getAudioCtx() {
+  if (_audioCtx) {
+    if (_audioCtx.state === "suspended") _audioCtx.resume();
+    return _audioCtx;
+  }
+  try {
+    const AC = (typeof window !== "undefined") && (window.AudioContext || window.webkitAudioContext);
+    if (!AC) return null;
+    _audioCtx = new AC();
+  } catch { return null; }
+  return _audioCtx;
+}
+// tone(freq, dur, type, gain, delay) : oscillateur + enveloppe lineaire/expo
+function tone(freq, dur, type, gain, delay) {
+  type = type || "sine"; gain = gain == null ? 0.12 : gain; delay = delay || 0;
+  const ctx = getAudioCtx(); if (!ctx) return;
+  const t0 = ctx.currentTime + delay;
+  const osc = ctx.createOscillator();
+  const env = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t0);
+  env.gain.setValueAtTime(0, t0);
+  env.gain.linearRampToValueAtTime(gain, t0 + 0.005);
+  env.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(env); env.connect(ctx.destination);
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.01);
+}
+const SFX = {
+  click:      () => tone(180, 0.05, "triangle", 0.16),
+  reelStop:   () => tone(140, 0.07, "triangle", 0.10),
+  winSmall:   () => { tone(523, 0.10); tone(659, 0.14, "sine", 0.12, 0.06); },
+  winBig:     () => { tone(523, 0.09); tone(659, 0.09, "sine", 0.12, 0.07); tone(784, 0.17, "sine", 0.14, 0.14); },
+  winJackpot: () => { tone(523, 0.09); tone(659, 0.09, "sine", 0.12, 0.07); tone(784, 0.09, "sine", 0.13, 0.14); tone(1047, 0.22, "sine", 0.16, 0.21); },
+  skull:      () => { tone(130, 0.18, "sine", 0.16); tone(110, 0.28, "sine", 0.16, 0.12); },
+  crack:      () => tone(80, 0.22, "sawtooth", 0.13),
+  card:       () => tone(988, 0.08, "sine", 0.14),
+  crisis:     () => { tone(680, 0.10, "square", 0.13); tone(680, 0.10, "square", 0.13, 0.18); },
+  coin:       () => { tone(880, 0.05, "triangle", 0.10); tone(1175, 0.06, "triangle", 0.10, 0.04); },
+};
+
 // ===== Narratif (FR + punchlines EN). Rare et ciblé : surtout aux moments forts. =====
 const N = {
   first:   ["La machine recrache assez de pièces pour un repas."],
@@ -288,6 +331,10 @@ export default function LastCoin() {
   const [repullCharges, setRepullCharges] = useState(() => init.repullCharges || 0); // cartes REPULL (gagnées via Crown)
   const [repullAvail, setRepullAvail] = useState(false);                   // fenêtre de REPULL ouverte après le tour
   const [stats, setStats] = useState(() => ({ ...STATS0, ...(init.stats || {}) }));
+  const [soundOn, setSoundOn] = useState(() => init.soundOn !== false);    // son ON par defaut
+  const soundOnRef = useRef(soundOn);
+  useEffect(() => { soundOnRef.current = soundOn; }, [soundOn]);
+  const sfx = (name) => { if (soundOnRef.current && SFX[name]) SFX[name](); };
   const machineRef = useRef(null);
   const lampTimer = useRef(null);                    // gyro : timer de 5 s
 
@@ -337,8 +384,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats })); } catch {}
-  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn })); } catch {}
+  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn]);
 
   // peak du patrimoine : suivi en permanence des qu'il monte (acceuil cash + achats)
   useEffect(() => {
@@ -395,6 +442,7 @@ export default function LastCoin() {
         : { n: holdGain, type: "hold" };
       setCardNotif({ ...last, k: Date.now() });
       setTimeout(() => setCardNotif(null), 2400);
+      sfx("card");
     }
 
     // memorise le tour pour pouvoir re-evaluer apres un nudge/repull ; ouvre les fenetres si on a les cartes
@@ -431,7 +479,7 @@ export default function LastCoin() {
       if (!crack && skull && Math.random() < 0.5) trig = "cambriolage";
       else if (!crack && Math.random() < over * 0.18) trig = "roll";
     }
-    if (trig) setCrisis(makeCrisis(trig, snap.nw, snap.has));
+    if (trig) { setCrisis(makeCrisis(trig, snap.nw, snap.has)); sfx("crisis"); }
 
     const first = pulls === 0;
     const big = res.kind === 3 && res.mult >= 20;
@@ -442,6 +490,8 @@ export default function LastCoin() {
       lampTimer.current = setTimeout(() => setLampOn(false), 5000);          // gyro : 5 s ou jusqu'au prochain tour
       setTimeout(() => setWinLine(false), 1400);
       setTimeout(() => setWinFx(null), 2400);          // montant blanc : animation plus longue
+      // son de gain : jackpot si triple joker, big si combo >= x20, sinon small
+      sfx(res.kind === 3 && res.sym === "joker" ? "winJackpot" : big ? "winBig" : "winSmall");
       if (res.kind === 3) {            // 3 alignés : pluie de $ (plus dense si gros gain)
         const count = big ? 24 : 14;
         setBurst(Array.from({ length: count }, (_, i) => ({
@@ -451,6 +501,8 @@ export default function LastCoin() {
         })));
         setTimeout(() => setBurst(null), 1400);
       }
+    } else if (res.kind === -1) {
+      sfx(res.sym === "skull" ? "skull" : "crack");
     }
 
     // narratif : rare et ciblé (toujours sur 1er gain / jackpot / gros gain / danger ; sinon faible chance)
@@ -473,6 +525,7 @@ export default function LastCoin() {
     setPressed(true); setTimeout(() => setPressed(false), 600);
     setCash((c) => c - bet);
     setSpinning(true);
+    sfx("click");
 
     // HOLD : on plafonne par le nombre de charges dispos. Si l'utilisateur a marqué plus que disponible (impossible via UI mais sécurité), on ignore les surplus dans l'ordre.
     const holdSnap = held.slice();
@@ -504,6 +557,8 @@ export default function LastCoin() {
     setStrips(newStrips);
     setPhase("start");
     requestAnimationFrame(() => requestAnimationFrame(() => setPhase("run")));
+    // stops des rouleaux : 1 son par rouleau qui s'arrete, hors held
+    durations.forEach((d, i) => { if (!holdSnap[i]) setTimeout(() => sfx("reelStop"), Math.round(d * 1000) - 20); });
     setTimeout(() => {
       resolveAll(targets, bet, lk, snap);
       setPhase("idle"); setSpinning(false); setSpinHeld([false, false, false]);
@@ -520,6 +575,7 @@ export default function LastCoin() {
     const classUp = newClass > classOf(lvl);
     setCash((c) => c - netCost); setLvl((v) => ({ ...v, [f.id]: L + 1 }));
     setHope((h) => clamp(h + (f.id === "logement" ? 14 : 6), 0, 100));   // s'installer relève le moral
+    sfx("coin");
     // narratif ciblé : montée de classe > achat emblématique > parfois
     if (classUp) {
       say(N.classUp[newClass]);
@@ -535,6 +591,7 @@ export default function LastCoin() {
     if (L <= 0) return;
     setCash((c) => c + f.tiers[L - 1].resale); setLvl((v) => ({ ...v, [f.id]: 0 }));
     setHope((h) => clamp(h - 10, 0, 100)); say(pick(N.sell));
+    sfx("coin");
   };
 
   const repair = () => { if (!jammed || cash < repairCost) return; setCash((c) => c - repairCost); setJammed(false); say("La machine repart. Pour l'instant."); };
@@ -866,6 +923,7 @@ export default function LastCoin() {
               <div className="lc-menucol">
                 <button className="lc-btn" onClick={() => setScreen("play")}>reprendre</button>
                 <button className="lc-btn ghost" onClick={() => { setScreen("play"); setOverlay("rules"); }}>règles</button>
+                <button className="lc-btn ghost" onClick={() => setSoundOn((s) => !s)}>son · {soundOn ? "on" : "off"}</button>
                 <button className="lc-btn ghost" onClick={() => setConfirmReset(true)}>recommencer</button>
               </div>
             </>
