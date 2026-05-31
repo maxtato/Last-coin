@@ -1493,8 +1493,8 @@ const CSS = `
 .lc-cash>i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
 .lc-cash>b{font-weight:600;font-size:27px;letter-spacing:1px;line-height:1.02;}
 /* Animation 'evaporation' : montant rouge qui flotte au-dessus du cash et fade out */
-.lc-cashloss{position:absolute;left:0;top:-4px;font-weight:600;font-size:15px;letter-spacing:.5px;color:#c62828;pointer-events:none;animation:cashevap 1.7s cubic-bezier(.2,.7,.3,1) forwards;white-space:nowrap;}
-@keyframes cashevap{0%{opacity:0;transform:translateY(6px) scale(.85);}10%{opacity:1;transform:translateY(0) scale(1);}65%{opacity:.85;transform:translateY(-18px) scale(1);}100%{opacity:0;transform:translateY(-36px) scale(.92);}}
+.lc-cashloss{position:absolute;left:0;top:-2px;font-weight:700;font-size:15px;letter-spacing:.5px;color:#141414;pointer-events:none;animation:cashpulse 1.7s ease-out forwards;white-space:nowrap;transform-origin:left center;}
+@keyframes cashpulse{0%{opacity:0;transform:translateY(4px) scale(.9);}8%{opacity:1;transform:translateY(0) scale(1.18);}18%{transform:translateY(0) scale(1);}30%{transform:translateY(0) scale(1.14);}42%{transform:translateY(0) scale(1);}54%{transform:translateY(0) scale(1.10);}66%{transform:translateY(0) scale(1);}82%{opacity:1;}100%{opacity:0;transform:translateY(0) scale(1);}}
 .lc-cash>em{font-style:normal;font-size:10px;color:#9a9a9a;letter-spacing:.5px;margin-top:2px;}
 .lc-level{display:flex;flex-direction:column;align-items:flex-end;text-align:right;}
 .lc-level>i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
@@ -1504,8 +1504,9 @@ const CSS = `
 .lc-pip.on{background:#141414;border-color:#141414;}
 .lc-head{text-align:center;margin-top:40px;}
 /* Petit panneau d'explication affiche au-dessus de la machine quand une capacite (HOLD/NUDGE/REPULL) est armee */
-.lc-ability-expl{max-width:320px;background:#141414;color:#fafafa;padding:9px 14px;font-size:11px;letter-spacing:.5px;line-height:1.45;text-align:center;animation:expop .25s ease-out;margin:-6px auto 0;}
-@keyframes expop{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+/* Panneau d'explication en overlay : ne decale pas la mise en page, flotte au-dessus de la machine */
+.lc-ability-expl{position:fixed;left:50%;top:14%;transform:translateX(-50%);max-width:320px;width:calc(100% - 40px);background:#141414;color:#fafafa;padding:10px 16px;font-size:11px;letter-spacing:.5px;line-height:1.45;text-align:center;animation:expop .22s ease-out;z-index:30;box-shadow:0 4px 16px rgba(20,20,20,.18);pointer-events:none;}
+@keyframes expop{from{opacity:0;transform:translate(-50%,-6px);}to{opacity:1;transform:translate(-50%,0);}}
 .lc-over-reason{font-size:11px;letter-spacing:2px;color:#9a9a9a;text-transform:uppercase;margin-top:-4px;margin-bottom:6px;}
 .lc-mark{font-size:18px;font-weight:500;letter-spacing:9px;padding-left:9px;}
 .lc-sub{font-size:10px;letter-spacing:3px;color:#707070;margin-top:5px;}
