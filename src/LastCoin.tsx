@@ -546,7 +546,8 @@ export default function LastCoin() {
   const [crisis, setCrisis] = useState(null);                  // crise active (modale)
   const [wonEmpire, setWonEmpire] = useState(() => !!init.empire);
   const [confirmReset, setConfirmReset] = useState(false);   // pause : confirmation avant de recommencer
-  const [durations] = useState([1.6, 2.25, 2.9]);   // roulement plus long
+  const [durations] = useState([2.4, 3.2, 4.0]);   // roulement nettement plus long
+  const [stopShock, setStopShock] = useState([false, false, false]);   // anim de choc breve a chaque arret
   const [held, setHeld] = useState([false, false, false]);                 // rouleaux marqués HOLD avant le tour
   const [holdCharges, setHoldCharges] = useState(() => init.holdCharges || 0);  // jetons HOLD dispos (gagnés via Bolt)
   const [spinHeld, setSpinHeld] = useState([false, false, false]);         // rouleaux figés pendant l'anim du tour
@@ -571,12 +572,15 @@ export default function LastCoin() {
   const machineRef = useRef(null);
   const lampTimer = useRef(null);                    // gyro : timer de 5 s
 
-  // strips
+  // strips : sens TOP-TO-BOTTOM. cells[1] = symbole au repos (bandAt(band, stop)).
+  // cells[0] = bandAt(stop+1) (visible juste en dessous au repos), cells[k>=2] = bandAt(stop - (k-1)).
+  // Pendant l'animation, le strip passe de cells[cells.length-1] (cell tout en bas du strip,
+  // donc visible apres une longue translation vers le bas) jusqu'a cells[1] (rest).
   const makeStrip = (band, stop, run) => {
     const n = run + 2;
-    const cells = [];
-    for (let k = -n; k <= 1; k++) cells.push(bandAt(band, stop + k));
-    return { cells, t: cells.length - 2 };
+    const cells = [bandAt(band, stop + 1)];
+    for (let k = 0; k <= n; k++) cells.push(bandAt(band, stop - k));
+    return { cells, t: 1, startT: cells.length - 1 };
   };
   const restStrip = (r) => makeStrip(BANDS[r], 1, 0);
   const [strips, setStrips] = useState(() => REELS.map((_, r) => restStrip(r)));
@@ -605,7 +609,9 @@ export default function LastCoin() {
   const reelY = (r) => {
     if (!cellH) return 0;
     if (spinHeld[r]) return restY(strips[r].t);                 // rouleau bloqué : reste sur place
-    return phase === "start" ? 0 : restY(strips[r].t);
+    // phase "start" : strip pousse vers le HAUT (cell tout en bas centree).
+    // phase "run"   : strip descend jusqu'a la position de repos -> spin top-to-bottom.
+    return phase === "start" ? restY(strips[r].startT || strips[r].t) : restY(strips[r].t);
   };
 
   useLayoutEffect(() => {
@@ -791,12 +797,21 @@ export default function LastCoin() {
     setStrips(newStrips);
     setPhase("start");
     requestAnimationFrame(() => requestAnimationFrame(() => setPhase("run")));
-    // stops des rouleaux : 1 son par rouleau qui s'arrete, hors held
-    durations.forEach((d, i) => { if (!holdSnap[i]) setTimeout(() => sfx("reelStop"), Math.round(d * 1000) - 20); });
+    // a chaque rouleau qui s'arrete : son + anim de choc breve (220ms)
+    durations.forEach((d, i) => {
+      if (holdSnap[i]) return;
+      const stopAt = Math.round(d * 1000);
+      setTimeout(() => {
+        sfx("reelStop");
+        setStopShock((p) => p.map((v, idx) => idx === i ? true : v));
+        setTimeout(() => setStopShock((p) => p.map((v, idx) => idx === i ? false : v)), 240);
+      }, stopAt - 20);
+    });
+    const longest = Math.round(Math.max(...durations) * 1000) + 280;
     setTimeout(() => {
       resolveAll(targets, bet, lk, snap);
       setPhase("idle"); setSpinning(false); setSpinHeld([false, false, false]);
-    }, 3150);
+    }, longest);
   };
 
   const buyNext = (f) => {                       // monte d'un palier (remplace l'ancien, reprise déduite)
@@ -991,7 +1006,7 @@ export default function LastCoin() {
           return (
             <div
               key={r}
-              className={"lc-reel" + (held[r] ? " held" : "") + (canHold ? " holdable" : "") + (canNudge || canRepull ? " nudgable" : "")}
+              className={"lc-reel" + (held[r] ? " held" : "") + (canHold ? " holdable" : "") + (canNudge || canRepull ? " nudgable" : "") + (stopShock[r] ? " shock" : "")}
               onClick={canHold ? () => toggleHold(r) : undefined}
               style={{ left: R.l + "%", top: WIN_TOP + "%", width: R.w + "%", height: WIN_H + "%" }}
             >
@@ -1009,16 +1024,32 @@ export default function LastCoin() {
                   </div>
                 ))}
               </div>
-              {canNudge && (
-                <>
-                  <button className="lc-nudgebtn up" onClick={(e) => { e.stopPropagation(); nudge(r, +1); }} aria-label="nudge haut">▲</button>
-                  <button className="lc-nudgebtn dn" onClick={(e) => { e.stopPropagation(); nudge(r, -1); }} aria-label="nudge bas">▼</button>
-                </>
-              )}
               {canRepull && (
                 <button className="lc-repullbtn" onClick={(e) => { e.stopPropagation(); repull(r); }} aria-label="rejouer ce rouleau">↻</button>
               )}
             </div>
+          );
+        })}
+        {/* Boutons NUDGE rendus en siblings des rouleaux, positionnes au-dessus et en-dessous,
+            pour ne pas cacher le symbole central. Sens top-to-bottom : ▲ = symbole d'avant, ▼ = symbole suivant. */}
+        {REELS.map((R, r) => {
+          const canNudge = !spinning && !jammed && !crisis && nudgeAvail && nudgeCharges > 0 && screen === "play";
+          if (!canNudge) return null;
+          return (
+            <React.Fragment key={"nb" + r}>
+              <button
+                className="lc-nudgebtn up"
+                onClick={() => nudge(r, +1)}
+                aria-label="nudge haut"
+                style={{ left: R.l + "%", top: (WIN_TOP - 4.2) + "%", width: R.w + "%" }}
+              >▲</button>
+              <button
+                className="lc-nudgebtn dn"
+                onClick={() => nudge(r, -1)}
+                aria-label="nudge bas"
+                style={{ left: R.l + "%", top: (WIN_TOP + WIN_H + 0.5) + "%", width: R.w + "%" }}
+              >▼</button>
+            </React.Fragment>
           );
         })}
         <div className="lc-shadow" style={{ top: WIN_TOP + "%", left: REELS[0].l + "%", width: (REELS[2].l + REELS[2].w - REELS[0].l) + "%", height: (WIN_H * 0.16) + "%" }} />
@@ -1515,15 +1546,21 @@ const CSS = `
 .lc-ring{position:absolute;width:2.4em;height:2.4em;border:1px solid rgba(255,255,255,.7);border-radius:50%;animation:pring 1s ease-out forwards;}
 @keyframes pring{0%{opacity:.5;transform:scale(.3);}100%{opacity:0;transform:scale(1.3);}}
 .lc-reel{position:absolute;overflow:hidden;background:#fff;transition:outline-color .15s;}
+/* anim de choc quand un rouleau s'arrete : petite secousse verticale, plus l'inertie d'un thud */
+.lc-reel.shock{animation:reelthump .24s cubic-bezier(.2,1.4,.4,1);}
+@keyframes reelthump{
+  0%   {transform:translateY(0);}
+  35%  {transform:translateY(3px);}
+  70%  {transform:translateY(-1.2px);}
+  100% {transform:translateY(0);}
+}
 .lc-reel.holdable{cursor:pointer;}
 .lc-reel.held{outline:2px solid #141414;outline-offset:-2px;}
 .lc-reel.held::after{content:"HOLD";position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#fff;background:#141414;padding:1px 6px;pointer-events:none;z-index:3;}
 .lc-reel.nudgable{outline:1px dashed #141414;outline-offset:-1px;}
-.lc-nudgebtn{position:absolute;left:50%;transform:translateX(-50%);width:60%;height:14%;background:rgba(255,255,255,.78);border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;z-index:6;padding:0;color:#141414;font-family:inherit;transition:.12s;backdrop-filter:blur(2px);}
-.lc-nudgebtn.up{top:2px;}
-.lc-nudgebtn.dn{bottom:2px;}
+.lc-nudgebtn{position:absolute;height:3.6%;background:#fff;border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;z-index:6;padding:0;color:#141414;font-family:inherit;transition:background .12s,color .12s;}
 .lc-nudgebtn:hover{background:#141414;color:#fff;}
-.lc-nudgebtn:active{transform:translateX(-50%) scale(.92);}
+.lc-nudgebtn:active{transform:scale(.94);}
 .lc-repullbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;background:rgba(255,255,255,.82);border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;z-index:7;padding:0;color:#141414;font-family:inherit;transition:.12s;backdrop-filter:blur(2px);}
 .lc-repullbtn:hover{background:#141414;color:#fff;}
 .lc-repullbtn:active{transform:translate(-50%,-50%) scale(.9);}
