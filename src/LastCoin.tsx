@@ -811,7 +811,7 @@ export default function LastCoin() {
             sfx("reelStop");
             setLanded((p) => p.map((v, idx) => (idx === i ? true : v)));
             setTimeout(() => setLanded((p) => p.map((v, idx) => (idx === i ? false : v))), 320);
-          }, Math.round(REEL_BRAKE_DUR * 1000) - 40);
+          }, Math.round(REEL_BRAKE_DUR * 1000 * 0.4));
         }, cruiseMs);
       });
     }));
@@ -929,7 +929,7 @@ export default function LastCoin() {
           sfx("reelStop");
           setLanded((p) => p.map((v, i2) => (i2 === r ? true : v)));
           setTimeout(() => setLanded((p) => p.map((v, i2) => (i2 === r ? false : v))), 320);
-        }, Math.round(REEL_BRAKE_DUR * 1000) - 40);
+        }, Math.round(REEL_BRAKE_DUR * 1000 * 0.4));
       }, Math.round(reelCruiseDur(r) * 1000));
     }));
 
