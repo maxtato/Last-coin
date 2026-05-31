@@ -944,9 +944,11 @@ export default function LastCoin() {
       <div className="lc-bar">
         <div className="lc-cash">
           <i>{t("argent")}</i>
-          <b>{fmt(cash)}</b>
+          <div className="lc-cashrow">
+            <b>{fmt(cash)}</b>
+            {cashLoss && <span className="lc-cashloss" key={cashLoss.k}>-{fmt(cashLoss.amt)}</span>}
+          </div>
           {income > 0 && <em>+{fmt(income)}{t("par_tour")}</em>}
-          {cashLoss && <span className="lc-cashloss" key={cashLoss.k}>-{fmt(cashLoss.amt)}</span>}
         </div>
         <div className="lc-bar-actions">
           <button className="lc-menu" onClick={() => { setConfirmReset(false); setCheatSeq([]); setScreen("pause"); }} aria-label={t("pause")} title={t("pause")}><i /><i /></button>
@@ -1517,8 +1519,11 @@ const CSS = `
 .lc-cash>i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
 .lc-cash>b{font-weight:600;font-size:27px;letter-spacing:1px;line-height:1.02;}
 /* Animation 'evaporation' : montant rouge qui flotte au-dessus du cash et fade out */
-.lc-cashloss{position:absolute;left:0;top:-2px;font-weight:700;font-size:15px;letter-spacing:.5px;color:#141414;pointer-events:none;animation:cashpulse 1.7s ease-out forwards;white-space:nowrap;transform-origin:left center;}
-@keyframes cashpulse{0%{opacity:0;transform:translateY(4px) scale(.9);}8%{opacity:1;transform:translateY(0) scale(1.18);}18%{transform:translateY(0) scale(1);}30%{transform:translateY(0) scale(1.14);}42%{transform:translateY(0) scale(1);}54%{transform:translateY(0) scale(1.10);}66%{transform:translateY(0) scale(1);}82%{opacity:1;}100%{opacity:0;transform:translateY(0) scale(1);}}
+/* Conteneur de la ligne 'argent' : flex en ligne pour ancrer le delta a droite du montant */
+.lc-cashrow{position:relative;display:inline-flex;align-items:flex-end;}
+/* Montant perdu : apparait a droite du cash, monte et fade out */
+.lc-cashloss{position:absolute;left:100%;bottom:0;margin-left:10px;font-weight:600;font-size:15px;letter-spacing:.5px;color:#141414;pointer-events:none;animation:cashrise 1.4s cubic-bezier(.2,.6,.3,1) forwards;white-space:nowrap;}
+@keyframes cashrise{0%{opacity:0;transform:translateY(8px);}15%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-30px);}}
 .lc-cash>em{font-style:normal;font-size:10px;color:#9a9a9a;letter-spacing:.5px;margin-top:2px;}
 .lc-level{display:flex;flex-direction:column;align-items:flex-end;text-align:right;}
 .lc-level>i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
