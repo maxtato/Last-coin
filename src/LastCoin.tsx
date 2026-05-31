@@ -1059,9 +1059,9 @@ export default function LastCoin() {
               </div>
               {canRepull && (
                 <button className="lc-repullbtn" onClick={(e) => { e.stopPropagation(); repull(r); }} aria-label="rejouer ce rouleau">
-                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 4 20 10 14 10" />
-                    <path d="M20 10 A9 9 0 1 0 21 14" />
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 14 A8 8 0 0 1 19 9" />
+                    <polyline points="14 4 19 9 14 13" />
                   </svg>
                 </button>
               )}
@@ -1629,10 +1629,10 @@ const CSS = `
 .lc-nudgebtn svg{width:60%;height:60%;display:block;}
 .lc-nudgebtn:hover{background:#fafafa;color:#141414;}
 .lc-nudgebtn:active{transform:scale(.94);}
-/* Bouton REPULL : refresh SVG dans un disque blanc bord noir, centre du rouleau */
-.lc-repullbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;background:#fafafa;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:7;padding:0;color:#141414;font-family:inherit;transition:.12s;}
-.lc-repullbtn svg{width:18px;height:18px;display:block;}
-.lc-repullbtn:hover{background:#141414;color:#fafafa;}
+/* Bouton REPULL : flche courte blanche sur disque noir au centre du rouleau */
+.lc-repullbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;background:#141414;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:7;padding:0;color:#fafafa;font-family:inherit;transition:.12s;}
+.lc-repullbtn svg{width:20px;height:20px;display:block;}
+.lc-repullbtn:hover{background:#fafafa;color:#141414;}
 .lc-repullbtn:active{transform:translate(-50%,-50%) scale(.9);}
 .lc-shadow{position:absolute;pointer-events:none;z-index:2;
   background:linear-gradient(to bottom,rgba(70,70,70,.55) 0%,rgba(70,70,70,.24) 50%,rgba(255,255,255,0) 100%);}
