@@ -557,7 +557,7 @@ export default function LastCoin() {
   const REEL_BRAKE_DUR = 1.20;                     // brake nettement plus long pour percevoir la deceleration finale
   const REEL_RUN_TOTAL = Math.max(...REEL_CRUISE_CELLS) + REEL_BRAKE_CELLS;  // = 37 cells, taille du strip
   const reelCruiseDur = (r) => REEL_CRUISE_CELLS[r] / REEL_CRUISE_SPEED;
-  const reelStartT = (r) => 1 + REEL_BRAKE_CELLS + REEL_CRUISE_CELLS[r];     // index ou cell est centree au debut
+  const reelStartT = (r) => 2 + REEL_BRAKE_CELLS + REEL_CRUISE_CELLS[r];     // index ou cell est centree au debut (offset rest=2)
   const [reelStage, setReelStage] = useState([0, 0, 0]);   // 0=idle, 1=jump, 2=cruise, 3=brake
   const [held, setHeld] = useState([false, false, false]);                 // rouleaux marqués HOLD avant le tour
   const [holdCharges, setHoldCharges] = useState(() => init.holdCharges || 0);  // jetons HOLD dispos (gagnés via Bolt)
@@ -583,15 +583,15 @@ export default function LastCoin() {
   const machineRef = useRef(null);
   const lampTimer = useRef(null);                    // gyro : timer de 5 s
 
-  // strips : sens TOP-TO-BOTTOM. cells[1] = symbole au repos (bandAt(band, stop)).
-  // cells[0] = bandAt(stop+1) (visible juste en dessous au repos), cells[k>=2] = bandAt(stop - (k-1)).
-  // Pendant l'animation, le strip passe de cells[cells.length-1] (cell tout en bas du strip,
-  // donc visible apres une longue translation vers le bas) jusqu'a cells[1] (rest).
+  // strips : sens TOP-TO-BOTTOM. cells[2] = symbole au repos (bandAt(band, stop)).
+  // cells[0..1] = 2 cellules au-DESSUS du repos (visibles dans la fenetre haute du rouleau au repos)
+  // cells[k>=3] = bandAt(stop - (k-2)) — cellules en-dessous, parcourues pendant le spin.
+  // Le buffer de 2 cellules au-dessus garantit qu'un NUDGE -1 (cell[1] centre) reste rempli en haut.
   const makeStrip = (band, stop, run) => {
     const n = run + 2;
-    const cells = [bandAt(band, stop + 1)];
+    const cells = [bandAt(band, stop + 2), bandAt(band, stop + 1)];
     for (let k = 0; k <= n; k++) cells.push(bandAt(band, stop - k));
-    return { cells, t: 1, startT: cells.length - 1 };
+    return { cells, t: 2, startT: cells.length - 1 };
   };
   const restStrip = (r) => makeStrip(BANDS[r], 1, 0);
   const [strips, setStrips] = useState(() => REELS.map((_, r) => restStrip(r)));
@@ -624,7 +624,7 @@ export default function LastCoin() {
     // 1 = jump : strip place tout en haut (cell de depart visible), pas de transition
     if (st === 1) return restY(reelStartT(r));
     // 2 = cruise : strip descend a vitesse constante jusqu'au seuil de freinage
-    if (st === 2) return restY(1 + REEL_BRAKE_CELLS);
+    if (st === 2) return restY(2 + REEL_BRAKE_CELLS);
     // 3 = brake : strip ralentit brutalement jusqu'au repos
     if (st === 3) return restY(strips[r].t);
     return restY(strips[r].t);                                  // 0 = idle
@@ -946,8 +946,7 @@ export default function LastCoin() {
     if (positions.length === 0) { const idx = (Math.random() * band.length) | 0; positions = [idx]; want = band[idx]; }
     const stop = positions[(Math.random() * positions.length) | 0];
     const newSym = bandAt(band, stop);
-    const run = 16;
-    const newStrip = makeStrip(band, stop, run);
+    const newStrip = makeStrip(band, stop, REEL_RUN_TOTAL);   // meme taille de strip que les spins normaux pour eviter cells[startT] undefined
 
     // anim de spin uniquement sur ce rouleau : on bloque les autres via spinHeld
     setSpinning(true);
@@ -1060,18 +1059,19 @@ export default function LastCoin() {
               </div>
               {canRepull && (
                 <button className="lc-repullbtn" onClick={(e) => { e.stopPropagation(); repull(r); }} aria-label="rejouer ce rouleau">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M20 12 A8 8 0 1 1 17.5 6.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" />
-                    <path d="M14 4 L20 4 L20 10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" strokeLinejoin="miter" />
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 4 20 10 14 10" />
+                    <path d="M20 10 A9 9 0 1 0 21 14" />
                   </svg>
                 </button>
               )}
               {held[r] && (
                 <div className="lc-lock" aria-hidden="true">
                   <svg viewBox="0 0 24 24">
-                    <path d="M9 11 V8 a3 3 0 0 1 6 0 V11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" strokeLinejoin="miter" />
-                    <rect x="6.5" y="11" width="11" height="9" fill="none" stroke="currentColor" strokeWidth="1.6" />
-                    <rect x="11.2" y="13.6" width="1.6" height="3.8" fill="currentColor" />
+                    <path d="M8.5 11 V7.5 a3.5 3.5 0 0 1 7 0 V11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <rect x="6" y="11" width="12" height="10" rx="0.6" fill="none" stroke="currentColor" strokeWidth="2" />
+                    <circle cx="12" cy="14.6" r="1.4" fill="currentColor" />
+                    <rect x="11.2" y="15" width="1.6" height="3.4" fill="currentColor" />
                   </svg>
                 </div>
               )}
@@ -1617,17 +1617,17 @@ const CSS = `
 .lc-reel.holdable{cursor:pointer;}
 /* HOLD arme, non bloque : tag minimal "HOLD" en haut du rouleau, gravure inversee blanche sur noir */
 .lc-reel.holdable:not(.held)::after{content:"HOLD";position:absolute;left:50%;top:4px;transform:translateX(-50%);font-size:7px;letter-spacing:3px;font-weight:400;color:#fafafa;background:#141414;padding:2px 7px 1px;pointer-events:none;z-index:4;animation:tagfade .2s ease;}
-/* Rouleau bloque : outline 2px + cadenas filaire en haut, etche au lieu de cache le symbole */
+/* Rouleau bloque : outline 2px + cadenas filaire blanc sur pastille noire, plus visible */
 .lc-reel.held{outline:2px solid #141414;outline-offset:-2px;}
-.lc-lock{position:absolute;left:50%;top:4px;transform:translateX(-50%);width:22px;height:22px;display:flex;align-items:center;justify-content:center;background:#fafafa;border:1px solid #141414;pointer-events:none;z-index:5;color:#141414;animation:tagfade .2s ease;}
-.lc-lock svg{width:16px;height:16px;display:block;}
+.lc-lock{position:absolute;left:50%;top:4px;transform:translateX(-50%);width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#141414;border:1px solid #141414;pointer-events:none;z-index:5;color:#fafafa;animation:tagfade .2s ease;}
+.lc-lock svg{width:22px;height:22px;display:block;}
 @keyframes tagfade{from{opacity:0;transform:translate(-50%,-2px);}to{opacity:1;transform:translateX(-50%);}}
 /* NUDGE arme : outline pointille 1px discret sur les rouleaux */
 .lc-reel.nudgable{outline:1px dashed #141414;outline-offset:-1px;}
-/* Boutons NUDGE : chevrons SVG fins en haut/bas du rouleau */
-.lc-nudgebtn{position:absolute;height:3.6%;min-height:14px;background:#fff;border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:6;padding:0;color:#141414;font-family:inherit;transition:background .12s,color .12s;}
+/* Boutons NUDGE : chevrons SVG blancs sur fond noir au-dessus/en-dessous du rouleau */
+.lc-nudgebtn{position:absolute;height:3.6%;min-height:14px;background:#141414;border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:6;padding:0;color:#fafafa;font-family:inherit;transition:background .12s,color .12s;}
 .lc-nudgebtn svg{width:60%;height:60%;display:block;}
-.lc-nudgebtn:hover{background:#141414;color:#fff;}
+.lc-nudgebtn:hover{background:#fafafa;color:#141414;}
 .lc-nudgebtn:active{transform:scale(.94);}
 /* Bouton REPULL : refresh SVG dans un disque blanc bord noir, centre du rouleau */
 .lc-repullbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;background:#fafafa;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:7;padding:0;color:#141414;font-family:inherit;transition:.12s;}
