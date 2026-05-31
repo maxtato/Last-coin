@@ -538,7 +538,6 @@ export default function LastCoin() {
   const [winLine, setWinLine] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [machineW, setMachineW] = useState(0);
-  const [phase, setPhase] = useState("idle");
   const [overlay, setOverlay] = useState(null);   // "buy" | "assets" | null
   const [hope, setHope] = useState(() => (init.hope != null ? init.hope : HOPE0));
   const [risk, setRisk] = useState(() => init.risk || 0);
@@ -546,8 +545,16 @@ export default function LastCoin() {
   const [crisis, setCrisis] = useState(null);                  // crise active (modale)
   const [wonEmpire, setWonEmpire] = useState(() => !!init.empire);
   const [confirmReset, setConfirmReset] = useState(false);   // pause : confirmation avant de recommencer
-  const [durations] = useState([2.4, 3.2, 4.0]);   // roulement nettement plus long
-  const [stopShock, setStopShock] = useState([false, false, false]);   // anim de choc breve a chaque arret
+  // Spin en 2 phases : cruise (vitesse constante, lineaire) puis brake (decel brutale identique pour tous).
+  // Le stagger se fait UNIQUEMENT sur la duree du cruise — chaque rouleau brake de la meme facon.
+  const REEL_CRUISE_SPEED = 14;                    // cells/sec, identique pour tous
+  const REEL_CRUISE_CELLS = [12, 22, 32];          // distance de cruise par rouleau -> stagger des stops
+  const REEL_BRAKE_CELLS = 5;                      // cells de frein, identique pour tous
+  const REEL_BRAKE_DUR = 0.55;                     // duree du frein, identique pour tous
+  const REEL_RUN_TOTAL = Math.max(...REEL_CRUISE_CELLS) + REEL_BRAKE_CELLS;  // = 37 cells, taille du strip
+  const reelCruiseDur = (r) => REEL_CRUISE_CELLS[r] / REEL_CRUISE_SPEED;
+  const reelStartT = (r) => 1 + REEL_BRAKE_CELLS + REEL_CRUISE_CELLS[r];     // index ou cell est centree au debut
+  const [reelStage, setReelStage] = useState([0, 0, 0]);   // 0=idle, 1=jump, 2=cruise, 3=brake
   const [held, setHeld] = useState([false, false, false]);                 // rouleaux marqués HOLD avant le tour
   const [holdCharges, setHoldCharges] = useState(() => init.holdCharges || 0);  // jetons HOLD dispos (gagnés via Bolt)
   const [spinHeld, setSpinHeld] = useState([false, false, false]);         // rouleaux figés pendant l'anim du tour
@@ -559,7 +566,6 @@ export default function LastCoin() {
   const [repullAvail, setRepullAvail] = useState(false);                   // fenêtre de REPULL ouverte après le tour
   const [stats, setStats] = useState(() => ({ ...STATS0, ...(init.stats || {}) }));
   const [soundOn, setSoundOn] = useState(() => init.soundOn !== false);    // son ON par defaut
-  const [darkMode, setDarkMode] = useState(() => !!init.darkMode);
   const [lang, setLang] = useState(() => init.lang || "fr");                // "fr" | "en"
   const t = (k) => (T[k] && T[k][lang]) || k;                              // helper i18n
   const famName  = (f) => lang === "en" ? f.name_en  : f.name;             // i18n field accessors
@@ -609,9 +615,14 @@ export default function LastCoin() {
   const reelY = (r) => {
     if (!cellH) return 0;
     if (spinHeld[r]) return restY(strips[r].t);                 // rouleau bloqué : reste sur place
-    // phase "start" : strip pousse vers le HAUT (cell tout en bas centree).
-    // phase "run"   : strip descend jusqu'a la position de repos -> spin top-to-bottom.
-    return phase === "start" ? restY(strips[r].startT || strips[r].t) : restY(strips[r].t);
+    const st = reelStage[r];
+    // 1 = jump : strip place tout en haut (cell de depart visible), pas de transition
+    if (st === 1) return restY(reelStartT(r));
+    // 2 = cruise : strip descend a vitesse constante jusqu'au seuil de freinage
+    if (st === 2) return restY(1 + REEL_BRAKE_CELLS);
+    // 3 = brake : strip ralentit brutalement jusqu'au repos
+    if (st === 3) return restY(strips[r].t);
+    return restY(strips[r].t);                                  // 0 = idle
   };
 
   useLayoutEffect(() => {
@@ -623,8 +634,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, darkMode, lang })); } catch {}
-  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, darkMode, lang]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang })); } catch {}
+  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang]);
 
   // peak du patrimoine : suivi en permanence des qu'il monte (acceuil cash + achats)
   useEffect(() => {
@@ -643,7 +654,7 @@ export default function LastCoin() {
     setCash(1); setLvl({ ...FAM0 }); setBetIdx(0); setPulls(0);
     setHope(HOPE0); setRisk(0); setJammed(false); setCrisis(null); setWonEmpire(false);
     setLastWin(null); setFlash(""); setLampOn(false); setWinLine(false);
-    setStrips(REELS.map((_, r) => restStrip(r))); setPhase("idle"); setSpinning(false);
+    setStrips(REELS.map((_, r) => restStrip(r))); setReelStage([0, 0, 0]); setSpinning(false);
     setHeld([false, false, false]); setHoldCharges(0); setSpinHeld([false, false, false]);
     setNudgeCharges(0); setNudgeAvail(false); setLastSpin(null); setNudgeAnim([false, false, false]);
     setRepullCharges(0); setRepullAvail(false);
@@ -776,7 +787,7 @@ export default function LastCoin() {
     if (consumed > 0) setHoldCharges((c) => c - consumed);
     setHeld([false, false, false]);
 
-    const run = 28;
+    const run = REEL_RUN_TOTAL;            // strip assez long pour le plus grand cruise + brake
     const first = pulls === 0;
     const targets = [];
     const newStrips = REELS.map((_, r) => {
@@ -795,23 +806,28 @@ export default function LastCoin() {
     });
 
     setStrips(newStrips);
-    setPhase("start");
-    requestAnimationFrame(() => requestAnimationFrame(() => setPhase("run")));
-    // a chaque rouleau qui s'arrete : son + anim de choc breve (220ms)
-    durations.forEach((d, i) => {
-      if (holdSnap[i]) return;
-      const stopAt = Math.round(d * 1000);
-      setTimeout(() => {
-        sfx("reelStop");
-        setStopShock((p) => p.map((v, idx) => idx === i ? true : v));
-        setTimeout(() => setStopShock((p) => p.map((v, idx) => idx === i ? false : v)), 240);
-      }, stopAt - 20);
-    });
-    const longest = Math.round(Math.max(...durations) * 1000) + 280;
+    // Phase 1 : jump aux positions de depart (par-rouleau), sans transition
+    setReelStage(holdSnap.map((h) => h ? 0 : 1));
+    // Phase 2 : cruise (vitesse constante identique) — passe a l'image suivante pour declencher la transition lineaire
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      setReelStage((prev) => prev.map((s, i) => (holdSnap[i] ? 0 : 2)));
+      // Phase 3 : pour chaque rouleau, declenche le freinage a la fin de son cruise
+      REEL_CRUISE_CELLS.forEach((_, i) => {
+        if (holdSnap[i]) return;
+        const cruiseMs = Math.round(reelCruiseDur(i) * 1000);
+        setTimeout(() => {
+          setReelStage((p) => p.map((s, idx) => (idx === i ? 3 : s)));
+          // Son du stop joue a la fin du brake
+          setTimeout(() => sfx("reelStop"), Math.round(REEL_BRAKE_DUR * 1000) - 40);
+        }, cruiseMs);
+      });
+    }));
+    const longestCruise = Math.max(...REEL_CRUISE_CELLS.filter((_, i) => !holdSnap[i]).map((c) => c / REEL_CRUISE_SPEED), 0);
+    const totalMs = Math.round((longestCruise + REEL_BRAKE_DUR) * 1000) + 120;
     setTimeout(() => {
       resolveAll(targets, bet, lk, snap);
-      setPhase("idle"); setSpinning(false); setSpinHeld([false, false, false]);
-    }, longest);
+      setReelStage([0, 0, 0]); setSpinning(false); setSpinHeld([false, false, false]);
+    }, totalMs);
   };
 
   const buyNext = (f) => {                       // monte d'un palier (remplace l'ancien, reprise déduite)
@@ -929,8 +945,15 @@ export default function LastCoin() {
     setSpinning(true);
     setSpinHeld([0, 1, 2].map((i) => i !== r));
     setStrips((s) => s.map((sv, i) => (i === r ? newStrip : sv)));
-    setPhase("start");
-    requestAnimationFrame(() => requestAnimationFrame(() => setPhase("run")));
+    // Stage 1 = jump au depart, puis cruise court, puis brake. Pour le repull on enchaine direct cruise+brake.
+    setReelStage((p) => p.map((s, i) => (i === r ? 1 : s)));
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      setReelStage((p) => p.map((s, i) => (i === r ? 2 : s)));
+      setTimeout(() => {
+        setReelStage((p) => p.map((s, i) => (i === r ? 3 : s)));
+        setTimeout(() => sfx("reelStop"), Math.round(REEL_BRAKE_DUR * 1000) - 40);
+      }, Math.round(reelCruiseDur(r) * 1000));
+    }));
 
     setTimeout(() => {
       const newTargets = lastSpin.targets.slice();
@@ -951,9 +974,9 @@ export default function LastCoin() {
       setRepullCharges((c) => c - 1);
       setRepullAvail(false);
       setNudgeAvail(false);                                 // une seule capacite par fenetre
-      setPhase("idle"); setSpinning(false); setSpinHeld([false, false, false]);
+      setReelStage([0, 0, 0]); setSpinning(false); setSpinHeld([false, false, false]);
       if (delta > 0) setStats((s) => ({ ...s, totalWon: s.totalWon + delta, biggestWin: Math.max(s.biggestWin, newPayout) }));
-    }, 1850);
+    }, Math.round((reelCruiseDur(r) + REEL_BRAKE_DUR) * 1000) + 100);
   };
 
   const betDown = () => setBetIdx((i) => Math.max(0, i - 1));
@@ -961,7 +984,7 @@ export default function LastCoin() {
   const betMax = () => setBetIdx(maxBetIdx);
 
   return (
-    <div className={"lc" + (darkMode ? " dark" : "")}>
+    <div className="lc">
       <style>{CSS}</style>
 
       <div className="lc-bar">
@@ -1006,7 +1029,7 @@ export default function LastCoin() {
           return (
             <div
               key={r}
-              className={"lc-reel" + (held[r] ? " held" : "") + (canHold ? " holdable" : "") + (canNudge || canRepull ? " nudgable" : "") + (stopShock[r] ? " shock" : "")}
+              className={"lc-reel" + (held[r] ? " held" : "") + (canHold ? " holdable" : "") + (canNudge || canRepull ? " nudgable" : "")}
               onClick={canHold ? () => toggleHold(r) : undefined}
               style={{ left: R.l + "%", top: WIN_TOP + "%", width: R.w + "%", height: WIN_H + "%" }}
             >
@@ -1014,9 +1037,11 @@ export default function LastCoin() {
                 transform: "translateY(" + reelY(r) + "px)",
                 transition: nudgeAnim[r]
                   ? "transform .3s ease-out"
-                  : (phase === "run" && !spinHeld[r])
-                    ? ("transform " + durations[r] + "s cubic-bezier(.13,.66,.18,1)")
-                    : "none",
+                  : reelStage[r] === 2
+                    ? ("transform " + reelCruiseDur(r) + "s linear")
+                    : reelStage[r] === 3
+                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.22,.65,.27,1)")
+                      : "none",
               }}>
                 {strips[r].cells.map((k, i) => (
                   <div key={i} className="lc-cell" style={{ height: cellH }}>
@@ -1200,7 +1225,6 @@ export default function LastCoin() {
                 <button className="lc-btn" onClick={() => setScreen("play")}>{t("reprendre")}</button>
                 <button className="lc-btn ghost" onClick={() => { setScreen("play"); setOverlay("rules"); }}>{t("regles")}</button>
                 <button className="lc-btn ghost" onClick={() => setSoundOn((s) => !s)}>{t("son")} · {soundOn ? t("on") : t("off")}</button>
-                <button className="lc-btn ghost" onClick={() => setDarkMode((d) => !d)}>{t("mode_sombre")} · {darkMode ? t("on") : t("off")}</button>
                 <button className="lc-btn ghost" onClick={() => setLang((l) => l === "fr" ? "en" : "fr")}>{t("langue")} · {lang === "fr" ? "FR" : "EN"}</button>
                 <button className="lc-btn ghost" onClick={() => setConfirmReset(true)}>{t("recommencer")}</button>
               </div>
@@ -1486,7 +1510,7 @@ const CSS = `
 .lc-devbtns button{background:none;border:1px solid #d9d9d9;color:#555;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;padding:6px 10px;transition:.15s;}
 .lc-devbtns button:hover{border-color:#141414;color:#141414;background:#fafafa;}
 .lc-menucol{display:flex;flex-direction:column;gap:10px;align-items:center;margin:4px 0 2px;}
-.lc-menucol .lc-btn{min-width:180px;}
+.lc-menucol .lc-btn{width:220px;min-width:0;padding:11px 0;text-align:center;letter-spacing:4px;}
 .lc-cash{display:flex;flex-direction:column;align-items:flex-start;}
 .lc-cash>i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
 .lc-cash>b{font-weight:600;font-size:27px;letter-spacing:1px;line-height:1.02;}
@@ -1546,14 +1570,6 @@ const CSS = `
 .lc-ring{position:absolute;width:2.4em;height:2.4em;border:1px solid rgba(255,255,255,.7);border-radius:50%;animation:pring 1s ease-out forwards;}
 @keyframes pring{0%{opacity:.5;transform:scale(.3);}100%{opacity:0;transform:scale(1.3);}}
 .lc-reel{position:absolute;overflow:hidden;background:#fff;transition:outline-color .15s;}
-/* anim de choc quand un rouleau s'arrete : petite secousse verticale, plus l'inertie d'un thud */
-.lc-reel.shock{animation:reelthump .24s cubic-bezier(.2,1.4,.4,1);}
-@keyframes reelthump{
-  0%   {transform:translateY(0);}
-  35%  {transform:translateY(3px);}
-  70%  {transform:translateY(-1.2px);}
-  100% {transform:translateY(0);}
-}
 .lc-reel.holdable{cursor:pointer;}
 .lc-reel.held{outline:2px solid #141414;outline-offset:-2px;}
 .lc-reel.held::after{content:"HOLD";position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#fff;background:#141414;padding:1px 6px;pointer-events:none;z-index:3;}
@@ -1695,62 +1711,4 @@ const CSS = `
 .lc-combo{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #f7f7f7;font-size:12px;}
 .lc-combo b{font-weight:500;}
 .lc-combo i{font-style:normal;color:#707070;text-align:right;}
-
-/* ===== MODE SOMBRE ===== invert palette mais garde la machine telle quelle */
-.lc.dark{background:#0d0d0d;color:#ececec;}
-.lc.dark .lc-cash>i,.lc.dark .lc-level>i,.lc.dark .lc-stat-row span,.lc.dark .lc-ms,.lc.dark .lc-el,.lc.dark .lc-sub,.lc.dark .lc-disc,.lc.dark .lc-acth,.lc.dark .lc-lu-l,.lc.dark .lc-cn-l,.lc.dark .lc-flash,.lc.dark .lc-idle,.lc.dark .lc-cardhint{color:#999;}
-.lc.dark .lc-cash>b,.lc.dark .lc-level>b,.lc.dark .lc-mt,.lc.dark .lc-mh,.lc.dark .lc-mt-big,.lc.dark .lc-en,.lc.dark .lc-mb,.lc.dark .lc-stat-row b,.lc.dark .lc-lu-n,.lc.dark .lc-cn-n,.lc.dark .lc-tag,.lc.dark .lc-intro-tag,.lc.dark .lc-finaltag,.lc.dark .lc-confirm,.lc.dark .lc-onecoin b,.lc.dark .lc-intro-body{color:#f5f5f5;}
-.lc.dark .lc-cash>em{color:#777;}
-.lc.dark .lc-modal{background:#1a1a1a;border-color:#3a3a3a;}
-.lc.dark .lc-modal.intro .lc-onecoin{border-color:#f5f5f5;}
-.lc.dark .lc-statbox{background:#141414;border-color:#2a2a2a;}
-.lc.dark .lc-rule,.lc.dark .lc-row,.lc.dark .lc-up,.lc.dark .lc-combo,.lc.dark .lc-famh{border-color:#2a2a2a;}
-.lc.dark .lc-famh{color:#ececec;}
-.lc.dark .lc-famh span,.lc.dark .lc-upn i,.lc.dark .lc-rules,.lc.dark .lc-row,.lc.dark .lc-rn i,.lc.dark .lc-rule-txt i,.lc.dark .lc-combo i{color:#888;}
-.lc.dark .lc-rule-txt b,.lc.dark .lc-upn,.lc.dark .lc-upp,.lc.dark .lc-rn,.lc.dark .lc-combo b,.lc.dark .lc-rp{color:#ececec;}
-.lc.dark .lc-pip{border-color:#444;}
-.lc.dark .lc-pip.on{background:#f5f5f5;border-color:#f5f5f5;}
-.lc.dark .lc-bb,.lc.dark .lc-menu,.lc.dark .lc-dev,.lc.dark .lc-sb,.lc.dark .lc-bmax,.lc.dark .lc-sell,.lc.dark .lc-devbtns button{border-color:#9a9a9a;color:#ececec;}
-.lc.dark .lc-menu i{background:#ececec;}
-.lc.dark .lc-bb:disabled{border-color:#3a3a3a;color:#555;}
-.lc.dark .lc-bmax:disabled{color:#444;}
-.lc.dark .lc-sb:disabled{color:#3a3a3a;border-color:#2a2a2a;}
-.lc.dark .lc-menu:hover{background:#ececec;}
-.lc.dark .lc-menu:hover i{background:#0d0d0d;}
-.lc.dark .lc-dev:hover,.lc.dark .lc-sb:hover:not(:disabled),.lc.dark .lc-bb:hover:not(:disabled),.lc.dark .lc-sell:hover,.lc.dark .lc-devbtns button:hover{background:#ececec;color:#0d0d0d;}
-.lc.dark .lc-up:hover:not(:disabled),.lc.dark .lc-row:hover:not(:disabled){background:#242424;}
-.lc.dark .lc-btn{background:#ececec;color:#0d0d0d;border-color:#ececec;}
-.lc.dark .lc-btn:hover{background:#0d0d0d;color:#ececec;border-color:#ececec;}
-.lc.dark .lc-btn.ghost{background:transparent;color:#ececec;}
-.lc.dark .lc-btn.ghost:hover{background:#ececec;color:#0d0d0d;}
-.lc.dark .lc-repair{background:#ececec;color:#0d0d0d;border-color:#ececec;}
-.lc.dark .lc-repair:disabled{background:transparent;color:#3a3a3a;border-color:#3a3a3a;}
-.lc.dark .lc-ovl{background:rgba(13,13,13,.9);}
-.lc.dark .lc-betcoin .lc-betnum{color:#ececec;}
-.lc.dark .lc-coinart circle:first-child{fill:#ececec;}
-.lc.dark .lc-coinart circle:nth-child(2){fill:#0d0d0d;stroke:#ececec;}
-.lc.dark .lc-coinart circle:nth-child(3),.lc.dark .lc-coinart circle:nth-child(4){stroke:#ececec;}
-.lc.dark .lc-coinart path{fill:#ececec;}
-.lc.dark .lc-pr{color:#888;}
-.lc.dark .lc-pr.danger{color:#555;}
-.lc.dark .lc-pr img,.lc.dark .lc-rule>img,.lc.dark .lc-acth+img,.lc.dark .lc-up img,.lc.dark .lc-cn img{filter:invert(1);}
-.lc.dark .lc-cell img,.lc.dark .lc-pullhint,.lc.dark .lc-reel,.lc.dark .lc-rays,.lc.dark .lc-shadow,.lc.dark .lc-img,.lc.dark .lc-sp,.lc.dark .lc-winline,.lc.dark .lc-gyrocoin{filter:none;}
-.lc.dark .lc-hb-item img{filter:invert(1);}
-.lc.dark .lc-cardnotif{background:#1a1a1a;border-color:#ececec;}
-.lc.dark .lc-cardnotif img{filter:invert(1);}
-.lc.dark .lc-cardtip{background:#141414;border-color:#2a2a2a;color:#ececec;}
-.lc.dark .lc-nudgebtn{background:#1a1a1a;color:#ececec;border-color:#9a9a9a;}
-.lc.dark .lc-nudgebtn:hover{background:#ececec;color:#0d0d0d;}
-.lc.dark .lc-repullbtn{background:rgba(20,20,20,.82);border-color:#ececec;color:#ececec;}
-.lc.dark .lc-repullbtn:hover{background:#ececec;color:#0d0d0d;}
-.lc.dark .lc-levelup{background:radial-gradient(circle at 50% 45%,rgba(13,13,13,.92),rgba(13,13,13,.55) 45%,rgba(13,13,13,0) 72%);}
-.lc.dark .lc-gauge svg path:first-child{fill:#2a2a2a;}
-.lc.dark .lc-gauge svg path:nth-child(2){fill:#ececec;}
-.lc.dark .lc-gauge svg path:nth-child(3){stroke:#ececec;}
-.lc.dark .lc-gauge svg path:last-child{stroke:#0d0d0d;}
-.lc.dark .lc-gauge span{color:#999;}
-.lc.dark .lc-burst .lc-cn{color:#ececec;text-shadow:0 0 3px #0d0d0d,0 0 2px #0d0d0d;}
-.lc.dark .lc-mark,.lc.dark .lc-sub{color:#ececec;}
-.lc.dark .lc-bar-actions .lc-menu:hover{background:#ececec;}
-.lc.dark .lc-betcoin{filter:none;}
 `;
