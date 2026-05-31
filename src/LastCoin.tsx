@@ -1175,15 +1175,6 @@ export default function LastCoin() {
           )}
         </div>
       )}
-      {activeAbility && (
-        <div className="lc-abil-hint">
-          {activeAbility === "hold" ? (held.some(Boolean) ? t("hint_held") : t("hint_hold"))
-            : activeAbility === "nudge" ? t("hint_nudge")
-            : activeAbility === "repull" ? t("hint_repull")
-            : ""}
-        </div>
-      )}
-
       <div className="lc-ctrl">
         {jammed
           ? <button className="lc-repair" disabled={cash < repairCost} onClick={repair}>{t("reparer")} · {fmt(repairCost)}</button>
@@ -1635,7 +1626,6 @@ const CSS = `
 .lc-abil.on{background:#141414;color:#fff;}
 .lc-abil.on img{filter:invert(1);}
 .lc-abil:disabled{opacity:.4;cursor:not-allowed;}
-.lc-abil-hint{font-size:9px;letter-spacing:2px;color:#7f7f7f;text-transform:uppercase;text-align:center;}
 .lc-gauge{display:flex;flex-direction:column;align-items:center;gap:3px;}
 .lc-gauge svg{width:30px;height:30px;display:block;}
 .lc-gauge span{font-size:8px;letter-spacing:2px;color:#707070;text-transform:uppercase;}
