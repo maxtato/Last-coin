@@ -1600,8 +1600,8 @@ const CSS = `
 .lc-pull:hover:not(:disabled){background:#fff;color:#141414;}
 .lc-pull:disabled{border-color:#dcdcdc;color:#dcdcdc;background:#fff;cursor:default;}
 .lc-shopbtns{display:flex;gap:14px;}
-.lc-sb{background:none;border:1px solid #d9d9d9;color:#555;cursor:pointer;font-family:inherit;
-  font-size:11px;letter-spacing:2px;padding:7px 18px;transition:.15s;}
+.lc-sb{background:none;border:1px solid #141414;color:#141414;cursor:pointer;font-family:inherit;
+  font-size:13px;font-weight:500;letter-spacing:3px;padding:11px 26px;transition:.15s;text-transform:uppercase;}
 .lc-sb:hover:not(:disabled){border-color:#141414;color:#141414;}
 .lc-sb:disabled{color:#dcdcdc;border-color:#ededed;cursor:default;}
 .lc-pay{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center;
