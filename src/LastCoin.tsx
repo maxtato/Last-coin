@@ -484,7 +484,7 @@ export default function LastCoin() {
   // Spin en 2 phases : cruise (vitesse constante, lineaire) puis brake (decel brutale identique pour tous).
   // Le stagger se fait UNIQUEMENT sur la duree du cruise — chaque rouleau brake de la meme facon.
   const REEL_CRUISE_SPEED = 36;                    // cells/sec, identique pour tous (tourne vite)
-  const REEL_CRUISE_CELLS = [22, 54, 86];          // stagger fort entre les trois rouleaux (~0.89s entre stops)
+  const REEL_CRUISE_CELLS = [22, 48, 74];          // stagger marque (~0.72s entre stops)
   const REEL_BRAKE_CELLS = 8;                      // brake plus court : ralentit a peine puis se bloque
   const REEL_BRAKE_DUR = 0.50;                     // brake bref et sec, avec rebond du bezier
   const REEL_RUN_TOTAL = Math.max(...REEL_CRUISE_CELLS) + REEL_BRAKE_CELLS;  // = 37 cells, taille du strip
@@ -966,7 +966,7 @@ export default function LastCoin() {
                 transition: nudgeAnim[r]
                   ? "transform .3s ease-out"
                   : reelStage[r] === 2
-                    ? ("transform " + reelCruiseDur(r) + "s linear")
+                    ? ("transform " + reelCruiseDur(r) + "s cubic-bezier(.18,.78,.5,.96)")
                     : reelStage[r] === 3
                       ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.08,.85,.18,1.14)")
                       : "none",
