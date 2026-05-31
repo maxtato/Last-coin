@@ -1542,7 +1542,7 @@ const CSS = `
 .lc-menucol .lc-btn{width:220px;min-width:0;padding:11px 0;text-align:center;letter-spacing:4px;}
 .lc-cash{display:flex;flex-direction:column;align-items:flex-start;position:relative;}
 .lc-cash>i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
-.lc-cash>b{font-weight:600;font-size:27px;letter-spacing:1px;line-height:1.02;}
+.lc-cash b{font-weight:600;font-size:27px;letter-spacing:1px;line-height:1.02;}
 /* Animation 'evaporation' : montant rouge qui flotte au-dessus du cash et fade out */
 /* Conteneur de la ligne 'argent' : flex en ligne pour ancrer le delta a droite du montant */
 .lc-cashrow{position:relative;display:inline-flex;align-items:flex-end;}
