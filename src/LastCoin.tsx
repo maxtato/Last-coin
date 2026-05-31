@@ -545,7 +545,7 @@ export default function LastCoin() {
         return strips[r];
       }
       const band = BANDS[r];
-      let want = first ? "coin" : pick(POOL);          // 1er tirage garanti : la machine "recrache"
+      let want = first ? "house" : pick(POOL);         // 1er tirage garanti : 3e palier (house x19), donne de quoi se refaire
       let positions = [];
       for (let i = 0; i < band.length; i++) if (band[i] === want) positions.push(i);
       if (positions.length === 0) { const idx = (Math.random() * band.length) | 0; positions = [idx]; want = band[idx]; }
