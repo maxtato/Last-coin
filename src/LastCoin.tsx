@@ -1663,9 +1663,9 @@ const CSS = `
 .lc-gyrocoin{position:absolute;left:50.1%;top:6.9%;transform:translate(-50%,-50%);z-index:4;pointer-events:none;}
 /* Porte-bonheur achetes : illustrations gravees PNG, aspect-ratio conserve via width seul */
 .lc-charm{position:absolute;pointer-events:none;z-index:4;display:block;}
-.lc-charm.horseshoe{top:1%;left:68%;width:14%;height:auto;}
-.lc-charm.rabbit{top:24%;left:-3%;width:8%;height:auto;}
-.lc-charm.clover{top:70%;left:55%;width:14%;height:auto;transform:rotate(-6deg);}
+.lc-charm.horseshoe{top:6%;left:70%;width:19%;height:auto;}
+.lc-charm.rabbit{top:24%;left:2%;width:11%;height:auto;}
+.lc-charm.clover{top:60%;left:55%;width:14%;height:auto;transform:rotate(-6deg);}
 .lc-gc{width:100%;height:100%;border-radius:50%;filter:blur(1.6px);transform:scaleX(.18);
   background:radial-gradient(50% 50% at 50% 50%,rgba(20,20,20,.75),rgba(20,20,20,.48) 55%,rgba(20,20,20,0) 100%);}
 .lc-gyrocoin.on .lc-gc{animation:coinspin .5s linear infinite;}
