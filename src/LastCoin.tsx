@@ -1663,8 +1663,8 @@ const CSS = `
 .lc-gyrocoin{position:absolute;left:50.1%;top:6.9%;transform:translate(-50%,-50%);z-index:4;pointer-events:none;}
 /* Porte-bonheur achetes : illustrations gravees PNG, aspect-ratio conserve via width seul */
 .lc-charm{position:absolute;pointer-events:none;z-index:4;display:block;}
-.lc-charm.horseshoe{top:12%;left:64%;width:21%;height:auto;}
-.lc-charm.rabbit{top:31%;left:0%;width:14%;height:auto;}
+.lc-charm.horseshoe{top:12%;left:61%;width:21%;height:auto;}
+.lc-charm.rabbit{top:36%;left:0%;width:14%;height:auto;}
 .lc-charm.clover{top:66%;left:55%;width:14%;height:auto;transform:rotate(-6deg);}
 .lc-gc{width:100%;height:100%;border-radius:50%;filter:blur(1.6px);transform:scaleX(.18);
   background:radial-gradient(50% 50% at 50% 50%,rgba(20,20,20,.75),rgba(20,20,20,.48) 55%,rgba(20,20,20,0) 100%);}
