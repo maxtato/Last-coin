@@ -1516,8 +1516,9 @@ const CSS = `
 .lc-stat b{font-weight:400;font-size:16px;letter-spacing:1px;}
 .lc-stat.big b{font-size:24px;font-weight:500;}
 .lc-stage{width:100%;max-width:300px;}
-.lc-stage.shake{animation:shake .4s ease;}
-@keyframes shake{0%,100%{transform:translate(0,0);}15%{transform:translate(-2px,1px);}30%{transform:translate(2px,-1px);}45%{transform:translate(-2px,0);}60%{transform:translate(2px,1px);}75%{transform:translate(-1px,-1px);}}
+/* Bascule seche gauche-droite quand le levier est tire */
+.lc-stage.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
+@keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-1.2deg);}50%{transform:rotate(1deg);}78%{transform:rotate(-.4deg);}100%{transform:rotate(0);}}
 .lc-machine{position:relative;width:100%;user-select:none;}
 .lc-burst{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:5;}
 .lc-cn{position:absolute;left:50%;top:74%;font-weight:700;color:#141414;text-shadow:0 0 3px #fff,0 0 2px #fff;transform:translate(-50%,0) scale(.4);opacity:0;animation:burst 1.2s ease-out forwards;will-change:transform,opacity;}
