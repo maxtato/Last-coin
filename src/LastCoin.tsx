@@ -547,10 +547,10 @@ export default function LastCoin() {
   const [confirmReset, setConfirmReset] = useState(false);   // pause : confirmation avant de recommencer
   // Spin en 2 phases : cruise (vitesse constante, lineaire) puis brake (decel brutale identique pour tous).
   // Le stagger se fait UNIQUEMENT sur la duree du cruise — chaque rouleau brake de la meme facon.
-  const REEL_CRUISE_SPEED = 14;                    // cells/sec, identique pour tous
-  const REEL_CRUISE_CELLS = [12, 22, 32];          // distance de cruise par rouleau -> stagger des stops
-  const REEL_BRAKE_CELLS = 5;                      // cells de frein, identique pour tous
-  const REEL_BRAKE_DUR = 0.55;                     // duree du frein, identique pour tous
+  const REEL_CRUISE_SPEED = 22;                    // cells/sec, identique pour tous (plus rapide)
+  const REEL_CRUISE_CELLS = [16, 28, 40];          // distance de cruise par rouleau -> stagger des stops
+  const REEL_BRAKE_CELLS = 6;                      // cells de frein, identique pour tous
+  const REEL_BRAKE_DUR = 0.40;                     // frein court et brutal
   const REEL_RUN_TOTAL = Math.max(...REEL_CRUISE_CELLS) + REEL_BRAKE_CELLS;  // = 37 cells, taille du strip
   const reelCruiseDur = (r) => REEL_CRUISE_CELLS[r] / REEL_CRUISE_SPEED;
   const reelStartT = (r) => 1 + REEL_BRAKE_CELLS + REEL_CRUISE_CELLS[r];     // index ou cell est centree au debut
@@ -1040,7 +1040,7 @@ export default function LastCoin() {
                   : reelStage[r] === 2
                     ? ("transform " + reelCruiseDur(r) + "s linear")
                     : reelStage[r] === 3
-                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.22,.65,.27,1)")
+                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.15,.95,.2,1.08)")
                       : "none",
               }}>
                 {strips[r].cells.map((k, i) => (
