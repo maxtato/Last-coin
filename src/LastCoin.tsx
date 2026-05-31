@@ -1050,7 +1050,7 @@ export default function LastCoin() {
                 className="lc-nudgebtn up"
                 onClick={() => nudge(r, +1)}
                 aria-label="nudge haut"
-                style={{ left: R.l + "%", top: (WIN_TOP - 4.2) + "%", width: R.w + "%" }}
+                style={{ left: R.l + "%", top: (WIN_TOP - 6) + "%", width: R.w + "%" }}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15 L12 8 L19 15" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" strokeLinejoin="miter" /></svg>
               </button>
@@ -1058,7 +1058,7 @@ export default function LastCoin() {
                 className="lc-nudgebtn dn"
                 onClick={() => nudge(r, -1)}
                 aria-label="nudge bas"
-                style={{ left: R.l + "%", top: (WIN_TOP + WIN_H + 0.5) + "%", width: R.w + "%" }}
+                style={{ left: R.l + "%", top: (WIN_TOP + WIN_H + 2) + "%", width: R.w + "%" }}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9 L12 16 L19 9" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" strokeLinejoin="miter" /></svg>
               </button>
@@ -1530,7 +1530,7 @@ const CSS = `
 .lc-stage{width:100%;max-width:300px;}
 /* Bascule seche gauche-droite quand le levier est tire */
 .lc-stage.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
-@keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-1.2deg);}50%{transform:rotate(1deg);}78%{transform:rotate(-.4deg);}100%{transform:rotate(0);}}
+@keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
 .lc-machine{position:relative;width:100%;user-select:none;}
 .lc-burst{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:5;}
 .lc-cn{position:absolute;left:50%;top:74%;font-weight:700;color:#141414;text-shadow:0 0 3px #fff,0 0 2px #fff;transform:translate(-50%,0) scale(.4);opacity:0;animation:burst 1.2s ease-out forwards;will-change:transform,opacity;}
@@ -1593,7 +1593,7 @@ const CSS = `
 .lc-nudgebtn:hover{background:#fafafa;color:#141414;}
 .lc-nudgebtn:active{transform:scale(.94);}
 /* Bouton REPULL : flche courte blanche sur disque noir au centre du rouleau */
-.lc-repullbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;background:#141414;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:7;padding:0;color:#fafafa;font-family:inherit;transition:.12s;}
+.lc-repullbtn{position:absolute;left:50%;top:62%;transform:translate(-50%,-50%);width:34px;height:34px;background:#141414;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:7;padding:0;color:#fafafa;font-family:inherit;transition:.12s;}
 .lc-repullbtn svg{width:20px;height:20px;display:block;}
 .lc-repullbtn:hover{background:#fafafa;color:#141414;}
 .lc-repullbtn:active{transform:translate(-50%,-50%) scale(.9);}
