@@ -1558,10 +1558,10 @@ const CSS = `
 .lc-charm.horseshoe{top:12%;left:61%;width:21%;height:auto;}
 .lc-charm.rabbit{top:36%;left:0%;width:14%;height:auto;}
 .lc-charm.clover{top:66%;left:55%;width:14%;height:auto;transform:rotate(-6deg);}
-.lc-gc{width:100%;height:100%;border-radius:50%;filter:blur(1.6px);transform:scaleX(.18);
-  background:radial-gradient(50% 50% at 50% 50%,rgba(20,20,20,.75),rgba(20,20,20,.48) 55%,rgba(20,20,20,0) 100%);}
-.lc-gyrocoin.on .lc-gc{animation:coinspin .5s linear infinite;}
-@keyframes coinspin{0%{transform:scaleX(1);}25%{transform:scaleX(.1);}50%{transform:scaleX(1);}75%{transform:scaleX(.1);}100%{transform:scaleX(1);}}
+.lc-gc{width:100%;height:100%;border-radius:50% 50% 6% 6%;filter:blur(1px);transform:scale(.85);
+  background:radial-gradient(60% 50% at 50% 70%,rgba(20,20,20,.85),rgba(20,20,20,.5) 60%,rgba(20,20,20,0) 100%);}
+.lc-gyrocoin.on .lc-gc{animation:domepulse .55s ease-in-out infinite;}
+@keyframes domepulse{0%,100%{opacity:.35;transform:scale(.85);}50%{opacity:1;transform:scale(1.05);}}
 .lc-rays{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;z-index:4;}
 .lc-rays.on{animation:raysflash .5s ease-in-out infinite;}
 .lc-raygrp{transform-origin:361px 50px;transform-box:view-box;}
@@ -1593,7 +1593,7 @@ const CSS = `
 .lc-nudgebtn:hover{background:#fafafa;color:#141414;}
 .lc-nudgebtn:active{transform:scale(.94);}
 /* Bouton REPULL : flche courte blanche sur disque noir au centre du rouleau */
-.lc-repullbtn{position:absolute;left:50%;top:62%;transform:translate(-50%,-50%);width:34px;height:34px;background:#141414;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:7;padding:0;color:#fafafa;font-family:inherit;transition:.12s;}
+.lc-repullbtn{position:absolute;left:50%;top:16%;transform:translate(-50%,-50%);width:34px;height:34px;background:#141414;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:7;padding:0;color:#fafafa;font-family:inherit;transition:.12s;}
 .lc-repullbtn svg{width:20px;height:20px;display:block;}
 .lc-repullbtn:hover{background:#fafafa;color:#141414;}
 .lc-repullbtn:active{transform:translate(-50%,-50%) scale(.9);}
