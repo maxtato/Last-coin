@@ -1068,7 +1068,7 @@ export default function LastCoin() {
               className="lc-repullbtn"
               onClick={(e) => { e.stopPropagation(); repull(r); }}
               aria-label="rejouer ce rouleau"
-              style={{ left: (R.l + R.w / 2) + "%", top: (WIN_TOP + 3) + "%" }}
+              style={{ left: (R.l + R.w / 2) + "%", top: (WIN_TOP - 1) + "%" }}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M19.5 12 A7.5 7.5 0 1 1 12 4.5" stroke="currentColor" strokeWidth="2.4" fill="none" strokeLinecap="square" />
