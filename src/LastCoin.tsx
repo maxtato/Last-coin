@@ -1512,6 +1512,18 @@ export default function LastCoin() {
               </div>
             </div>
             <div className="lc-devgroup">
+              <div className="lc-devheader">{t("charms_title")}</div>
+              <div className="lc-devbtns">
+                {CHARM_KEYS.map((k) => (
+                  <button key={k} onClick={() => setCharms((p) => ({ ...p, [k]: !p[k] }))}>
+                    {CHARMS[k][lang]} {charms[k] ? "✓" : "·"}
+                  </button>
+                ))}
+                <button onClick={() => setCharms({ clover: true, horseshoe: true, rabbit: true })}>{t("dev_max_all")}</button>
+                <button onClick={() => setCharms({ ...CHARMS_0 })}>{t("dev_clear")}</button>
+              </div>
+            </div>
+            <div className="lc-devgroup">
               <div className="lc-devheader">{t("dev_screens")}</div>
               <div className="lc-devbtns">
                 <button onClick={() => { setOverlay(null); setScreen("intro"); }}>{t("dev_intro")}</button>
