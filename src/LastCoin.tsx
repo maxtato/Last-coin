@@ -483,10 +483,10 @@ export default function LastCoin() {
   const [devUnlocked, setDevUnlocked] = useState(() => !!init.devUnlocked);  // bouton dev visible dans le bandeau (toggle via cheat)
   // Spin en 2 phases : cruise (vitesse constante, lineaire) puis brake (decel brutale identique pour tous).
   // Le stagger se fait UNIQUEMENT sur la duree du cruise — chaque rouleau brake de la meme facon.
-  const REEL_CRUISE_SPEED = 32;                    // cells/sec, identique pour tous (depart plus rapide)
-  const REEL_CRUISE_CELLS = [22, 38, 54];          // cruise allonge en consequence pour conserver les durees visibles
-  const REEL_BRAKE_CELLS = 14;                     // cells de frein - distance pour voir la fin de course
-  const REEL_BRAKE_DUR = 1.20;                     // brake nettement plus long pour percevoir la deceleration finale
+  const REEL_CRUISE_SPEED = 36;                    // cells/sec, identique pour tous (tourne vite)
+  const REEL_CRUISE_CELLS = [22, 40, 58];          // stagger marque entre les trois rouleaux
+  const REEL_BRAKE_CELLS = 8;                      // brake plus court : ralentit a peine puis se bloque
+  const REEL_BRAKE_DUR = 0.50;                     // brake bref et sec, avec rebond du bezier
   const REEL_RUN_TOTAL = Math.max(...REEL_CRUISE_CELLS) + REEL_BRAKE_CELLS;  // = 37 cells, taille du strip
   const reelCruiseDur = (r) => REEL_CRUISE_CELLS[r] / REEL_CRUISE_SPEED;
   const reelStartT = (r) => 2 + REEL_BRAKE_CELLS + REEL_CRUISE_CELLS[r];     // index ou cell est centree au debut (offset rest=2)
@@ -968,7 +968,7 @@ export default function LastCoin() {
                   : reelStage[r] === 2
                     ? ("transform " + reelCruiseDur(r) + "s linear")
                     : reelStage[r] === 3
-                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.22,.95,.3,1.05)")
+                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.08,.85,.18,1.14)")
                       : "none",
               }}>
                 <div className={"lc-cellwrap" + (landed[r] ? " landed" : "")}>
