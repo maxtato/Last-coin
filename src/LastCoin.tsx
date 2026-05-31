@@ -1015,7 +1015,7 @@ export default function LastCoin() {
             </React.Fragment>
           );
         })}
-        <div className="lc-shadow" style={{ top: WIN_TOP + "%", left: REELS[0].l + "%", width: (REELS[2].l + REELS[2].w - REELS[0].l) + "%", height: (WIN_H * 0.16) + "%" }} />
+        <div className="lc-shadow" style={{ top: WIN_TOP + "%", left: (REELS[0].l - 1.5) + "%", width: (REELS[2].l + REELS[2].w - REELS[0].l + 3) + "%", height: (WIN_H * 0.16) + "%" }} />
         {winLine && <div className="lc-winline" style={{ top: (VIS_TOP + VIS_H / 2) + "%", left: REELS[0].l + "%", width: (REELS[2].l + REELS[2].w - REELS[0].l) + "%" }} />}
         {/* gyrophare : halo + rayons + pièce qui tourne comme une toupie sur un gain */}
         <div className={"lc-dome" + (lampOn ? " on" : "")} />
@@ -1568,9 +1568,9 @@ const CSS = `
 .lc-ctrl{display:flex;align-items:center;gap:20px;margin-top:2px;flex-wrap:wrap;justify-content:center;}
 .lc-betwrap{display:flex;flex-direction:column;align-items:center;gap:8px;}
 .lc-betbar{display:flex;align-items:center;gap:18px;}
-.lc-betcoin{position:relative;width:66px;height:66px;display:flex;align-items:center;justify-content:center;}
+.lc-betcoin{position:relative;width:66px;height:66px;flex:0 0 66px;}
 .lc-coinart{position:absolute;inset:0;width:100%;height:100%;display:block;}
-.lc-betnum{position:relative;z-index:1;font-weight:600;font-size:14px;letter-spacing:.3px;line-height:1;}
+.lc-betnum{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;letter-spacing:.3px;line-height:1;}
 .lc-bb{width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;font-family:inherit;font-size:16px;color:#141414;line-height:1;}
 .lc-bb:disabled{border-color:#dcdcdc;color:#dcdcdc;cursor:default;}
 .lc-betval{display:flex;flex-direction:column;align-items:center;min-width:62px;}
