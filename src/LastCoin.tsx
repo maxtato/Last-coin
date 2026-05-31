@@ -185,7 +185,7 @@ const classOf = (lvl) => {
 };
 
 // ===== Bandes fixes des rouleaux =====
-const BAND_W = { coin: 8, star: 5, house: 3, diamond: 3, bolt: 3, eye: 2, joker: 3, skull: 2, crack: 2, crown: 1 };
+const BAND_W = { coin: 7, star: 4, house: 3, diamond: 3, bolt: 3, eye: 2, joker: 2, skull: 3, crack: 3, crown: 1 };
 const BAND_ALL = Object.keys(BAND_W);
 const POOL = (() => { const p = []; BAND_ALL.forEach((k) => { for (let i = 0; i < BAND_W[k]; i++) p.push(k); }); return p; })();
 const pick = (p) => p[(Math.random() * p.length) | 0];
