@@ -1571,7 +1571,7 @@ const CSS = `
 .lc-charm.rabbit{top:36%;left:0%;width:14%;height:auto;}
 .lc-charm.clover{top:66%;left:55%;width:14%;height:auto;transform:rotate(-6deg);}
 /* Au repos : globe en verre vide (opacity 0). Sur gain : fondu in, pulse, fondu out. */
-.lc-gc{position:absolute;left:0;top:0;width:100%;height:72%;border-radius:50% 50% 6% 6%;filter:blur(1px);transform:scale(.85);transform-origin:50% 100%;opacity:0;
+.lc-gc{position:absolute;left:0;top:0;width:100%;height:88%;border-radius:50% 50% 6% 6%;filter:blur(1px);transform:scale(.85);transform-origin:50% 100%;opacity:0;
   background:radial-gradient(60% 50% at 50% 70%,rgba(20,20,20,.85),rgba(20,20,20,.5) 60%,rgba(20,20,20,0) 100%);}
 .lc-gyrocoin.on .lc-gc{animation:gyrofade 5s ease-out, domepulse .55s ease-in-out infinite;}
 @keyframes gyrofade{0%{opacity:0;}10%{opacity:1;}86%{opacity:1;}100%{opacity:0;}}
