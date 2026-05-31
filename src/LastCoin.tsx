@@ -484,7 +484,7 @@ export default function LastCoin() {
   // Spin en 2 phases : cruise (vitesse constante, lineaire) puis brake (decel brutale identique pour tous).
   // Le stagger se fait UNIQUEMENT sur la duree du cruise — chaque rouleau brake de la meme facon.
   const REEL_CRUISE_SPEED = 36;                    // cells/sec, identique pour tous (tourne vite)
-  const REEL_CRUISE_CELLS = [22, 40, 58];          // stagger marque entre les trois rouleaux
+  const REEL_CRUISE_CELLS = [22, 54, 86];          // stagger fort entre les trois rouleaux (~0.89s entre stops)
   const REEL_BRAKE_CELLS = 8;                      // brake plus court : ralentit a peine puis se bloque
   const REEL_BRAKE_DUR = 0.50;                     // brake bref et sec, avec rebond du bezier
   const REEL_RUN_TOTAL = Math.max(...REEL_CRUISE_CELLS) + REEL_BRAKE_CELLS;  // = 37 cells, taille du strip
@@ -1600,8 +1600,8 @@ const CSS = `
 .lc-pull:hover:not(:disabled){background:#fff;color:#141414;}
 .lc-pull:disabled{border-color:#dcdcdc;color:#dcdcdc;background:#fff;cursor:default;}
 .lc-shopbtns{display:flex;gap:14px;}
-.lc-sb{background:none;border:1px solid #d9d9d9;color:#555;cursor:pointer;font-family:inherit;
-  font-size:11px;letter-spacing:2px;padding:7px 18px;transition:.15s;}
+.lc-sb{background:none;border:1px solid #141414;color:#141414;cursor:pointer;font-family:inherit;
+  font-size:13px;font-weight:500;letter-spacing:3px;padding:11px 26px;transition:.15s;text-transform:uppercase;}
 .lc-sb:hover:not(:disabled){border-color:#141414;color:#141414;}
 .lc-sb:disabled{color:#dcdcdc;border-color:#ededed;cursor:default;}
 .lc-pay{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center;
