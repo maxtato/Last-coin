@@ -1050,7 +1050,7 @@ export default function LastCoin() {
                 className="lc-nudgebtn up"
                 onClick={() => nudge(r, +1)}
                 aria-label="nudge haut"
-                style={{ left: R.l + "%", top: (WIN_TOP - 8) + "%", width: R.w + "%" }}
+                style={{ left: R.l + "%", top: (WIN_TOP - 10.5) + "%", width: R.w + "%" }}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15 L12 8 L19 15" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" strokeLinejoin="miter" /></svg>
               </button>
@@ -1593,7 +1593,7 @@ const CSS = `
 .lc-nudgebtn:hover{background:#fafafa;color:#141414;}
 .lc-nudgebtn:active{transform:scale(.94);}
 /* Bouton REPULL : flche courte blanche sur disque noir au centre du rouleau */
-.lc-repullbtn{position:absolute;left:50%;top:16%;transform:translate(-50%,-50%);width:34px;height:34px;background:#141414;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:7;padding:0;color:#fafafa;font-family:inherit;transition:.12s;}
+.lc-repullbtn{position:absolute;left:50%;top:8%;transform:translate(-50%,-50%);width:34px;height:34px;background:#141414;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:7;padding:0;color:#fafafa;font-family:inherit;transition:.12s;}
 .lc-repullbtn svg{width:20px;height:20px;display:block;}
 .lc-repullbtn:hover{background:#fafafa;color:#141414;}
 .lc-repullbtn:active{transform:translate(-50%,-50%) scale(.9);}
