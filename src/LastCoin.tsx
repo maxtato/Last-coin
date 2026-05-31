@@ -1083,7 +1083,7 @@ export default function LastCoin() {
                   : reelStage[r] === 2
                     ? ("transform " + reelCruiseDur(r) + "s linear")
                     : reelStage[r] === 3
-                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.18,.92,.35,1.09)")
+                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.22,.95,.3,1.05)")
                       : "none",
               }}>
                 <div className={"lc-cellwrap" + (landed[r] ? " landed" : "")}>
@@ -1694,8 +1694,8 @@ const CSS = `
 @keyframes pring{0%{opacity:.5;transform:scale(.3);}100%{opacity:0;transform:scale(1.3);}}
 .lc-reel{position:absolute;overflow:hidden;background:#fff;transition:outline-color .15s;}
 /* Secousse "thunk" a l'arret : appliquee uniquement sur les symboles internes, le cadre blanc ne bouge pas */
-.lc-cellwrap.landed{animation:reelthump .26s cubic-bezier(.3,.7,.4,1);}
-@keyframes reelthump{0%{transform:translateY(0);}32%{transform:translateY(1.8px);}60%{transform:translateY(-.7px);}100%{transform:translateY(0);}}
+.lc-cellwrap.landed{animation:reelthump .17s cubic-bezier(.4,.7,.3,1);}
+@keyframes reelthump{0%{transform:translateY(0);}38%{transform:translateY(1.1px);}100%{transform:translateY(0);}}
 .lc-reel.holdable{cursor:pointer;}
 /* HOLD arme, non bloque : tag minimal "HOLD" en haut du rouleau, gravure inversee blanche sur noir */
 .lc-reel.holdable:not(.held)::after{content:"HOLD";position:absolute;left:50%;top:4px;transform:translateX(-50%);font-size:7px;letter-spacing:3px;font-weight:400;color:#fafafa;background:#141414;padding:2px 7px 1px;pointer-events:none;z-index:4;animation:tagfade .2s ease;}
