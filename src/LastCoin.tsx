@@ -1054,7 +1054,7 @@ export default function LastCoin() {
                 aria-label="nudge haut"
                 style={{ left: R.l + "%", top: (WIN_TOP - 4.2) + "%", width: R.w + "%" }}
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15 L12 8 L19 15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" strokeLinejoin="miter" /></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15 L12 8 L19 15" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" strokeLinejoin="miter" /></svg>
               </button>
               <button
                 className="lc-nudgebtn dn"
@@ -1062,7 +1062,7 @@ export default function LastCoin() {
                 aria-label="nudge bas"
                 style={{ left: R.l + "%", top: (WIN_TOP + WIN_H + 0.5) + "%", width: R.w + "%" }}
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9 L12 16 L19 9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" strokeLinejoin="miter" /></svg>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9 L12 16 L19 9" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" strokeLinejoin="miter" /></svg>
               </button>
             </React.Fragment>
           );
@@ -1590,8 +1590,8 @@ const CSS = `
 /* NUDGE arme : outline pointille 1px discret sur les rouleaux */
 .lc-reel.nudgable{outline:1px dashed #141414;outline-offset:-1px;}
 /* Boutons NUDGE : chevrons SVG blancs sur fond noir au-dessus/en-dessous du rouleau */
-.lc-nudgebtn{position:absolute;height:3.6%;min-height:14px;background:#141414;border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:6;padding:0;color:#fafafa;font-family:inherit;transition:background .12s,color .12s;}
-.lc-nudgebtn svg{width:60%;height:60%;display:block;}
+.lc-nudgebtn{position:absolute;height:5.4%;min-height:22px;background:#141414;border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:6;padding:0;color:#fafafa;font-family:inherit;transition:background .12s,color .12s;}
+.lc-nudgebtn svg{width:78%;height:78%;display:block;}
 .lc-nudgebtn:hover{background:#fafafa;color:#141414;}
 .lc-nudgebtn:active{transform:scale(.94);}
 /* Bouton REPULL : flche courte blanche sur disque noir au centre du rouleau */
