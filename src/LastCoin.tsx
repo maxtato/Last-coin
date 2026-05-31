@@ -1588,7 +1588,7 @@ const CSS = `
 .lc-betcoin{position:relative;width:66px;height:66px;flex:0 0 66px;contain:layout style paint;}
 .lc-coinart{position:absolute;inset:0;width:100%;height:100%;display:block;will-change:auto;transform:translateZ(0);}
 .lc-betnum{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;letter-spacing:.3px;line-height:1;font-variant-numeric:tabular-nums;}
-.lc-bb{width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;font-family:inherit;font-size:16px;color:#141414;line-height:1;}
+.lc-bb{width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;font-family:inherit;font-size:17px;font-weight:700;color:#141414;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;}
 .lc-bb:disabled{border-color:#dcdcdc;color:#dcdcdc;cursor:default;}
 .lc-betval{display:flex;flex-direction:column;align-items:center;min-width:62px;}
 .lc-betval i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
