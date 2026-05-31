@@ -549,8 +549,8 @@ export default function LastCoin() {
   // Le stagger se fait UNIQUEMENT sur la duree du cruise — chaque rouleau brake de la meme facon.
   const REEL_CRUISE_SPEED = 32;                    // cells/sec, identique pour tous (depart plus rapide)
   const REEL_CRUISE_CELLS = [22, 38, 54];          // cruise allonge en consequence pour conserver les durees visibles
-  const REEL_BRAKE_CELLS = 9;                      // cells de frein - distance de freinage plus longue
-  const REEL_BRAKE_DUR = 0.62;                     // frein plus long et plus marque
+  const REEL_BRAKE_CELLS = 14;                     // cells de frein - distance pour voir la fin de course
+  const REEL_BRAKE_DUR = 1.20;                     // brake nettement plus long pour percevoir la deceleration finale
   const REEL_RUN_TOTAL = Math.max(...REEL_CRUISE_CELLS) + REEL_BRAKE_CELLS;  // = 37 cells, taille du strip
   const reelCruiseDur = (r) => REEL_CRUISE_CELLS[r] / REEL_CRUISE_SPEED;
   const reelStartT = (r) => 1 + REEL_BRAKE_CELLS + REEL_CRUISE_CELLS[r];     // index ou cell est centree au debut
@@ -1045,7 +1045,7 @@ export default function LastCoin() {
                   : reelStage[r] === 2
                     ? ("transform " + reelCruiseDur(r) + "s linear")
                     : reelStage[r] === 3
-                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.15,.95,.2,1.08)")
+                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.16,.85,.4,1.03)")
                       : "none",
               }}>
                 {strips[r].cells.map((k, i) => (
