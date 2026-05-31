@@ -420,6 +420,15 @@ const T = {
   hint_nudge:    { fr: "ajuste un rouleau · ▲ ou ▼",            en: "nudge a reel · ▲ or ▼" },
   hint_held:     { fr: "rouleau bloqué · tire le levier",       en: "reel locked · pull the lever" },
   hint_hold:     { fr: "tape un rouleau pour le bloquer",        en: "tap a reel to lock it" },
+  // explications detaillees affichees au-dessus de la machine quand une capacite est armee
+  expl_hold:     { fr: "HOLD · Tape un rouleau pour le bloquer, puis tire le levier. Le symbole bloqué reste au tour suivant.",
+                   en: "HOLD · Tap a reel to lock it, then pull the lever. The locked symbol stays for the next spin." },
+  expl_nudge:    { fr: "NUDGE · Apres un tour, clique ▲ ou ▼ sur un rouleau pour le decaler d'un cran et eventuellement decrocher un meilleur combo.",
+                   en: "NUDGE · After a spin, click ▲ or ▼ on a reel to shift it by one cell and possibly land a better combo." },
+  expl_repull:   { fr: "REPULL · Apres un tour, clique ↻ sur un rouleau pour le rejouer seul. Les deux autres restent bloqués.",
+                   en: "REPULL · After a spin, click ↻ on a reel to re-spin it alone. The two others stay locked." },
+  over_reason_crack: { fr: "3 fissures alignées · la machine s'est cassée",
+                       en: "3 cracks in a row · the machine broke" },
   // empire / game over
   empire:        { fr: "EMPIRE",                                  en: "EMPIRE" },
   empire_sub:    { fr: "la ville a ton nom",                      en: "the city bears your name" },
@@ -477,6 +486,8 @@ export default function LastCoin() {
   const [machineW, setMachineW] = useState(0);
   const [overlay, setOverlay] = useState(null);   // "buy" | "assets" | null
   const [gameOver, setGameOver] = useState(() => !!init.gameOver);   // 3 crack = machine cassee = fin de partie
+  const [gameOverReason, setGameOverReason] = useState(() => init.gameOverReason || null);  // "crack" | null
+  const [cashLoss, setCashLoss] = useState(null);                    // { amt, k } : animation "argent qui s'evapore" sur le bandeau du haut
   const [wonEmpire, setWonEmpire] = useState(() => !!init.empire);
   const [confirmReset, setConfirmReset] = useState(false);   // pause : confirmation avant de recommencer
   const [cheatSeq, setCheatSeq] = useState([]);              // cheat code pause : son, langue, son, langue, regles -> toggle bouton dev
@@ -570,8 +581,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked })); } catch {}
-  }, [cash, lvl, charms, betIdx, pulls, gameOver, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked })); } catch {}
+  }, [cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked]);
 
   // peak du patrimoine : suivi en permanence des qu'il monte (acceuil cash + achats)
   useEffect(() => {
@@ -597,7 +608,7 @@ export default function LastCoin() {
   const newGame = () => {
     try { localStorage.removeItem(SAVE_KEY); } catch {}
     setCash(1); setLvl({ ...FAM0 }); setCharms({ ...CHARMS_0 }); setBetIdx(0); setPulls(0);
-    setGameOver(false); setWonEmpire(false);
+    setGameOver(false); setGameOverReason(null); setCashLoss(null); setWonEmpire(false);
     setLastWin(null); setFlash(""); setLampOn(false); setWinLine(false);
     setStrips(REELS.map((_, r) => restStrip(r))); setReelStage([0, 0, 0]); setSpinning(false);
     setHeld([false, false, false]); setHoldCharges(0); setSpinHeld([false, false, false]);
@@ -660,10 +671,17 @@ export default function LastCoin() {
     // 2 Skull = ruine partielle (-50% cash), 3 Skull = ruine totale (cash et patrimoine effaces)
     // 2 Crack = machine fissuree (-25% cash, reparation forcee), 3 Crack = machine cassee (fin de partie)
     if (res.kind === -1) {
-      if (res.sym === "skull" && res.count === 2) setCash((c) => Math.floor(c * 0.5));
-      else if (res.sym === "skull" && res.count === 3) { setCash(0); setLvl({ ...FAM0 }); }
-      else if (res.sym === "crack" && res.count === 2) setCash((c) => Math.floor(c * 0.75));
-      else if (res.sym === "crack" && res.count === 3) setGameOver(true);
+      // base apres payout+income (payout=0 sur skull/crack)
+      const post = cash + income;
+      let loss = 0;
+      if (res.sym === "skull" && res.count === 2) { loss = post - Math.floor(post * 0.5); setCash((c) => Math.floor(c * 0.5)); }
+      else if (res.sym === "skull" && res.count === 3) { loss = post; setCash(0); setLvl({ ...FAM0 }); }
+      else if (res.sym === "crack" && res.count === 2) { loss = post - Math.floor(post * 0.75); setCash((c) => Math.floor(c * 0.75)); }
+      else if (res.sym === "crack" && res.count === 3) { setGameOver(true); setGameOverReason("crack"); }
+      if (loss > 0) {
+        setCashLoss({ amt: loss, k: Date.now() });
+        setTimeout(() => setCashLoss(null), 1800);
+      }
     }
 
     const first = pulls === 0;
@@ -918,6 +936,7 @@ export default function LastCoin() {
           <i>{t("argent")}</i>
           <b>{fmt(cash)}</b>
           {income > 0 && <em>+{fmt(income)}{t("par_tour")}</em>}
+          {cashLoss && <span className="lc-cashloss" key={cashLoss.k}>-{fmt(cashLoss.amt)}</span>}
         </div>
         <div className="lc-bar-actions">
           <button className="lc-menu" onClick={() => { setConfirmReset(false); setCheatSeq([]); setScreen("pause"); }} aria-label={t("pause")} title={t("pause")}><i /><i /></button>
@@ -943,6 +962,12 @@ export default function LastCoin() {
         <div className="lc-mark">LAST COIN</div>
         <div className="lc-sub">{venue}</div>
       </div>
+
+      {activeAbility && (
+        <div className="lc-ability-expl">
+          {activeAbility === "hold" ? t("expl_hold") : activeAbility === "nudge" ? t("expl_nudge") : t("expl_repull")}
+        </div>
+      )}
 
       <div className={"lc-stage" + (pressed ? " shake" : "")}>
       <div className="lc-machine" ref={machineRef} style={{ aspectRatio: "870 / 950" }}>
@@ -1407,6 +1432,7 @@ export default function LastCoin() {
         <Ovl><div className="lc-modal">
           <div className="lc-mh">{t("over")}</div>
           <p className="lc-ms">{t("over_sub")}</p>
+          {gameOverReason === "crack" && <p className="lc-over-reason">{t("over_reason_crack")}</p>}
           <div className="lc-statbox">
             <div className="lc-stat-row"><span>{t("tours_joues")}</span><b>{pulls}</b></div>
             <div className="lc-stat-row"><span>{t("plus_gros_gain")}</span><b>{fmt(stats.biggestWin)}</b></div>
@@ -1463,9 +1489,12 @@ const CSS = `
 .lc-devbtns button:hover{border-color:#141414;color:#141414;background:#fafafa;}
 .lc-menucol{display:flex;flex-direction:column;gap:10px;align-items:center;margin:4px 0 2px;}
 .lc-menucol .lc-btn{width:220px;min-width:0;padding:11px 0;text-align:center;letter-spacing:4px;}
-.lc-cash{display:flex;flex-direction:column;align-items:flex-start;}
+.lc-cash{display:flex;flex-direction:column;align-items:flex-start;position:relative;}
 .lc-cash>i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
 .lc-cash>b{font-weight:600;font-size:27px;letter-spacing:1px;line-height:1.02;}
+/* Animation 'evaporation' : montant rouge qui flotte au-dessus du cash et fade out */
+.lc-cashloss{position:absolute;left:0;top:-4px;font-weight:600;font-size:15px;letter-spacing:.5px;color:#c62828;pointer-events:none;animation:cashevap 1.7s cubic-bezier(.2,.7,.3,1) forwards;white-space:nowrap;}
+@keyframes cashevap{0%{opacity:0;transform:translateY(6px) scale(.85);}10%{opacity:1;transform:translateY(0) scale(1);}65%{opacity:.85;transform:translateY(-18px) scale(1);}100%{opacity:0;transform:translateY(-36px) scale(.92);}}
 .lc-cash>em{font-style:normal;font-size:10px;color:#9a9a9a;letter-spacing:.5px;margin-top:2px;}
 .lc-level{display:flex;flex-direction:column;align-items:flex-end;text-align:right;}
 .lc-level>i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
@@ -1474,6 +1503,10 @@ const CSS = `
 .lc-pip{width:8px;height:8px;transform:rotate(45deg);border:1px solid #d2d2d2;}
 .lc-pip.on{background:#141414;border-color:#141414;}
 .lc-head{text-align:center;margin-top:40px;}
+/* Petit panneau d'explication affiche au-dessus de la machine quand une capacite (HOLD/NUDGE/REPULL) est armee */
+.lc-ability-expl{max-width:320px;background:#141414;color:#fafafa;padding:9px 14px;font-size:11px;letter-spacing:.5px;line-height:1.45;text-align:center;animation:expop .25s ease-out;margin:-6px auto 0;}
+@keyframes expop{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+.lc-over-reason{font-size:11px;letter-spacing:2px;color:#9a9a9a;text-transform:uppercase;margin-top:-4px;margin-bottom:6px;}
 .lc-mark{font-size:18px;font-weight:500;letter-spacing:9px;padding-left:9px;}
 .lc-sub{font-size:10px;letter-spacing:3px;color:#707070;margin-top:5px;}
 .lc-top{display:flex;gap:26px;align-items:flex-end;justify-content:center;flex-wrap:wrap;}
