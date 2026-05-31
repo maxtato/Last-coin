@@ -3,6 +3,8 @@ import { IMG, UP_SPR, PRESS_SPR, COVER_SPR } from "./assets";
 import cloverImg from "./charms/clover.png";
 import horseshoeImg from "./charms/horseshoe.png";
 import rabbitImg from "./charms/rabbit.png";
+import reelStopUrl from "./audio/reelstop.wav";
+import clickUrl from "./audio/click.wav";
 
 /* ============================================================
    LAST COIN — machine à sous narrative. Une pièce → un empire.
@@ -236,9 +238,26 @@ function tone(freq, dur, type, gain, delay) {
   osc.start(t0);
   osc.stop(t0 + dur + 0.01);
 }
+// Echantillons audio (WAV) : decodes une fois et caches en AudioBuffer pour rejouer sans latence.
+const _bufCache = {};
+function playSample(url, gain) {
+  gain = gain == null ? 1 : gain;
+  const ctx = getAudioCtx(); if (!ctx) return;
+  const buf = _bufCache[url];
+  if (!buf) {
+    fetch(url).then((r) => r.arrayBuffer()).then((ab) => ctx.decodeAudioData(ab)).then((b) => { _bufCache[url] = b; }).catch(() => {});
+    return;
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const g = ctx.createGain();
+  g.gain.value = gain;
+  src.connect(g); g.connect(ctx.destination);
+  try { src.start(); } catch {}
+}
 const SFX = {
-  click:      () => tone(180, 0.05, "triangle", 0.16),
-  reelStop:   () => tone(140, 0.07, "triangle", 0.10),
+  click:      () => playSample(clickUrl, 0.8),
+  reelStop:   () => playSample(reelStopUrl, 0.7),
   winSmall:   () => { tone(523, 0.10); tone(659, 0.14, "sine", 0.12, 0.06); },
   winBig:     () => { tone(523, 0.09); tone(659, 0.09, "sine", 0.12, 0.07); tone(784, 0.17, "sine", 0.14, 0.14); },
   winJackpot: () => { tone(523, 0.09); tone(659, 0.09, "sine", 0.12, 0.07); tone(784, 0.09, "sine", 0.13, 0.14); tone(1047, 0.22, "sine", 0.16, 0.21); },
@@ -526,7 +545,13 @@ export default function LastCoin() {
   const tierLine = (x) => lang === "en" ? x.line_en  : x.line;
   const soundOnRef = useRef(soundOn);
   useEffect(() => { soundOnRef.current = soundOn; }, [soundOn]);
-  const sfx = (name) => { if (soundOnRef.current && SFX[name]) SFX[name](); };
+  // Precharge les echantillons WAV des qu'un ctx audio existe (gain 0 = preload silencieux)
+  const sfx = (name) => {
+    if (!soundOnRef.current) return;
+    if (!_bufCache[reelStopUrl]) playSample(reelStopUrl, 0);  // amorce le decode lazy
+    if (!_bufCache[clickUrl]) playSample(clickUrl, 0);
+    if (SFX[name]) SFX[name]();
+  };
   const machineRef = useRef(null);
   const lampTimer = useRef(null);                    // gyro : timer de 5 s
 
@@ -1517,7 +1542,7 @@ const CSS = `
 .lc-menucol .lc-btn{width:220px;min-width:0;padding:11px 0;text-align:center;letter-spacing:4px;}
 .lc-cash{display:flex;flex-direction:column;align-items:flex-start;position:relative;}
 .lc-cash>i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
-.lc-cash>b{font-weight:600;font-size:27px;letter-spacing:1px;line-height:1.02;}
+.lc-cash b{font-weight:600;font-size:27px;letter-spacing:1px;line-height:1.02;}
 /* Animation 'evaporation' : montant rouge qui flotte au-dessus du cash et fade out */
 /* Conteneur de la ligne 'argent' : flex en ligne pour ancrer le delta a droite du montant */
 .lc-cashrow{position:relative;display:inline-flex;align-items:flex-end;}
@@ -1635,7 +1660,7 @@ const CSS = `
 .lc-abil{display:flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;background:#fff;border:1px solid #141414;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;color:#141414;transition:background .12s,color .12s;}
 .lc-abil b{font-weight:600;letter-spacing:1.5px;}
 .lc-abil:hover:not(:disabled){background:#fafafa;}
-.lc-abil.on{background:#141414;color:#fff;}
+.lc-abil.on,.lc-abil.on:hover:not(:disabled){background:#141414;color:#fff;}
 .lc-abil.on img{filter:invert(1);}
 .lc-abil:disabled{opacity:.4;cursor:not-allowed;}
 .lc-crow{display:flex;gap:12px;justify-content:center;}
