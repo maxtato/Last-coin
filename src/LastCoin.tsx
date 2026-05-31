@@ -1020,11 +1020,9 @@ export default function LastCoin() {
               </div>
               {canRepull && (
                 <button className="lc-repullbtn" onClick={(e) => { e.stopPropagation(); repull(r); }} aria-label="rejouer ce rouleau">
-                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-                    <path d="M19 11 A7 7 0 0 0 5 11" stroke="currentColor" strokeWidth="2.4" fill="none" />
-                    <polygon points="1 10 9 10 5 17" />
-                    <path d="M5 13 A7 7 0 0 1 19 13" stroke="currentColor" strokeWidth="2.4" fill="none" />
-                    <polygon points="15 14 23 14 19 7" />
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M19.5 12 A7.5 7.5 0 1 1 12 4.5" stroke="currentColor" strokeWidth="2.4" fill="none" strokeLinecap="square" />
+                    <polygon points="9 1 15 5 9 9" fill="currentColor" />
                   </svg>
                 </button>
               )}
