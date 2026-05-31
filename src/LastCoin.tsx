@@ -1814,7 +1814,7 @@ const CSS = `
 .lc-disc{font-size:9px;letter-spacing:2px;color:#8a8a8a;margin-top:16px;}
 .lc-el{font-size:10px;letter-spacing:4px;color:#707070;text-transform:uppercase;}
 .lc-en{font-size:26px;font-weight:300;letter-spacing:2px;margin:6px 0 2px;}
-.lc-list{margin:14px 0 20px;max-height:48vh;overflow-y:auto;text-align:left;}
+.lc-list{margin:14px 0 20px;max-height:48vh;overflow-y:auto;text-align:left;padding-right:10px;}
 .lc-actgrp{margin-bottom:14px;}
 .lc-acth{font-size:9px;letter-spacing:3px;color:#7f7f7f;text-transform:uppercase;padding:6px 2px;border-bottom:1px solid #f0f0f0;margin-bottom:4px;}
 .lc-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
