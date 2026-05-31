@@ -7,8 +7,8 @@ import rabbitImg from "./charms/rabbit.png";
 /* ============================================================
    LAST COIN — machine à sous narrative. Une pièce → un empire.
    Argent fictif, aucun paiement réel.
-   Phase 1 : symboles, table de gains, Cash/Net Worth, achats +
-   revente, revenu passif, sauvegarde. (Hope/Risk & crises = Phase 2)
+   Symboles, table de gains, Cash/Net Worth, achats +
+   revente, revenu passif, sauvegarde. Skull/Crack = effets punitifs sur 2 ou 3 alignes.
    ============================================================ */
 
 // ===== Géométrie de la machine (calée sur l'image, NE PAS toucher) =====
@@ -47,28 +47,6 @@ KEYS.forEach((k) => { URI[k] = symSVG(k, "#141414"); URI_F[k] = symSVG(k, "#b4b4
 function Ink({ k, size, faint }) {
   return <img src={(faint ? URI_F : URI)[k]} width={size} height={size} alt="" draggable={false} style={{ display: "block" }} />;
 }
-// Jauge en forme d'icône qui se remplit par le bas : cœur (moral) ou triangle de danger (risque)
-function Gauge({ kind, pct, hot }) {
-  const p = Math.max(0, Math.min(100, pct));
-  const y = 24 * (1 - p / 100);
-  const id = kind + "fill";
-  const d = kind === "hope"
-    ? "M12 20.5 C6 15.5 3 12 3 8.5 C3 6 5 4 7.5 4 C9.4 4 11.1 5.2 12 7 C12.9 5.2 14.6 4 16.5 4 C19 4 21 6 21 8.5 C21 12 18 15.5 12 20.5 Z"
-    : "M12 3 L22 20.5 L2 20.5 Z";
-  return (
-    <div className={"lc-gauge" + (hot ? " hot" : "")} title={kind === "hope" ? "moral" : "danger"}>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <defs><clipPath id={id}><rect x="0" y={y} width="24" height={24 - y} /></clipPath></defs>
-        <path d={d} fill="#e6e6e6" />
-        <path d={d} fill="#141414" clipPath={"url(#" + id + ")"} />
-        <path d={d} fill="none" stroke="#141414" strokeWidth="1.4" strokeLinejoin="round" />
-        {kind === "hope" && p <= 10 && <path d="M12 5 L10 9 L13.2 12 L9.6 15.5 L12 19.5" fill="none" stroke="#141414" strokeWidth="1.2" strokeLinejoin="round" strokeLinecap="round" />}
-        {kind === "risk" && p >= 90 && <g stroke="#fff" strokeWidth="1.8" strokeLinecap="round"><path d="M12 9 V14.4" /><path d="M12 16.8 V18" /></g>}
-      </svg>
-      <span>{kind === "hope" ? "moral" : "risque"}</span>
-    </div>
-  );
-}
 const SYM_NAME = { coin: "Coin", star: "Star", house: "House", diamond: "Diamond", crown: "Crown", bolt: "Bolt", eye: "Eye", joker: "Joker", skull: "Skull", crack: "Crack" };
 const SYM_INFO = {
   fr: [
@@ -80,8 +58,8 @@ const SYM_INFO = {
     ["bolt",  "machine — paire = 1 carte HOLD · triple = 2 cartes (max 9)"],
     ["eye",   "prédiction — paire = 1 carte NUDGE · triple = 2 cartes (max 9)"],
     ["joker", "WILD — remplace n'importe quel symbole · 3 = jackpot"],
-    ["skull", "DANGER — 3 alignés = tu perds la mise (crise potentielle)"],
-    ["crack", "DANGER — 3 alignés = panne (à réparer pour rejouer)"],
+    ["skull", "DANGER — 2 alignés = -50% cash · 3 alignés = ruine totale"],
+    ["crack", "DANGER — 2 alignés = -25% cash · 3 alignés = fin de partie"],
   ],
   en: [
     ["coin",  "base payout"],
@@ -92,8 +70,8 @@ const SYM_INFO = {
     ["bolt",  "machine — pair = 1 HOLD card · triple = 2 cards (max 9)"],
     ["eye",   "prediction — pair = 1 NUDGE card · triple = 2 cards (max 9)"],
     ["joker", "WILD — replaces any symbol · 3 = jackpot"],
-    ["skull", "DANGER — 3 aligned = bet lost (potential crisis)"],
-    ["crack", "DANGER — 3 aligned = jammed (repair to play again)"],
+    ["skull", "DANGER — 2 aligned = -50% cash · 3 aligned = total ruin"],
+    ["crack", "DANGER — 2 aligned = -25% cash · 3 aligned = game over"],
   ],
 };
 
@@ -112,11 +90,10 @@ function evaluate(t) {
   const f = {}; non.forEach((s) => { f[s] = (f[s] || 0) + 1; });
   const ent = Object.entries(f).sort((a, b) => b[1] - a[1]);
   const [topSym, topCnt] = ent[0];
-  // 3 identiques (avec complétion joker, mais le joker ne complète PAS un symbole danger)
-  if (topCnt + jokers >= 3) {
-    if (NEG[topSym]) { if (topCnt === 3) return { kind: -1, sym: topSym, mult: 0 }; }
-    else return { kind: 3, sym: topSym, mult: PAY3[topSym] };
-  }
+  // Skull / Crack : 2 ou 3 alignes declenchent un effet punitif (le joker ne les complete pas)
+  if (NEG[topSym] && topCnt >= 2) return { kind: -1, sym: topSym, count: topCnt };
+  // 3 identiques (avec completion joker)
+  if (topCnt + jokers >= 3 && !NEG[topSym]) return { kind: 3, sym: topSym, mult: PAY3[topSym] };
   // paire positive
   if (topCnt === 2 && !NEG[topSym]) return { kind: 2, sym: topSym, mult: PAY2[topSym] };
   return { kind: 0 };
@@ -316,9 +293,6 @@ const N = {
   },
 };
 
-// ===== Phase 2 : Hope, Risk, crises =====
-const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const HOPE0 = 70;
 
 // ===== I18N : table de traduction FR / EN, lookup via t(key) en runtime =====
 const T = {
@@ -327,16 +301,17 @@ const T = {
   niveau:        { fr: "niveau",         en: "level" },
   par_tour:      { fr: "/tour",          en: "/spin" },
   // status readouts
-  jammed_msg:    { fr: "machine bloquée · répare-la",      en: "machine jammed · repair it" },
+  broken_msg:    { fr: "machine cassée · fin de partie",   en: "machine broken · game over" },
   broke_msg:     { fr: "à sec · vends un bien",            en: "broke · sell something" },
-  ruined:        { fr: "ruine évitée",                     en: "ruin avoided" },
-  crack_msg:     { fr: "panne",                            en: "jammed" },
+  skull_2_msg:   { fr: "ruine partielle · -50% cash",      en: "partial ruin · -50% cash" },
+  skull_3_msg:   { fr: "ruine totale",                     en: "total ruin" },
+  crack_2_msg:   { fr: "machine fissurée · -25% cash",     en: "machine cracked · -25% cash" },
+  crack_3_msg:   { fr: "machine cassée",                   en: "machine broken" },
   idle_msg:      { fr: "une pièce a tout commencé · un tour peut tout finir",
                    en: "one coin started it · one pull can end it" },
   // bet area
   mise:          { fr: "mise",           en: "bet" },
   mise_max:      { fr: "mise max",       en: "max bet" },
-  reparer:       { fr: "réparer",        en: "repair" },
   // shop buttons
   acheter:       { fr: "Acheter",        en: "Buy" },
   ma_vie:        { fr: "Ma vie",         en: "My life" },
@@ -360,8 +335,6 @@ const T = {
   tours_joues:   { fr: "tours joués",         en: "spins played" },
   plus_gros_gain:{ fr: "plus gros gain",      en: "biggest win" },
   peak_patrim:   { fr: "patrimoine peak",     en: "peak wealth" },
-  crises_endur:  { fr: "crises endurées",     en: "crises survived" },
-  refus:         { fr: "refus",               en: "refused" },
   cartes_obt:    { fr: "cartes obtenues",     en: "cards earned" },
   net:           { fr: "net",                 en: "net" },
   // intro
@@ -416,16 +389,18 @@ const T = {
   c_2j_d:        { fr: "compté comme 3 identiques", en: "counted as 3 of a kind" },
   c_3j:          { fr: "3 Jokers",          en: "3 Jokers" },
   c_3j_d:        { fr: "jackpot",           en: "jackpot" },
-  c_neg:         { fr: "3 Crâne / 3 Fissure",
-                   en: "3 Skulls / 3 Cracks" },
-  c_neg_d:       { fr: "danger — mise perdue", en: "danger — bet lost" },
-  moral_risk:    { fr: "moral & risque",    en: "hope & risk" },
-  moral_t:       { fr: "Moral (le cœur)",   en: "Hope (heart)" },
-  moral_d:       { fr: "ta résistance aux coups durs. Monte quand tu gagnes et quand tu améliores ta vie (surtout le logement). Tombe sur les pertes, les crises et les reventes. À zéro : c'est la spirale — tu perds gros et tu redescends d'un cran.",
-                   en: "your resilience to hard times. Goes up on wins and upgrades (housing especially). Drops on losses, crises and forced sells. At zero: spiral — you lose big and drop one social tier." },
-  risk_t:        { fr: "Risque (le triangle)", en: "Risk (triangle)" },
-  risk_d:        { fr: "ton exposition au danger. Monte quand tu mises gros et quand ton train de vie est voyant. Plus il est haut, plus les crises tombent souvent (loyer, fisc, cambriolage, saisie). Il redescend tout seul si tu joues petit.",
-                   en: "your exposure to danger. Rises when you bet big and when your lifestyle is loud. The higher it is, the more often crises hit (rent, tax, burglary, seizure). It cools down by itself when you play small." },
+  c_skull_2:     { fr: "2 Crâne",           en: "2 Skulls" },
+  c_skull_2_d:   { fr: "ruine partielle — tu perds 50% de ton cash",
+                   en: "partial ruin — lose 50% of your cash" },
+  c_skull_3:     { fr: "3 Crâne",           en: "3 Skulls" },
+  c_skull_3_d:   { fr: "ruine totale — cash et patrimoine effaces",
+                   en: "total ruin — cash and assets wiped" },
+  c_crack_2:     { fr: "2 Fissure",         en: "2 Cracks" },
+  c_crack_2_d:   { fr: "machine fissuree — reparation forcee, -25% du cash",
+                   en: "machine cracked — forced repair, -25% of cash" },
+  c_crack_3:     { fr: "3 Fissure",         en: "3 Cracks" },
+  c_crack_3_d:   { fr: "machine cassee — fin de partie, score sauvegarde",
+                   en: "machine broken — game over, score saved" },
   hold_t:        { fr: "HOLD · bloquer un rouleau", en: "HOLD · lock a reel" },
   hold_cards:    { fr: "Cartes HOLD",       en: "HOLD cards" },
   hold_d:        { fr: "une paire de Bolt fait tomber 1 carte, un triple en fait tomber 2 (plafond 9). Avant de tirer, tape un rouleau pour le bloquer : il garde son symbole au tour suivant. Coût : 1 carte par rouleau bloqué.",
@@ -465,76 +440,17 @@ const T = {
   dev_lead:      { fr: "raccourcis de test", en: "test shortcuts" },
   dev_money:     { fr: "argent",           en: "money" },
   dev_cards:     { fr: "cartes de capacité", en: "ability cards" },
-  dev_gauges:    { fr: "jauges",           en: "gauges" },
-  dev_crisis:    { fr: "crises & machine", en: "crises & machine" },
   dev_screens:   { fr: "écrans",           en: "screens" },
   dev_reset_cash:{ fr: "reset 1$",         en: "reset $1" },
   dev_max_all:   { fr: "max all",          en: "max all" },
   dev_clear:     { fr: "vider",            en: "clear" },
-  dev_moral:     { fr: "moral",            en: "hope" },
-  dev_risk:      { fr: "risque",           en: "risk" },
-  dev_jam:       { fr: "jammer",           en: "jam" },
-  dev_unjam:     { fr: "déjammer",         en: "unjam" },
   dev_intro:     { fr: "intro",            en: "intro" },
   dev_empire:    { fr: "empire",           en: "empire" },
   dev_over:      { fr: "game over",        en: "game over" },
-  // crisis modal action labels
-  payer:         { fr: "payer",            en: "pay" },
-  refuser:       { fr: "refuser",          en: "refuse" },
-  encaisser:     { fr: "encaisser",        en: "take it" },
-  subir:         { fr: "subir",            en: "endure" },
-  a_payer:       { fr: "à payer",          en: "to pay" },
-  taxe:          { fr: "taxe",             en: "tax" },
-  lose_cash_msg: { fr: "tu perds une partie de ton cash",
-                   en: "you lose part of your cash" },
-  seize_msg:     { fr: "ton bien le plus cher est saisi",
-                   en: "your most valuable asset is seized" },
-  spirale_msg:   { fr: "tu redescends d'un cran — mais tu gardes une pièce",
-                   en: "you fall one tier — but you keep one coin" },
 };
 
 // stats agregees sur la partie : alimentees par les hooks de gameplay, persistees, affichees pause/over/empire
-const STATS0 = { biggestWin: 0, peakWorth: 0, cardsEarned: 0, crisesSurvived: 0, crisesRefused: 0, totalBet: 0, totalWon: 0 };
-// risque de fond selon le train de vie : plus tu exhibes, plus tu es exposé
-const luxBase = (nw) => (nw >= 5e6 ? 14 : nw >= 5e5 ? 9 : nw >= 50000 ? 5 : nw >= 5000 ? 2 : 0);
-const CRISIS = {
-  fr: {
-    loyer:       { t: "LOYER DÛ",        s: "Le proprio veut son dû. Maintenant." },
-    cambriolage: { t: "CAMBRIOLAGE",     s: "On a forcé ta porte. Le tiroir crie famine." },
-    fisc:        { t: "LE FISC",         s: "Une lettre polie. Des chiffres qui le sont moins." },
-    venteforcee: { t: "SAISIE",          s: "L'huissier choisit. Pas toi." },
-    spirale:     { t: "TOUT S'EFFONDRE", s: "Trop haut, trop vite. Le sol se dérobe." },
-  },
-  en: {
-    loyer:       { t: "RENT DUE",        s: "The landlord wants his cut. Now." },
-    cambriolage: { t: "BREAK-IN",        s: "Someone forced your door. The drawer is starving." },
-    fisc:        { t: "TAX MAN",         s: "A polite letter. The numbers, less so." },
-    venteforcee: { t: "SEIZURE",         s: "The bailiff picks. Not you." },
-    spirale:     { t: "EVERYTHING COLLAPSES", s: "Too high, too fast. The ground gives way." },
-  },
-};
-const N_CRISIS = {
-  fr: {
-    loyer: "Encore un mois. Gagné, ou juste reporté.",
-    cambriolage: "Tu comptes ce qui reste. Vite fait.",
-    fisc: "L'État aussi joue à la machine. Il gagne toujours.",
-    venteforcee: "Ils emportent un bout de toi.",
-    spirale: "Presque tout. Tu gardes une pièce.",
-  },
-  en: {
-    loyer: "One more month. Won, or just postponed.",
-    cambriolage: "You count what's left. Fast.",
-    fisc: "The State plays the slots too. It always wins.",
-    venteforcee: "They take a piece of you.",
-    spirale: "Almost everything. You keep one coin.",
-  },
-};
-function makeCrisis(id, nw, has) {
-  if (id === "roll") id = pick(has ? ["loyer", "cambriolage", "fisc", "venteforcee"] : ["loyer", "cambriolage", "fisc"]);
-  const amount = id === "loyer" ? Math.max(20, Math.round(nw * 0.05))
-    : id === "fisc" ? Math.max(15, Math.round(nw * 0.03)) : 0;
-  return { id, amount };
-}
+const STATS0 = { biggestWin: 0, peakWorth: 0, cardsEarned: 0, totalBet: 0, totalWon: 0 };
 
 export default function LastCoin() {
   const initRef = useRef(null);
@@ -560,10 +476,7 @@ export default function LastCoin() {
   const [pressed, setPressed] = useState(false);
   const [machineW, setMachineW] = useState(0);
   const [overlay, setOverlay] = useState(null);   // "buy" | "assets" | null
-  const [hope, setHope] = useState(() => (init.hope != null ? init.hope : HOPE0));
-  const [risk, setRisk] = useState(() => init.risk || 0);
-  const [jammed, setJammed] = useState(() => !!init.jammed);   // panne : à réparer avant de rejouer
-  const [crisis, setCrisis] = useState(null);                  // crise active (modale)
+  const [gameOver, setGameOver] = useState(() => !!init.gameOver);   // 3 crack = machine cassee = fin de partie
   const [wonEmpire, setWonEmpire] = useState(() => !!init.empire);
   const [confirmReset, setConfirmReset] = useState(false);   // pause : confirmation avant de recommencer
   // Spin en 2 phases : cruise (vitesse constante, lineaire) puis brake (decel brutale identique pour tous).
@@ -625,8 +538,6 @@ export default function LastCoin() {
   const venue = VENUES[lang][classIdx];   // lieu de jeu débloqué par la classe
   const maxBetIdx = (() => { let m = 0; for (let i = 0; i < BET_STEPS.length; i++) { if (BET_STEPS[i] <= cash) m = i; else break; } return m; })();
   const bet = cash >= 1 ? BET_STEPS[Math.min(betIdx, maxBetIdx)] : 0;
-  const repairCost = Math.max(15, Math.round(netWorth * 0.02));
-  const hot = risk >= 66;
 
   // dimensions
   const machineH = machineW / RATIO;
@@ -657,8 +568,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang })); } catch {}
-  }, [cash, lvl, charms, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang })); } catch {}
+  }, [cash, lvl, charms, betIdx, pulls, gameOver, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang]);
 
   // peak du patrimoine : suivi en permanence des qu'il monte (acceuil cash + achats)
   useEffect(() => {
@@ -667,15 +578,15 @@ export default function LastCoin() {
 
   // fin de partie : à sec et plus rien à vendre
   useEffect(() => {
-    if (screen === "play" && !spinning && cash < 1 && !hasAssets) setScreen("over");
-  }, [cash, hasAssets, spinning, screen]);
+    if (screen === "play" && !spinning && (gameOver || (cash < 1 && !hasAssets))) setScreen("over");
+  }, [cash, hasAssets, spinning, screen, gameOver]);
 
   const say = (txt) => { setFlash(txt); };
 
   const newGame = () => {
     try { localStorage.removeItem(SAVE_KEY); } catch {}
     setCash(1); setLvl({ ...FAM0 }); setCharms({ ...CHARMS_0 }); setBetIdx(0); setPulls(0);
-    setHope(HOPE0); setRisk(0); setJammed(false); setCrisis(null); setWonEmpire(false);
+    setGameOver(false); setWonEmpire(false);
     setLastWin(null); setFlash(""); setLampOn(false); setWinLine(false);
     setStrips(REELS.map((_, r) => restStrip(r))); setReelStage([0, 0, 0]); setSpinning(false);
     setHeld([false, false, false]); setHoldCharges(0); setSpinHeld([false, false, false]);
@@ -734,31 +645,19 @@ export default function LastCoin() {
       cardsEarned: s.cardsEarned + holdGain + nudgeGain + repullGain,
     }));
 
-    // --- Phase 2 : Risk / Hope / panne / crises ---
-    const skull = res.kind === -1 && res.sym === "skull";
-    const crack = res.kind === -1 && res.sym === "crack";
-    const newRisk = clamp(snap.risk * 0.9 + snap.frac * 34 + luxBase(snap.nw) + (skull ? 22 : 0), 0, 100);
-    setRisk(newRisk);
-    let dHope = payout > 0 ? 5 : -2;
-    if (skull) dHope -= 9;
-    if (snap.frac > 0.45 && payout === 0) dHope -= 5;      // grosse mise perdue = coup au moral
-    const newHope = clamp(snap.hope + dHope, 0, 100);
-    setHope(newHope);
-    if (crack) setJammed(true);                            // panne : réparer avant de rejouer
-    // les événements ne tombent QUE quand le risque devient élevé (zone chaude)
-    const RISK_TRIG = 66;
-    let trig = null;
-    if (newHope <= 0) trig = "spirale";
-    else if (newRisk >= RISK_TRIG) {
-      const over = (newRisk - RISK_TRIG) / (100 - RISK_TRIG);   // 0..1 dans la zone chaude
-      if (!crack && skull && Math.random() < 0.5) trig = "cambriolage";
-      else if (!crack && Math.random() < over * 0.18) trig = "roll";
+    // --- Effets punitifs Skull / Crack ---
+    // 2 Skull = ruine partielle (-50% cash), 3 Skull = ruine totale (cash et patrimoine effaces)
+    // 2 Crack = machine fissuree (-25% cash, reparation forcee), 3 Crack = machine cassee (fin de partie)
+    if (res.kind === -1) {
+      if (res.sym === "skull" && res.count === 2) setCash((c) => Math.floor(c * 0.5));
+      else if (res.sym === "skull" && res.count === 3) { setCash(0); setLvl({ ...FAM0 }); }
+      else if (res.sym === "crack" && res.count === 2) setCash((c) => Math.floor(c * 0.75));
+      else if (res.sym === "crack" && res.count === 3) setGameOver(true);
     }
-    if (trig) { setCrisis(makeCrisis(trig, snap.nw, snap.has)); sfx("crisis"); }
 
     const first = pulls === 0;
     const big = res.kind === 3 && res.mult >= 20;
-    setLastWin(payout > 0 ? { amount: payout, big } : res.kind === -1 ? { neg: res.sym } : { amount: 0 });
+    setLastWin(payout > 0 ? { amount: payout, big } : res.kind === -1 ? { neg: res.sym, count: res.count } : { amount: 0 });
     if (payout > 0) {
       setLampOn(true); setWinLine(true); setWinFx({ a: payout, k: Date.now() });
       if (lampTimer.current) clearTimeout(lampTimer.current);
@@ -791,10 +690,10 @@ export default function LastCoin() {
   }, [income, pulls]);
 
   const spin = () => {
-    if (spinning || screen !== "play" || jammed || crisis) return;
+    if (spinning || screen !== "play" || gameOver) return;
     if (bet < 1) return;                       // à sec : le bouton invite à vendre
     const lk = luck();                          // multiplicateur constant : la machine ne triche plus selon le porte-monnaie
-    const snap = { frac: bet / Math.max(1, cash), nw: netWorth, risk, hope, has: hasAssets };
+    const snap = { nw: netWorth };
     if (lampTimer.current) clearTimeout(lampTimer.current);
     setFlash(""); setLastWin(null); setLampOn(false); setWinLine(false); setWinFx(null); setBurst(null);
     setNudgeAvail(false); setRepullAvail(false); setLastSpin(null); setNudgeAnim([false, false, false]);
@@ -869,7 +768,6 @@ export default function LastCoin() {
     const newClass = classOf({ ...lvl, [f.id]: L + 1 });
     const classUp = newClass > classOf(lvl);
     setCash((c) => c - netCost); setLvl((v) => ({ ...v, [f.id]: L + 1 }));
-    setHope((h) => clamp(h + (f.id === "logement" ? 14 : 6), 0, 100));   // s'installer relève le moral
     sfx("coin");
     // narratif ciblé : montée de classe > achat emblématique > parfois
     if (classUp) {
@@ -893,38 +791,12 @@ export default function LastCoin() {
     const L = lvl[f.id];
     if (L <= 0) return;
     setCash((c) => c + f.tiers[L - 1].resale); setLvl((v) => ({ ...v, [f.id]: 0 }));
-    setHope((h) => clamp(h - 10, 0, 100)); say(pick(N[lang].sell));
+    say(pick(N[lang].sell));
     sfx("coin");
   };
 
-  const repair = () => { if (!jammed || cash < repairCost) return; setCash((c) => c - repairCost); setJammed(false); say("La machine repart. Pour l'instant."); };
-  const forceSell = () => {
-    let best = null, bp = 0;
-    FAM.forEach((f) => { const t = ownedTier(f, lvl); if (t && t.price > bp) { bp = t.price; best = f; } });
-    if (best) { const L = lvl[best.id]; setCash((c) => c + best.tiers[L - 1].resale); setLvl((v) => ({ ...v, [best.id]: L - 1 })); }
-  };
-  const dropTop = () => {
-    let best = null, bl = 0;
-    FAM.forEach((f) => { if (lvl[f.id] > bl) { bl = lvl[f.id]; best = f; } });
-    if (best) setLvl((v) => ({ ...v, [best.id]: lvl[best.id] - 1 }));
-  };
-  const payCrisis = () => {
-    const c = crisis; if (!c) return;
-    if (c.id === "loyer") { if (cash < c.amount) return; setCash((x) => x - c.amount); }
-    else if (c.id === "fisc") setCash((x) => Math.max(0, x - c.amount));
-    else if (c.id === "cambriolage") { setCash((x) => Math.round(x * 0.78)); setHope((h) => clamp(h - 6, 0, 100)); }
-    else if (c.id === "venteforcee") { forceSell(); setHope((h) => clamp(h - 10, 0, 100)); }
-    else if (c.id === "spirale") { setCash((x) => Math.round(x * 0.7)); dropTop(); setHope(28); setRisk(0); }
-    say(N_CRISIS[lang][c.id] || ""); setCrisis(null);
-    setStats((s) => ({ ...s, crisesSurvived: s.crisesSurvived + 1 }));
-  };
-  const refuseCrisis = () => {
-    setHope((h) => clamp(h - 18, 0, 100)); setRisk((r) => clamp(r + 10, 0, 100)); setCrisis(null);
-    setStats((s) => ({ ...s, crisesRefused: s.crisesRefused + 1 }));
-  };
-
   const toggleHold = (r) => {
-    if (spinning || screen !== "play" || jammed || crisis) return;
+    if (spinning || screen !== "play" || gameOver) return;
     setHeld((h) => {
       const next = h.slice();
       if (next[r]) { next[r] = false; return next; }                 // déverrouillage : toujours autorisé
@@ -969,7 +841,7 @@ export default function LastCoin() {
 
   // REPULL : un rouleau entier rejoue, les deux autres restent bloques. Re-evalue le combo.
   const repull = (r) => {
-    if (!repullAvail || repullCharges < 1 || !lastSpin || spinning || jammed || crisis) return;
+    if (!repullAvail || repullCharges < 1 || !lastSpin || spinning || gameOver) return;
     const band = BANDS[r];
     let want = pick(POOL);
     let positions = [];
@@ -1066,9 +938,9 @@ export default function LastCoin() {
         <img src={COVER_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_COVER.left + "%", top: LEV_COVER.top + "%", width: LEV_COVER.w + "%", height: LEV_COVER.h + "%", opacity: pressed ? 1 : 0 }} />
         <img src={PRESS_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_DOWN.left + "%", top: LEV_DOWN.top + "%", width: LEV_DOWN.w + "%", height: LEV_DOWN.h + "%", opacity: pressed ? 1 : 0 }} />
         {REELS.map((R, r) => {
-          const canNudge = activeAbility === "nudge" && !spinning && !jammed && !crisis && nudgeAvail && nudgeCharges > 0 && screen === "play";
-          const canRepull = activeAbility === "repull" && !spinning && !jammed && !crisis && repullAvail && repullCharges > 0 && screen === "play";
-          const canHold = activeAbility === "hold" && !spinning && !jammed && !crisis && screen === "play" && (held[r] || held.filter(Boolean).length < holdCharges);
+          const canNudge = activeAbility === "nudge" && !spinning && nudgeAvail && nudgeCharges > 0 && screen === "play";
+          const canRepull = activeAbility === "repull" && !spinning && repullAvail && repullCharges > 0 && screen === "play";
+          const canHold = activeAbility === "hold" && !spinning && screen === "play" && (held[r] || held.filter(Boolean).length < holdCharges);
           return (
             <div
               key={r}
@@ -1120,7 +992,7 @@ export default function LastCoin() {
         {/* Boutons NUDGE rendus en siblings des rouleaux, positionnes au-dessus et en-dessous,
             pour ne pas cacher le symbole central. Sens top-to-bottom : ▲ = symbole d'avant, ▼ = symbole suivant. */}
         {REELS.map((R, r) => {
-          const canNudge = activeAbility === "nudge" && !spinning && !jammed && !crisis && nudgeAvail && nudgeCharges > 0 && screen === "play";
+          const canNudge = activeAbility === "nudge" && !spinning && nudgeAvail && nudgeCharges > 0 && screen === "play";
           if (!canNudge) return null;
           return (
             <React.Fragment key={"nb" + r}>
@@ -1177,7 +1049,7 @@ export default function LastCoin() {
           </div>
         )}
 
-        {screen === "play" && !spinning && !jammed && !crisis && (
+        {screen === "play" && !spinning && (
           <div className="lc-pullhint" aria-hidden="true">
             <svg viewBox="0 0 64 42" preserveAspectRatio="xMidYMid meet">
               <text x="32" y="12" textAnchor="middle" fontFamily="Jost,Arial,sans-serif" fontSize="14" fontWeight="700" letterSpacing="1.5" fill="#141414">PULL</text>
@@ -1185,23 +1057,21 @@ export default function LastCoin() {
             </svg>
           </div>
         )}
-        <button className="lc-lever" onClick={spin} disabled={spinning || jammed || !!crisis} title="tire le levier" aria-label="pull" />
+        <button className="lc-lever" onClick={spin} disabled={spinning || gameOver} title="tire le levier" aria-label="pull" />
       </div>
       </div>
 
       <div className="lc-readout">
-        {jammed
-          ? <span className="lc-neg">{t("jammed_msg")}</span>
+        {gameOver
+          ? <span className="lc-neg">{t("broken_msg")}</span>
           : (bet < 1 && hasAssets && screen === "play")
           ? <span className="lc-neg">{t("broke_msg")}</span>
           : flash ? <span className="lc-flash">{flash}</span>
-          : (lastWin && lastWin.neg) ? <span className="lc-neg">{lastWin.neg === "skull" ? t("ruined") : t("crack_msg")}</span>
+          : (lastWin && lastWin.neg) ? <span className="lc-neg">{
+              lastWin.neg === "skull" ? (lastWin.count === 3 ? t("skull_3_msg") : t("skull_2_msg"))
+                                      : (lastWin.count === 3 ? t("crack_3_msg") : t("crack_2_msg"))
+            }</span>
           : null}
-      </div>
-
-      <div className="lc-gauges">
-        <Gauge kind="hope" pct={hope} hot={hope <= 25} />
-        <Gauge kind="risk" pct={risk} hot={hot} />
       </div>
 
       {(holdCharges > 0 || nudgeCharges > 0 || repullCharges > 0 || held.some(Boolean)) && (
@@ -1209,7 +1079,7 @@ export default function LastCoin() {
           {holdCharges > 0 && (
             <button
               className={"lc-abil" + (activeAbility === "hold" ? " on" : "")}
-              disabled={spinning || jammed || !!crisis}
+              disabled={spinning || gameOver}
               onClick={() => setActiveAbility((a) => a === "hold" ? null : "hold")}
               title="HOLD"
             >
@@ -1220,7 +1090,7 @@ export default function LastCoin() {
           {nudgeCharges > 0 && (
             <button
               className={"lc-abil" + (activeAbility === "nudge" ? " on" : "")}
-              disabled={spinning || jammed || !!crisis || !nudgeAvail}
+              disabled={spinning || gameOver || !nudgeAvail}
               onClick={() => setActiveAbility((a) => a === "nudge" ? null : "nudge")}
               title="NUDGE"
             >
@@ -1231,7 +1101,7 @@ export default function LastCoin() {
           {repullCharges > 0 && (
             <button
               className={"lc-abil" + (activeAbility === "repull" ? " on" : "")}
-              disabled={spinning || jammed || !!crisis || !repullAvail}
+              disabled={spinning || gameOver || !repullAvail}
               onClick={() => setActiveAbility((a) => a === "repull" ? null : "repull")}
               title="REPULL"
             >
@@ -1242,9 +1112,8 @@ export default function LastCoin() {
         </div>
       )}
       <div className="lc-ctrl">
-        {jammed
-          ? <button className="lc-repair" disabled={cash < repairCost} onClick={repair}>{t("reparer")} · {fmt(repairCost)}</button>
-          : <div className="lc-betwrap">
+        {!gameOver && (
+          <div className="lc-betwrap">
               <div className="lc-betbar">
                 <button className="lc-bb" disabled={spinning || betIdx <= 0} onClick={betDown}>–</button>
                 <div className="lc-betcoin" title={t("mise")}>
@@ -1261,7 +1130,8 @@ export default function LastCoin() {
                 <button className="lc-bb" disabled={spinning || betIdx >= maxBetIdx} onClick={betUp}>+</button>
               </div>
               <button className="lc-bmax" disabled={spinning} onClick={betMax}>{t("mise_max")}</button>
-            </div>}
+            </div>
+        )}
       </div>
 
       <div className="lc-shopbtns">
@@ -1306,7 +1176,6 @@ export default function LastCoin() {
                 <div className="lc-stat-row"><span>{t("tours_joues")}</span><b>{pulls}</b></div>
                 <div className="lc-stat-row"><span>{t("plus_gros_gain")}</span><b>{fmt(stats.biggestWin)}</b></div>
                 <div className="lc-stat-row"><span>{t("peak_patrim")}</span><b>{fmt(stats.peakWorth)}</b></div>
-                <div className="lc-stat-row"><span>{t("crises_endur")}</span><b>{stats.crisesSurvived}</b></div>
                 <div className="lc-stat-row"><span>{t("cartes_obt")}</span><b>{stats.cardsEarned}</b></div>
               </div>
               <div className="lc-menucol">
@@ -1420,17 +1289,11 @@ export default function LastCoin() {
             <div className="lc-combo"><b>{t("c_2")}</b><i>{t("c_2_d")}</i></div>
             <div className="lc-combo"><b>{t("c_2j")}</b><i>{t("c_2j_d")}</i></div>
             <div className="lc-combo"><b>{t("c_3j")}</b><i>{t("c_3j_d")} ×{PAY3.joker}</i></div>
-            <div className="lc-combo"><b>{t("c_neg")}</b><i>{t("c_neg_d")}</i></div>
+            <div className="lc-combo"><b>{t("c_skull_2")}</b><i>{t("c_skull_2_d")}</i></div>
+            <div className="lc-combo"><b>{t("c_skull_3")}</b><i>{t("c_skull_3_d")}</i></div>
+            <div className="lc-combo"><b>{t("c_crack_2")}</b><i>{t("c_crack_2_d")}</i></div>
+            <div className="lc-combo"><b>{t("c_crack_3")}</b><i>{t("c_crack_3_d")}</i></div>
 
-            <div className="lc-acth">{t("moral_risk")}</div>
-            <div className="lc-rule">
-              <Gauge kind="hope" pct={70} />
-              <div className="lc-rule-txt"><b>{t("moral_t")}</b><i>{t("moral_d")}</i></div>
-            </div>
-            <div className="lc-rule">
-              <Gauge kind="risk" pct={80} />
-              <div className="lc-rule-txt"><b>{t("risk_t")}</b><i>{t("risk_d")}</i></div>
-            </div>
             <div className="lc-acth">{t("hold_t")}</div>
             <div className="lc-rule">
               <Ink k="bolt" size={26} />
@@ -1480,27 +1343,6 @@ export default function LastCoin() {
               </div>
             </div>
             <div className="lc-devgroup">
-              <div className="lc-devheader">{t("dev_gauges")}</div>
-              <div className="lc-devbtns">
-                <button onClick={() => setHope(100)}>{t("dev_moral")} 100</button>
-                <button onClick={() => setHope(50)}>{t("dev_moral")} 50</button>
-                <button onClick={() => setHope(0)}>{t("dev_moral")} 0</button>
-                <button onClick={() => setRisk(100)}>{t("dev_risk")} 100</button>
-                <button onClick={() => setRisk(0)}>{t("dev_risk")} 0</button>
-              </div>
-            </div>
-            <div className="lc-devgroup">
-              <div className="lc-devheader">{t("dev_crisis")}</div>
-              <div className="lc-devbtns">
-                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("loyer", netWorth, hasAssets)); }}>{CRISIS[lang].loyer.t.toLowerCase()}</button>
-                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("fisc", netWorth, hasAssets)); }}>{CRISIS[lang].fisc.t.toLowerCase()}</button>
-                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("cambriolage", netWorth, hasAssets)); }}>{CRISIS[lang].cambriolage.t.toLowerCase()}</button>
-                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("venteforcee", netWorth, hasAssets)); }}>{CRISIS[lang].venteforcee.t.toLowerCase()}</button>
-                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("spirale", netWorth, hasAssets)); }}>{CRISIS[lang].spirale.t.toLowerCase()}</button>
-                <button onClick={() => setJammed((j) => !j)}>{jammed ? t("dev_unjam") : t("dev_jam")}</button>
-              </div>
-            </div>
-            <div className="lc-devgroup">
               <div className="lc-devheader">{t("charms_title")}</div>
               <div className="lc-devbtns">
                 {CHARM_KEYS.map((k) => (
@@ -1525,28 +1367,6 @@ export default function LastCoin() {
         </div></Ovl>
       )}
 
-      {crisis && (
-        <Ovl><div className="lc-modal">
-          <div className="lc-mh">{CRISIS[lang][crisis.id].t}</div>
-          <p className="lc-ms">{CRISIS[lang][crisis.id].s}</p>
-          {crisis.id === "loyer" ? (
-            <><p className="lc-mb">{t("a_payer")} : {fmt(crisis.amount)}</p>
-              <div className="lc-crow">
-                <button className="lc-btn" disabled={cash < crisis.amount} onClick={payCrisis}>{t("payer")}</button>
-                <button className="lc-btn ghost" onClick={refuseCrisis}>{t("refuser")}</button>
-              </div></>
-          ) : crisis.id === "fisc" ? (
-            <><p className="lc-mb">{t("taxe")} : {fmt(crisis.amount)}</p><button className="lc-btn" onClick={payCrisis}>{t("payer")}</button></>
-          ) : crisis.id === "cambriolage" ? (
-            <><p className="lc-mb">{t("lose_cash_msg")}</p><button className="lc-btn" onClick={payCrisis}>{t("encaisser")}</button></>
-          ) : crisis.id === "venteforcee" ? (
-            <><p className="lc-mb">{t("seize_msg")}</p><button className="lc-btn" onClick={payCrisis}>{t("subir")}</button></>
-          ) : (
-            <><p className="lc-mb">{t("spirale_msg")}</p><button className="lc-btn" onClick={payCrisis}>{t("encaisser")}</button></>
-          )}
-        </div></Ovl>
-      )}
-
       {screen === "empire" && (
         <Ovl><div className="lc-modal">
           <div className="lc-mh">{t("empire")}</div>
@@ -1556,7 +1376,6 @@ export default function LastCoin() {
             <div className="lc-stat-row"><span>{t("tours_joues")}</span><b>{pulls}</b></div>
             <div className="lc-stat-row"><span>{t("plus_gros_gain")}</span><b>{fmt(stats.biggestWin)}</b></div>
             <div className="lc-stat-row"><span>{t("peak_patrim")}</span><b>{fmt(stats.peakWorth)}</b></div>
-            <div className="lc-stat-row"><span>{t("crises_endur")}</span><b>{stats.crisesSurvived}</b></div>
             <div className="lc-stat-row"><span>{t("cartes_obt")}</span><b>{stats.cardsEarned}</b></div>
             <div className="lc-stat-row"><span>{t("net")}</span><b>{fmt(stats.totalWon - stats.totalBet)}</b></div>
           </div>
@@ -1576,7 +1395,6 @@ export default function LastCoin() {
             <div className="lc-stat-row"><span>{t("tours_joues")}</span><b>{pulls}</b></div>
             <div className="lc-stat-row"><span>{t("plus_gros_gain")}</span><b>{fmt(stats.biggestWin)}</b></div>
             <div className="lc-stat-row"><span>{t("peak_patrim")}</span><b>{fmt(stats.peakWorth)}</b></div>
-            <div className="lc-stat-row"><span>{t("crises_endur")}</span><b>{stats.crisesSurvived}</b>{stats.crisesRefused > 0 ? <i> · {stats.crisesRefused} {t("refus")}</i> : null}</div>
             <div className="lc-stat-row"><span>{t("cartes_obt")}</span><b>{stats.cardsEarned}</b></div>
             <div className="lc-stat-row"><span>{t("net")}</span><b>{fmt(stats.totalWon - stats.totalBet)}</b></div>
           </div>
@@ -1728,7 +1546,6 @@ const CSS = `
 .lc-pullhint{position:absolute;left:84%;top:-3%;width:22%;height:16%;z-index:5;pointer-events:none;animation:pullbob 1.15s ease-in-out infinite;}
 .lc-pullhint svg{width:100%;height:100%;display:block;overflow:visible;}
 @keyframes pullbob{0%,100%{transform:translateY(-6%);opacity:.55;}50%{transform:translateY(15%);opacity:.95;}}
-.lc-gauges{display:flex;gap:40px;align-items:flex-start;justify-content:center;}
 /* Boutons d'armement des capacites HOLD / NUDGE / REPULL sous la machine.
    Click pour activer -> les contreoles (tap rouleau / fleches / cercle) apparaissent dans la machine. */
 .lc-abilities{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:-2px;}
@@ -1738,13 +1555,6 @@ const CSS = `
 .lc-abil.on{background:#141414;color:#fff;}
 .lc-abil.on img{filter:invert(1);}
 .lc-abil:disabled{opacity:.4;cursor:not-allowed;}
-.lc-gauge{display:flex;flex-direction:column;align-items:center;gap:3px;}
-.lc-gauge svg{width:30px;height:30px;display:block;}
-.lc-gauge span{font-size:8px;letter-spacing:2px;color:#707070;text-transform:uppercase;}
-.lc-gauge.hot svg{animation:hotp .5s ease infinite alternate;}
-@keyframes hotp{from{opacity:.4;}to{opacity:1;}}
-.lc-repair{background:#141414;color:#fff;border:1px solid #141414;cursor:pointer;font-family:inherit;font-size:12px;letter-spacing:4px;padding:10px 26px;text-transform:uppercase;animation:hotp .6s ease infinite alternate;}
-.lc-repair:disabled{background:#fff;color:#dcdcdc;border-color:#dcdcdc;cursor:default;animation:none;}
 .lc-crow{display:flex;gap:12px;justify-content:center;}
 .lc-btn.ghost{background:#fff;color:#141414;}
 .lc-btn.ghost:hover{background:#141414;color:#fff;}
