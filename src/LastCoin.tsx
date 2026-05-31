@@ -3,6 +3,7 @@ import { IMG, UP_SPR, PRESS_SPR, COVER_SPR } from "./assets";
 import cloverImg from "./charms/clover.png";
 import horseshoeImg from "./charms/horseshoe.png";
 import rabbitImg from "./charms/rabbit.png";
+import reelStopUrl from "./audio/reelstop.wav";
 
 /* ============================================================
    LAST COIN — machine à sous narrative. Une pièce → un empire.
@@ -236,9 +237,26 @@ function tone(freq, dur, type, gain, delay) {
   osc.start(t0);
   osc.stop(t0 + dur + 0.01);
 }
+// Echantillons audio (WAV) : decodes une fois et caches en AudioBuffer pour rejouer sans latence.
+const _bufCache = {};
+function playSample(url, gain) {
+  gain = gain == null ? 1 : gain;
+  const ctx = getAudioCtx(); if (!ctx) return;
+  const buf = _bufCache[url];
+  if (!buf) {
+    fetch(url).then((r) => r.arrayBuffer()).then((ab) => ctx.decodeAudioData(ab)).then((b) => { _bufCache[url] = b; }).catch(() => {});
+    return;
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const g = ctx.createGain();
+  g.gain.value = gain;
+  src.connect(g); g.connect(ctx.destination);
+  try { src.start(); } catch {}
+}
 const SFX = {
   click:      () => tone(180, 0.05, "triangle", 0.16),
-  reelStop:   () => tone(140, 0.07, "triangle", 0.10),
+  reelStop:   () => playSample(reelStopUrl, 0.7),
   winSmall:   () => { tone(523, 0.10); tone(659, 0.14, "sine", 0.12, 0.06); },
   winBig:     () => { tone(523, 0.09); tone(659, 0.09, "sine", 0.12, 0.07); tone(784, 0.17, "sine", 0.14, 0.14); },
   winJackpot: () => { tone(523, 0.09); tone(659, 0.09, "sine", 0.12, 0.07); tone(784, 0.09, "sine", 0.13, 0.14); tone(1047, 0.22, "sine", 0.16, 0.21); },
@@ -526,7 +544,12 @@ export default function LastCoin() {
   const tierLine = (x) => lang === "en" ? x.line_en  : x.line;
   const soundOnRef = useRef(soundOn);
   useEffect(() => { soundOnRef.current = soundOn; }, [soundOn]);
-  const sfx = (name) => { if (soundOnRef.current && SFX[name]) SFX[name](); };
+  // Precharge les echantillons WAV des qu'un ctx audio existe (gain 0 = preload silencieux)
+  const sfx = (name) => {
+    if (!soundOnRef.current) return;
+    if (!_bufCache[reelStopUrl]) playSample(reelStopUrl, 0);  // amorce le decode lazy
+    if (SFX[name]) SFX[name]();
+  };
   const machineRef = useRef(null);
   const lampTimer = useRef(null);                    // gyro : timer de 5 s
 
