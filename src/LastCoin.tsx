@@ -1050,7 +1050,7 @@ export default function LastCoin() {
                 className="lc-nudgebtn up"
                 onClick={() => nudge(r, +1)}
                 aria-label="nudge haut"
-                style={{ left: R.l + "%", top: (WIN_TOP - 6) + "%", width: R.w + "%" }}
+                style={{ left: R.l + "%", top: (WIN_TOP - 8) + "%", width: R.w + "%" }}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15 L12 8 L19 15" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" strokeLinejoin="miter" /></svg>
               </button>
