@@ -1204,7 +1204,7 @@ export default function LastCoin() {
         {!gameOver && (
           <div className="lc-betwrap">
               <div className="lc-betbar">
-                <button className="lc-bb" disabled={spinning || betIdx <= 0} onClick={betDown}>–</button>
+                <button className="lc-bb" disabled={betIdx <= 0} onClick={betDown}>–</button>
                 <div className="lc-betcoin" title={t("mise")}>
                   <svg className="lc-coinart" viewBox="0 0 100 100" aria-hidden="true">
                     <circle cx="50" cy="52.5" r="47" fill="#141414" />
@@ -1216,9 +1216,9 @@ export default function LastCoin() {
                   </svg>
                   <span className="lc-betnum">{fmt(bet)}</span>
                 </div>
-                <button className="lc-bb" disabled={spinning || betIdx >= maxBetIdx} onClick={betUp}>+</button>
+                <button className="lc-bb" disabled={betIdx >= maxBetIdx} onClick={betUp}>+</button>
               </div>
-              <button className="lc-bmax" disabled={spinning} onClick={betMax}>{t("mise_max")}</button>
+              <button className="lc-bmax" onClick={betMax}>{t("mise_max")}</button>
             </div>
         )}
       </div>
