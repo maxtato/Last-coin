@@ -564,6 +564,7 @@ export default function LastCoin() {
   const [nudgeAnim, setNudgeAnim] = useState([false, false, false]);       // transition douce sur le rouleau qu'on decale
   const [repullCharges, setRepullCharges] = useState(() => init.repullCharges || 0); // cartes REPULL (gagnées via Crown)
   const [repullAvail, setRepullAvail] = useState(false);                   // fenêtre de REPULL ouverte après le tour
+  const [activeAbility, setActiveAbility] = useState(null);                // "hold" | "nudge" | "repull" | null — capacite armee depuis les boutons sous la machine
   const [stats, setStats] = useState(() => ({ ...STATS0, ...(init.stats || {}) }));
   const [soundOn, setSoundOn] = useState(() => init.soundOn !== false);    // son ON par defaut
   const [lang, setLang] = useState(() => init.lang || "fr");                // "fr" | "en"
@@ -658,6 +659,7 @@ export default function LastCoin() {
     setHeld([false, false, false]); setHoldCharges(0); setSpinHeld([false, false, false]);
     setNudgeCharges(0); setNudgeAvail(false); setLastSpin(null); setNudgeAnim([false, false, false]);
     setRepullCharges(0); setRepullAvail(false);
+    setActiveAbility(null);
     setStats({ ...STATS0 });
     setCardNotif(null); setLevelUp(null); setBurst(null); setWinFx(null);
     setOverlay(null); setConfirmReset(false); setScreen("intro");   // repasse par l'intro pour rappeler le contexte
@@ -772,7 +774,8 @@ export default function LastCoin() {
     const snap = { frac: bet / Math.max(1, cash), nw: netWorth, risk, hope, has: hasAssets };
     if (lampTimer.current) clearTimeout(lampTimer.current);
     setFlash(""); setLastWin(null); setLampOn(false); setWinLine(false); setWinFx(null); setBurst(null);
-    setNudgeAvail(false); setRepullAvail(false); setLastSpin(null); setNudgeAnim([false, false, false]);   // ferme les fenetres de capacite precedentes
+    setNudgeAvail(false); setRepullAvail(false); setLastSpin(null); setNudgeAnim([false, false, false]);
+    setActiveAbility(null);                                          // toute capacite armee est desarmee au lancement du tour
     setPressed(true); setTimeout(() => setPressed(false), 600);
     setCash((c) => c - bet);
     setSpinning(true);
@@ -925,6 +928,7 @@ export default function LastCoin() {
     setNudgeCharges((c) => c - 1);
     setNudgeAvail(false);                                   // une seule manip par fenetre
     setRepullAvail(false);                                  // une capacite par fenetre, toutes confondues
+    setActiveAbility(null);                                 // capacite desarmee apres usage
     if (delta > 0) setStats((s) => ({ ...s, totalWon: s.totalWon + delta, biggestWin: Math.max(s.biggestWin, newPayout) }));
   };
 
@@ -974,6 +978,7 @@ export default function LastCoin() {
       setRepullCharges((c) => c - 1);
       setRepullAvail(false);
       setNudgeAvail(false);                                 // une seule capacite par fenetre
+      setActiveAbility(null);                               // capacite desarmee apres usage
       setReelStage([0, 0, 0]); setSpinning(false); setSpinHeld([false, false, false]);
       if (delta > 0) setStats((s) => ({ ...s, totalWon: s.totalWon + delta, biggestWin: Math.max(s.biggestWin, newPayout) }));
     }, Math.round((reelCruiseDur(r) + REEL_BRAKE_DUR) * 1000) + 100);
@@ -1023,9 +1028,9 @@ export default function LastCoin() {
         <img src={COVER_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_COVER.left + "%", top: LEV_COVER.top + "%", width: LEV_COVER.w + "%", height: LEV_COVER.h + "%", opacity: pressed ? 1 : 0 }} />
         <img src={PRESS_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_DOWN.left + "%", top: LEV_DOWN.top + "%", width: LEV_DOWN.w + "%", height: LEV_DOWN.h + "%", opacity: pressed ? 1 : 0 }} />
         {REELS.map((R, r) => {
-          const canNudge = !spinning && !jammed && !crisis && nudgeAvail && nudgeCharges > 0 && screen === "play";
-          const canRepull = !spinning && !jammed && !crisis && repullAvail && repullCharges > 0 && screen === "play";
-          const canHold = !canNudge && !canRepull && !spinning && !jammed && !crisis && screen === "play" && (held[r] || holdCharges > 0);
+          const canNudge = activeAbility === "nudge" && !spinning && !jammed && !crisis && nudgeAvail && nudgeCharges > 0 && screen === "play";
+          const canRepull = activeAbility === "repull" && !spinning && !jammed && !crisis && repullAvail && repullCharges > 0 && screen === "play";
+          const canHold = activeAbility === "hold" && !spinning && !jammed && !crisis && screen === "play" && (held[r] || holdCharges > 0);
           return (
             <div
               key={r}
@@ -1058,7 +1063,7 @@ export default function LastCoin() {
         {/* Boutons NUDGE rendus en siblings des rouleaux, positionnes au-dessus et en-dessous,
             pour ne pas cacher le symbole central. Sens top-to-bottom : ▲ = symbole d'avant, ▼ = symbole suivant. */}
         {REELS.map((R, r) => {
-          const canNudge = !spinning && !jammed && !crisis && nudgeAvail && nudgeCharges > 0 && screen === "play";
+          const canNudge = activeAbility === "nudge" && !spinning && !jammed && !crisis && nudgeAvail && nudgeCharges > 0 && screen === "play";
           if (!canNudge) return null;
           return (
             <React.Fragment key={"nb" + r}>
@@ -1133,24 +1138,49 @@ export default function LastCoin() {
         <Gauge kind="risk" pct={risk} hot={hot} />
       </div>
 
-      {(holdCharges > 0 || nudgeCharges > 0 || repullCharges > 0 || held.some(Boolean) || nudgeAvail || repullAvail) && (
-        <div className="lc-holdbar">
+      {(holdCharges > 0 || nudgeCharges > 0 || repullCharges > 0 || held.some(Boolean)) && (
+        <div className="lc-abilities">
           {holdCharges > 0 && (
-            <span className="lc-hb-item"><Ink k="bolt" size={13} /><b>×{holdCharges}</b></span>
+            <button
+              className={"lc-abil" + (activeAbility === "hold" ? " on" : "")}
+              disabled={spinning || jammed || !!crisis || nudgeAvail || repullAvail}
+              onClick={() => setActiveAbility((a) => a === "hold" ? null : "hold")}
+              title="HOLD"
+            >
+              <Ink k="bolt" size={16} />
+              <span><b>HOLD</b> ×{holdCharges}</span>
+            </button>
           )}
-          {nudgeCharges > 0 && (
-            <span className="lc-hb-item"><Ink k="eye" size={13} /><b>×{nudgeCharges}</b></span>
+          {nudgeCharges > 0 && nudgeAvail && (
+            <button
+              className={"lc-abil" + (activeAbility === "nudge" ? " on" : "")}
+              disabled={spinning || jammed || !!crisis}
+              onClick={() => setActiveAbility((a) => a === "nudge" ? null : "nudge")}
+              title="NUDGE"
+            >
+              <Ink k="eye" size={16} />
+              <span><b>NUDGE</b> ×{nudgeCharges}</span>
+            </button>
           )}
-          {repullCharges > 0 && (
-            <span className="lc-hb-item"><Ink k="crown" size={13} /><b>×{repullCharges}</b></span>
+          {repullCharges > 0 && repullAvail && (
+            <button
+              className={"lc-abil" + (activeAbility === "repull" ? " on" : "")}
+              disabled={spinning || jammed || !!crisis}
+              onClick={() => setActiveAbility((a) => a === "repull" ? null : "repull")}
+              title="REPULL"
+            >
+              <Ink k="crown" size={16} />
+              <span><b>REPULL</b> ×{repullCharges}</span>
+            </button>
           )}
-          <em>
-            {repullAvail && repullCharges > 0 ? t("hint_repull")
-              : nudgeAvail && nudgeCharges > 0 ? t("hint_nudge")
-              : held.some(Boolean) ? t("hint_held")
-              : holdCharges > 0 ? t("hint_hold")
-              : ""}
-          </em>
+        </div>
+      )}
+      {activeAbility && (
+        <div className="lc-abil-hint">
+          {activeAbility === "hold" ? (held.some(Boolean) ? t("hint_held") : t("hint_hold"))
+            : activeAbility === "nudge" ? t("hint_nudge")
+            : activeAbility === "repull" ? t("hint_repull")
+            : ""}
         </div>
       )}
 
@@ -1593,10 +1623,16 @@ const CSS = `
 .lc-pullhint svg{width:100%;height:100%;display:block;overflow:visible;}
 @keyframes pullbob{0%,100%{transform:translateY(-6%);opacity:.55;}50%{transform:translateY(15%);opacity:.95;}}
 .lc-gauges{display:flex;gap:40px;align-items:flex-start;justify-content:center;}
-.lc-holdbar{display:flex;align-items:center;gap:12px;font-size:11px;letter-spacing:1px;color:#444;margin-top:-4px;flex-wrap:wrap;justify-content:center;}
-.lc-hb-item{display:flex;align-items:center;gap:4px;}
-.lc-holdbar b{font-weight:600;letter-spacing:.5px;}
-.lc-holdbar em{font-style:normal;font-size:10px;letter-spacing:.3px;color:#888;}
+/* Boutons d'armement des capacites HOLD / NUDGE / REPULL sous la machine.
+   Click pour activer -> les contreoles (tap rouleau / fleches / cercle) apparaissent dans la machine. */
+.lc-abilities{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:-2px;}
+.lc-abil{display:flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;background:#fff;border:1px solid #141414;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;color:#141414;transition:background .12s,color .12s;}
+.lc-abil b{font-weight:600;letter-spacing:1.5px;}
+.lc-abil:hover:not(:disabled){background:#fafafa;}
+.lc-abil.on{background:#141414;color:#fff;}
+.lc-abil.on img{filter:invert(1);}
+.lc-abil:disabled{opacity:.4;cursor:not-allowed;}
+.lc-abil-hint{font-size:9px;letter-spacing:2px;color:#7f7f7f;text-transform:uppercase;text-align:center;}
 .lc-gauge{display:flex;flex-direction:column;align-items:center;gap:3px;}
 .lc-gauge svg{width:30px;height:30px;display:block;}
 .lc-gauge span{font-size:8px;letter-spacing:2px;color:#707070;text-transform:uppercase;}
