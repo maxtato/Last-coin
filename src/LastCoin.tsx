@@ -1018,14 +1018,6 @@ export default function LastCoin() {
                 ))}
                 </div>
               </div>
-              {canRepull && (
-                <button className="lc-repullbtn" onClick={(e) => { e.stopPropagation(); repull(r); }} aria-label="rejouer ce rouleau">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M19.5 12 A7.5 7.5 0 1 1 12 4.5" stroke="currentColor" strokeWidth="2.4" fill="none" strokeLinecap="square" />
-                    <polygon points="9 1 15 5 9 9" fill="currentColor" />
-                  </svg>
-                </button>
-              )}
               {held[r] && (
                 <div className="lc-lock" aria-hidden="true">
                   <svg viewBox="0 0 24 24">
@@ -1050,7 +1042,7 @@ export default function LastCoin() {
                 className="lc-nudgebtn up"
                 onClick={() => nudge(r, +1)}
                 aria-label="nudge haut"
-                style={{ left: R.l + "%", top: (WIN_TOP - 10.5) + "%", width: R.w + "%" }}
+                style={{ left: R.l + "%", top: (WIN_TOP - 9) + "%", width: R.w + "%" }}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15 L12 8 L19 15" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" strokeLinejoin="miter" /></svg>
               </button>
@@ -1063,6 +1055,26 @@ export default function LastCoin() {
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9 L12 16 L19 9" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" strokeLinejoin="miter" /></svg>
               </button>
             </React.Fragment>
+          );
+        })}
+        {/* Boutons REPULL : siblings des rouleaux, positionnes au premier plan en haut du rouleau,
+            hors du overflow:hidden de .lc-reel pour ne pas etre coupes par le cache. */}
+        {REELS.map((R, r) => {
+          const canRepull = activeAbility === "repull" && !spinning && repullAvail && repullCharges > 0 && screen === "play";
+          if (!canRepull) return null;
+          return (
+            <button
+              key={"rb" + r}
+              className="lc-repullbtn"
+              onClick={(e) => { e.stopPropagation(); repull(r); }}
+              aria-label="rejouer ce rouleau"
+              style={{ left: (R.l + R.w / 2) + "%", top: (WIN_TOP + 3) + "%" }}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M19.5 12 A7.5 7.5 0 1 1 12 4.5" stroke="currentColor" strokeWidth="2.4" fill="none" strokeLinecap="square" />
+                <polygon points="9 1 15 5 9 9" fill="currentColor" />
+              </svg>
+            </button>
           );
         })}
         <div className="lc-shadow" style={{ top: WIN_TOP + "%", left: (REELS[0].l - 1.5) + "%", width: (REELS[2].l + REELS[2].w - REELS[0].l + 3) + "%", height: (WIN_H * 0.16) + "%" }} />
@@ -1593,7 +1605,7 @@ const CSS = `
 .lc-nudgebtn:hover{background:#fafafa;color:#141414;}
 .lc-nudgebtn:active{transform:scale(.94);}
 /* Bouton REPULL : flche courte blanche sur disque noir au centre du rouleau */
-.lc-repullbtn{position:absolute;left:50%;top:8%;transform:translate(-50%,-50%);width:34px;height:34px;background:#141414;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:7;padding:0;color:#fafafa;font-family:inherit;transition:.12s;}
+.lc-repullbtn{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;background:#141414;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:9;padding:0;color:#fafafa;font-family:inherit;transition:.12s;}
 .lc-repullbtn svg{width:20px;height:20px;display:block;}
 .lc-repullbtn:hover{background:#fafafa;color:#141414;}
 .lc-repullbtn:active{transform:translate(-50%,-50%) scale(.9);}
