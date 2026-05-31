@@ -1151,10 +1151,10 @@ export default function LastCoin() {
               <span><b>HOLD</b> ×{holdCharges}</span>
             </button>
           )}
-          {nudgeCharges > 0 && nudgeAvail && (
+          {nudgeCharges > 0 && (
             <button
               className={"lc-abil" + (activeAbility === "nudge" ? " on" : "")}
-              disabled={spinning || jammed || !!crisis}
+              disabled={spinning || jammed || !!crisis || !nudgeAvail}
               onClick={() => setActiveAbility((a) => a === "nudge" ? null : "nudge")}
               title="NUDGE"
             >
@@ -1162,10 +1162,10 @@ export default function LastCoin() {
               <span><b>NUDGE</b> ×{nudgeCharges}</span>
             </button>
           )}
-          {repullCharges > 0 && repullAvail && (
+          {repullCharges > 0 && (
             <button
               className={"lc-abil" + (activeAbility === "repull" ? " on" : "")}
-              disabled={spinning || jammed || !!crisis}
+              disabled={spinning || jammed || !!crisis || !repullAvail}
               onClick={() => setActiveAbility((a) => a === "repull" ? null : "repull")}
               title="REPULL"
             >
