@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
 import { IMG, UP_SPR, PRESS_SPR, COVER_SPR } from "./assets";
+import cloverImg from "./charms/clover.png";
+import horseshoeImg from "./charms/horseshoe.png";
+import rabbitImg from "./charms/rabbit.png";
 
 /* ============================================================
    LAST COIN — machine à sous narrative. Une pièce → un empire.
@@ -1143,35 +1146,10 @@ export default function LastCoin() {
           <div className="lc-gc" />
         </div>
 
-        {/* Porte-bonheur achetes : poses sur la machine (fer haut-droite, patte gauche, trefle facade droite) */}
-        {charms.horseshoe && (
-          <svg className="lc-charm horseshoe" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3.5 9 V12 a8.5 8.5 0 0 0 17 0 V9 L17 9 V12 a5.5 5.5 0 0 1 -11 0 V9 Z" fill="#141414" />
-            <circle cx="5.5" cy="10.5" r=".7" fill="#fafafa" />
-            <circle cx="5.5" cy="13" r=".7" fill="#fafafa" />
-            <circle cx="18.5" cy="10.5" r=".7" fill="#fafafa" />
-            <circle cx="18.5" cy="13" r=".7" fill="#fafafa" />
-          </svg>
-        )}
-        {charms.rabbit && (
-          <svg className="lc-charm rabbit" viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="10" y="1" width="4" height="2.5" fill="#141414" />
-            <path d="M11 3.5 L11 6 M13 3.5 L13 6" stroke="#141414" strokeWidth="1.2" />
-            <rect x="8.5" y="6" width="7" height="2" fill="#141414" />
-            <ellipse cx="12" cy="15" rx="4" ry="7" fill="none" stroke="#141414" strokeWidth="1.4" />
-            <path d="M10 11 L9.5 13 M12 10.5 L11.5 12.5 M14 11 L14.5 13 M9.5 16 L9 18 M14.5 16 L15 18 M11 18 L11 20 M13 18 L13 20" stroke="#141414" strokeWidth=".8" strokeLinecap="round" />
-          </svg>
-        )}
-        {charms.clover && (
-          <svg className="lc-charm clover" viewBox="0 0 24 24" aria-hidden="true">
-            <ellipse cx="12" cy="6" rx="3.6" ry="4.4" fill="#141414" />
-            <ellipse cx="6" cy="12" rx="4.4" ry="3.6" fill="#141414" />
-            <ellipse cx="18" cy="12" rx="4.4" ry="3.6" fill="#141414" />
-            <ellipse cx="12" cy="18" rx="3.6" ry="4.4" fill="#141414" />
-            <circle cx="12" cy="12" r="1.4" fill="#fafafa" />
-            <path d="M14 14 L18 22" stroke="#141414" strokeWidth="1.4" strokeLinecap="round" />
-          </svg>
-        )}
+        {/* Porte-bonheur achetes : illustrations gravees (PNG transparent) posees sur la machine */}
+        {charms.horseshoe && <img src={horseshoeImg} className="lc-charm horseshoe" alt="" draggable={false} />}
+        {charms.rabbit && <img src={rabbitImg} className="lc-charm rabbit" alt="" draggable={false} />}
+        {charms.clover && <img src={cloverImg} className="lc-charm clover" alt="" draggable={false} />}
 
         {winFx && (
           <div className="lc-payout" key={winFx.k} style={{ fontSize: Math.max(12, machineW * 0.085) + "px" }}>
@@ -1683,11 +1661,11 @@ const CSS = `
 .lc-dome.on{animation:domeglow 1.1s ease-in-out infinite;}
 @keyframes domeglow{0%,100%{opacity:0;}50%{opacity:1;}}
 .lc-gyrocoin{position:absolute;left:50.1%;top:6.9%;transform:translate(-50%,-50%);z-index:4;pointer-events:none;}
-/* Porte-bonheur achetes : poses physiquement sur la machine */
-.lc-charm{position:absolute;pointer-events:none;z-index:4;}
-.lc-charm.horseshoe{top:1.5%;left:64%;width:10%;height:10%;}
-.lc-charm.rabbit{top:14%;left:1%;width:9%;height:18%;}
-.lc-charm.clover{top:67.5%;left:60%;width:8.5%;height:8.5%;transform:rotate(-12deg);}
+/* Porte-bonheur achetes : illustrations gravees PNG, aspect-ratio conserve via width seul */
+.lc-charm{position:absolute;pointer-events:none;z-index:4;display:block;}
+.lc-charm.horseshoe{top:1%;left:62%;width:16%;height:auto;}
+.lc-charm.rabbit{top:13%;left:1%;width:6%;height:auto;}
+.lc-charm.clover{top:64%;left:57%;width:11%;height:auto;transform:rotate(-8deg);}
 .lc-gc{width:100%;height:100%;border-radius:50%;filter:blur(1.6px);transform:scaleX(.18);
   background:radial-gradient(50% 50% at 50% 50%,rgba(20,20,20,.75),rgba(20,20,20,.48) 55%,rgba(20,20,20,0) 100%);}
 .lc-gyrocoin.on .lc-gc{animation:coinspin .5s linear infinite;}
