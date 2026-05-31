@@ -349,7 +349,7 @@ const T = {
   intro_p4:      { fr: "Le levier bouge encore.",
                    en: "The lever still moves." },
   il_te_reste:   { fr: "il te reste",    en: "you have left" },
-  une_piece:     { fr: "une pièce",      en: "one coin" },
+  une_piece:     { fr: "1 pièce",        en: "1 coin" },
   intro_tag:     { fr: "une pièce a tout commencé · un tour peut tout finir",
                    en: "one coin started it · one pull can end it" },
   inserer_piece: { fr: "insérer la pièce", en: "insert the coin" },
@@ -1474,7 +1474,7 @@ const CSS = `
 .lc-pip{width:8px;height:8px;transform:rotate(45deg);border:1px solid #d2d2d2;}
 .lc-pip.on{background:#141414;border-color:#141414;}
 .lc-head{text-align:center;margin-top:40px;}
-.lc-mark{font-size:13px;font-weight:500;letter-spacing:8px;padding-left:8px;}
+.lc-mark{font-size:18px;font-weight:500;letter-spacing:9px;padding-left:9px;}
 .lc-sub{font-size:10px;letter-spacing:3px;color:#707070;margin-top:5px;}
 .lc-top{display:flex;gap:26px;align-items:flex-end;justify-content:center;flex-wrap:wrap;}
 .lc-stat{display:flex;flex-direction:column;align-items:center;gap:2px;}
