@@ -4,6 +4,7 @@ import cloverImg from "./charms/clover.png";
 import horseshoeImg from "./charms/horseshoe.png";
 import rabbitImg from "./charms/rabbit.png";
 import reelStopUrl from "./audio/reelstop.wav";
+import clickUrl from "./audio/click.wav";
 
 /* ============================================================
    LAST COIN — machine à sous narrative. Une pièce → un empire.
@@ -255,7 +256,7 @@ function playSample(url, gain) {
   try { src.start(); } catch {}
 }
 const SFX = {
-  click:      () => tone(180, 0.05, "triangle", 0.16),
+  click:      () => playSample(clickUrl, 0.8),
   reelStop:   () => playSample(reelStopUrl, 0.7),
   winSmall:   () => { tone(523, 0.10); tone(659, 0.14, "sine", 0.12, 0.06); },
   winBig:     () => { tone(523, 0.09); tone(659, 0.09, "sine", 0.12, 0.07); tone(784, 0.17, "sine", 0.14, 0.14); },
@@ -548,6 +549,7 @@ export default function LastCoin() {
   const sfx = (name) => {
     if (!soundOnRef.current) return;
     if (!_bufCache[reelStopUrl]) playSample(reelStopUrl, 0);  // amorce le decode lazy
+    if (!_bufCache[clickUrl]) playSample(clickUrl, 0);
     if (SFX[name]) SFX[name]();
   };
   const machineRef = useRef(null);
