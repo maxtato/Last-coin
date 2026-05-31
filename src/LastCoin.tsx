@@ -483,10 +483,10 @@ export default function LastCoin() {
   const [devUnlocked, setDevUnlocked] = useState(() => !!init.devUnlocked);  // bouton dev visible dans le bandeau (toggle via cheat)
   // Spin en 2 phases : cruise (vitesse constante, lineaire) puis brake (decel brutale identique pour tous).
   // Le stagger se fait UNIQUEMENT sur la duree du cruise — chaque rouleau brake de la meme facon.
-  const REEL_CRUISE_SPEED = 32;                    // cells/sec, identique pour tous (depart plus rapide)
-  const REEL_CRUISE_CELLS = [22, 38, 54];          // cruise allonge en consequence pour conserver les durees visibles
-  const REEL_BRAKE_CELLS = 14;                     // cells de frein - distance pour voir la fin de course
-  const REEL_BRAKE_DUR = 1.20;                     // brake nettement plus long pour percevoir la deceleration finale
+  const REEL_CRUISE_SPEED = 36;                    // cells/sec, identique pour tous (tourne vite)
+  const REEL_CRUISE_CELLS = [22, 40, 58];          // stagger marque entre les trois rouleaux
+  const REEL_BRAKE_CELLS = 8;                      // brake plus court : ralentit a peine puis se bloque
+  const REEL_BRAKE_DUR = 0.50;                     // brake bref et sec, avec rebond du bezier
   const REEL_RUN_TOTAL = Math.max(...REEL_CRUISE_CELLS) + REEL_BRAKE_CELLS;  // = 37 cells, taille du strip
   const reelCruiseDur = (r) => REEL_CRUISE_CELLS[r] / REEL_CRUISE_SPEED;
   const reelStartT = (r) => 2 + REEL_BRAKE_CELLS + REEL_CRUISE_CELLS[r];     // index ou cell est centree au debut (offset rest=2)
@@ -968,7 +968,7 @@ export default function LastCoin() {
                   : reelStage[r] === 2
                     ? ("transform " + reelCruiseDur(r) + "s linear")
                     : reelStage[r] === 3
-                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.22,.95,.3,1.05)")
+                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.08,.85,.18,1.14)")
                       : "none",
               }}>
                 <div className={"lc-cellwrap" + (landed[r] ? " landed" : "")}>
@@ -1588,7 +1588,7 @@ const CSS = `
 .lc-betcoin{position:relative;width:66px;height:66px;flex:0 0 66px;contain:layout style paint;}
 .lc-coinart{position:absolute;inset:0;width:100%;height:100%;display:block;will-change:auto;transform:translateZ(0);}
 .lc-betnum{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;letter-spacing:.3px;line-height:1;font-variant-numeric:tabular-nums;}
-.lc-bb{width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;font-family:inherit;font-size:16px;color:#141414;line-height:1;}
+.lc-bb{width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;font-family:inherit;font-size:17px;font-weight:700;color:#141414;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;}
 .lc-bb:disabled{border-color:#dcdcdc;color:#dcdcdc;cursor:default;}
 .lc-betval{display:flex;flex-direction:column;align-items:center;min-width:62px;}
 .lc-betval i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
