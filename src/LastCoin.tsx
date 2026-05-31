@@ -1061,6 +1061,16 @@ export default function LastCoin() {
               {canRepull && (
                 <button className="lc-repullbtn" onClick={(e) => { e.stopPropagation(); repull(r); }} aria-label="rejouer ce rouleau">↻</button>
               )}
+              {held[r] && (
+                <div className="lc-lock" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M7.5 11V7.5a4.5 4.5 0 0 1 9 0V11" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                    <rect x="4.5" y="11" width="15" height="11" rx="1.4" fill="currentColor" />
+                    <circle cx="12" cy="15.4" r="1.6" fill="#fff" />
+                    <rect x="11.2" y="15.4" width="1.6" height="3.6" fill="#fff" />
+                  </svg>
+                </div>
+              )}
             </div>
           );
         })}
@@ -1600,9 +1610,10 @@ const CSS = `
 .lc-reel.holdable{cursor:pointer;}
 /* HOLD armed, rouleau pas encore bloque : badge "HOLD" texte BLANC sur pastille noire = invite a taper */
 .lc-reel.holdable:not(.held)::after{content:"HOLD";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#fff;background:#141414;padding:2px 7px;pointer-events:none;z-index:3;opacity:.88;}
-.lc-reel.held{outline:2px solid #141414;outline-offset:-2px;}
-/* Rouleau bloque : badge "HOLD" texte NOIR sur pastille blanche bordee = etat verrouille confirme */
-.lc-reel.held::after{content:"HOLD";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#141414;background:#fff;border:1px solid #141414;padding:1px 6px;pointer-events:none;z-index:3;}
+/* Rouleau bloque : outline epais + cadenas central visible derriere le symbole */
+.lc-reel.held{outline:3px solid #141414;outline-offset:-3px;}
+.lc-lock{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46%;height:46%;pointer-events:none;z-index:5;color:#141414;filter:drop-shadow(0 0 3px rgba(255,255,255,.9)) drop-shadow(0 0 2px rgba(255,255,255,.7));}
+.lc-lock svg{width:100%;height:100%;display:block;}
 .lc-reel.nudgable{outline:1px dashed #141414;outline-offset:-1px;}
 .lc-nudgebtn{position:absolute;height:3.6%;background:#fff;border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;z-index:6;padding:0;color:#141414;font-family:inherit;transition:background .12s,color .12s;}
 .lc-nudgebtn:hover{background:#141414;color:#fff;}
