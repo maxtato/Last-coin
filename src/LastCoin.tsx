@@ -1059,15 +1059,19 @@ export default function LastCoin() {
                 ))}
               </div>
               {canRepull && (
-                <button className="lc-repullbtn" onClick={(e) => { e.stopPropagation(); repull(r); }} aria-label="rejouer ce rouleau">↻</button>
+                <button className="lc-repullbtn" onClick={(e) => { e.stopPropagation(); repull(r); }} aria-label="rejouer ce rouleau">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20 12 A8 8 0 1 1 17.5 6.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" />
+                    <path d="M14 4 L20 4 L20 10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" strokeLinejoin="miter" />
+                  </svg>
+                </button>
               )}
               {held[r] && (
                 <div className="lc-lock" aria-hidden="true">
                   <svg viewBox="0 0 24 24">
-                    <path d="M7.5 11V7.5a4.5 4.5 0 0 1 9 0V11" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-                    <rect x="4.5" y="11" width="15" height="11" rx="1.4" fill="currentColor" />
-                    <circle cx="12" cy="15.4" r="1.6" fill="#fff" />
-                    <rect x="11.2" y="15.4" width="1.6" height="3.6" fill="#fff" />
+                    <path d="M9 11 V8 a3 3 0 0 1 6 0 V11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" strokeLinejoin="miter" />
+                    <rect x="6.5" y="11" width="11" height="9" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                    <rect x="11.2" y="13.6" width="1.6" height="3.8" fill="currentColor" />
                   </svg>
                 </div>
               )}
@@ -1086,13 +1090,17 @@ export default function LastCoin() {
                 onClick={() => nudge(r, +1)}
                 aria-label="nudge haut"
                 style={{ left: R.l + "%", top: (WIN_TOP - 4.2) + "%", width: R.w + "%" }}
-              >▲</button>
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15 L12 8 L19 15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" strokeLinejoin="miter" /></svg>
+              </button>
               <button
                 className="lc-nudgebtn dn"
                 onClick={() => nudge(r, -1)}
                 aria-label="nudge bas"
                 style={{ left: R.l + "%", top: (WIN_TOP + WIN_H + 0.5) + "%", width: R.w + "%" }}
-              >▼</button>
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9 L12 16 L19 9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" strokeLinejoin="miter" /></svg>
+              </button>
             </React.Fragment>
           );
         })}
@@ -1607,18 +1615,24 @@ const CSS = `
 @keyframes pring{0%{opacity:.5;transform:scale(.3);}100%{opacity:0;transform:scale(1.3);}}
 .lc-reel{position:absolute;overflow:hidden;background:#fff;transition:outline-color .15s;}
 .lc-reel.holdable{cursor:pointer;}
-/* HOLD armed, rouleau pas encore bloque : badge "HOLD" texte BLANC sur pastille noire = invite a taper */
-.lc-reel.holdable:not(.held)::after{content:"HOLD";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#fff;background:#141414;padding:2px 7px;pointer-events:none;z-index:3;opacity:.88;}
-/* Rouleau bloque : outline epais + cadenas central visible derriere le symbole */
-.lc-reel.held{outline:3px solid #141414;outline-offset:-3px;}
-.lc-lock{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46%;height:46%;pointer-events:none;z-index:5;color:#141414;filter:drop-shadow(0 0 3px rgba(255,255,255,.9)) drop-shadow(0 0 2px rgba(255,255,255,.7));}
-.lc-lock svg{width:100%;height:100%;display:block;}
+/* HOLD arme, non bloque : tag minimal "HOLD" en haut du rouleau, gravure inversee blanche sur noir */
+.lc-reel.holdable:not(.held)::after{content:"HOLD";position:absolute;left:50%;top:4px;transform:translateX(-50%);font-size:7px;letter-spacing:3px;font-weight:400;color:#fafafa;background:#141414;padding:2px 7px 1px;pointer-events:none;z-index:4;animation:tagfade .2s ease;}
+/* Rouleau bloque : outline 2px + cadenas filaire en haut, etche au lieu de cache le symbole */
+.lc-reel.held{outline:2px solid #141414;outline-offset:-2px;}
+.lc-lock{position:absolute;left:50%;top:4px;transform:translateX(-50%);width:22px;height:22px;display:flex;align-items:center;justify-content:center;background:#fafafa;border:1px solid #141414;pointer-events:none;z-index:5;color:#141414;animation:tagfade .2s ease;}
+.lc-lock svg{width:16px;height:16px;display:block;}
+@keyframes tagfade{from{opacity:0;transform:translate(-50%,-2px);}to{opacity:1;transform:translateX(-50%);}}
+/* NUDGE arme : outline pointille 1px discret sur les rouleaux */
 .lc-reel.nudgable{outline:1px dashed #141414;outline-offset:-1px;}
-.lc-nudgebtn{position:absolute;height:3.6%;background:#fff;border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;z-index:6;padding:0;color:#141414;font-family:inherit;transition:background .12s,color .12s;}
+/* Boutons NUDGE : chevrons SVG fins en haut/bas du rouleau */
+.lc-nudgebtn{position:absolute;height:3.6%;min-height:14px;background:#fff;border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:6;padding:0;color:#141414;font-family:inherit;transition:background .12s,color .12s;}
+.lc-nudgebtn svg{width:60%;height:60%;display:block;}
 .lc-nudgebtn:hover{background:#141414;color:#fff;}
 .lc-nudgebtn:active{transform:scale(.94);}
-.lc-repullbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;background:rgba(255,255,255,.82);border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;z-index:7;padding:0;color:#141414;font-family:inherit;transition:.12s;backdrop-filter:blur(2px);}
-.lc-repullbtn:hover{background:#141414;color:#fff;}
+/* Bouton REPULL : refresh SVG dans un disque blanc bord noir, centre du rouleau */
+.lc-repullbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;background:#fafafa;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:7;padding:0;color:#141414;font-family:inherit;transition:.12s;}
+.lc-repullbtn svg{width:18px;height:18px;display:block;}
+.lc-repullbtn:hover{background:#141414;color:#fafafa;}
 .lc-repullbtn:active{transform:translate(-50%,-50%) scale(.9);}
 .lc-shadow{position:absolute;pointer-events:none;z-index:2;
   background:linear-gradient(to bottom,rgba(70,70,70,.55) 0%,rgba(70,70,70,.24) 50%,rgba(255,255,255,0) 100%);}
