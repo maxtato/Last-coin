@@ -547,10 +547,10 @@ export default function LastCoin() {
   const [confirmReset, setConfirmReset] = useState(false);   // pause : confirmation avant de recommencer
   // Spin en 2 phases : cruise (vitesse constante, lineaire) puis brake (decel brutale identique pour tous).
   // Le stagger se fait UNIQUEMENT sur la duree du cruise — chaque rouleau brake de la meme facon.
-  const REEL_CRUISE_SPEED = 22;                    // cells/sec, identique pour tous (plus rapide)
-  const REEL_CRUISE_CELLS = [16, 28, 40];          // distance de cruise par rouleau -> stagger des stops
-  const REEL_BRAKE_CELLS = 6;                      // cells de frein, identique pour tous
-  const REEL_BRAKE_DUR = 0.40;                     // frein court et brutal
+  const REEL_CRUISE_SPEED = 32;                    // cells/sec, identique pour tous (depart plus rapide)
+  const REEL_CRUISE_CELLS = [22, 38, 54];          // cruise allonge en consequence pour conserver les durees visibles
+  const REEL_BRAKE_CELLS = 9;                      // cells de frein - distance de freinage plus longue
+  const REEL_BRAKE_DUR = 0.62;                     // frein plus long et plus marque
   const REEL_RUN_TOTAL = Math.max(...REEL_CRUISE_CELLS) + REEL_BRAKE_CELLS;  // = 37 cells, taille du strip
   const reelCruiseDur = (r) => REEL_CRUISE_CELLS[r] / REEL_CRUISE_SPEED;
   const reelStartT = (r) => 1 + REEL_BRAKE_CELLS + REEL_CRUISE_CELLS[r];     // index ou cell est centree au debut
