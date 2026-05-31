@@ -1030,7 +1030,7 @@ export default function LastCoin() {
         {REELS.map((R, r) => {
           const canNudge = activeAbility === "nudge" && !spinning && !jammed && !crisis && nudgeAvail && nudgeCharges > 0 && screen === "play";
           const canRepull = activeAbility === "repull" && !spinning && !jammed && !crisis && repullAvail && repullCharges > 0 && screen === "play";
-          const canHold = activeAbility === "hold" && !spinning && !jammed && !crisis && screen === "play" && (held[r] || holdCharges > 0);
+          const canHold = activeAbility === "hold" && !spinning && !jammed && !crisis && screen === "play" && (held[r] || held.filter(Boolean).length < holdCharges);
           return (
             <div
               key={r}
@@ -1601,8 +1601,11 @@ const CSS = `
 @keyframes pring{0%{opacity:.5;transform:scale(.3);}100%{opacity:0;transform:scale(1.3);}}
 .lc-reel{position:absolute;overflow:hidden;background:#fff;transition:outline-color .15s;}
 .lc-reel.holdable{cursor:pointer;}
+/* HOLD armed, rouleau pas encore bloque : badge "HOLD" texte BLANC sur pastille noire = invite a taper */
+.lc-reel.holdable:not(.held)::after{content:"HOLD";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#fff;background:#141414;padding:2px 7px;pointer-events:none;z-index:3;opacity:.88;}
 .lc-reel.held{outline:2px solid #141414;outline-offset:-2px;}
-.lc-reel.held::after{content:"HOLD";position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#fff;background:#141414;padding:1px 6px;pointer-events:none;z-index:3;}
+/* Rouleau bloque : badge "HOLD" texte NOIR sur pastille blanche bordee = etat verrouille confirme */
+.lc-reel.held::after{content:"HOLD";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#141414;background:#fff;border:1px solid #141414;padding:1px 6px;pointer-events:none;z-index:3;}
 .lc-reel.nudgable{outline:1px dashed #141414;outline-offset:-1px;}
 .lc-nudgebtn{position:absolute;height:3.6%;background:#fff;border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;z-index:6;padding:0;color:#141414;font-family:inherit;transition:background .12s,color .12s;}
 .lc-nudgebtn:hover{background:#141414;color:#fff;}
