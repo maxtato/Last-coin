@@ -429,6 +429,8 @@ const T = {
                    en: "REPULL · After a spin, click ↻ on a reel to re-spin it alone. The two others stay locked." },
   over_reason_crack: { fr: "3 fissures alignées · la machine s'est cassée",
                        en: "3 cracks in a row · the machine broke" },
+  expl_broke:    { fr: "Plus une pièce. Si tu veux continuer, va dans MA VIE et vends un de tes biens.",
+                   en: "Out of coins. If you want to keep going, open MA VIE and sell one of your assets." },
   // empire / game over
   empire:        { fr: "EMPIRE",                                  en: "EMPIRE" },
   empire_sub:    { fr: "la ville a ton nom",                      en: "the city bears your name" },
@@ -483,6 +485,7 @@ export default function LastCoin() {
   const [cardNotif, setCardNotif] = useState(null); // notification "+N HOLD" à l'obtention d'une carte
   const [winLine, setWinLine] = useState(false);
   const [pressed, setPressed] = useState(false);
+  const [blockedSpin, setBlockedSpin] = useState(false);   // levier tire sans piece : secousse + message "vends un bien"
   const [machineW, setMachineW] = useState(0);
   const [overlay, setOverlay] = useState(null);   // "buy" | "assets" | null
   const [gameOver, setGameOver] = useState(() => !!init.gameOver);   // 3 crack = machine cassee = fin de partie
@@ -720,7 +723,14 @@ export default function LastCoin() {
 
   const spin = () => {
     if (spinning || screen !== "play" || gameOver) return;
-    if (bet < 1) return;                       // à sec : le bouton invite à vendre
+    if (bet < 1) {                             // à sec : machine bloquee, secousse + message pour inviter a vendre
+      if (hasAssets) {
+        setBlockedSpin(true);
+        sfx("click");
+        setTimeout(() => setBlockedSpin(false), 2200);
+      }
+      return;
+    }
     const lk = luck();                          // multiplicateur constant : la machine ne triche plus selon le porte-monnaie
     const snap = { nw: netWorth };
     if (lampTimer.current) clearTimeout(lampTimer.current);
@@ -969,7 +979,11 @@ export default function LastCoin() {
         </div>
       )}
 
-      <div className={"lc-stage" + (pressed ? " shake" : "")}>
+      {blockedSpin && (
+        <div className="lc-ability-expl" key="blocked-msg">{t("expl_broke")}</div>
+      )}
+
+      <div className={"lc-stage" + (pressed || blockedSpin ? " shake" : "")}>
       <div className="lc-machine" ref={machineRef} style={{ aspectRatio: "870 / 950" }}>
         <img src={IMG} alt="machine" className="lc-img" draggable={false} />
         <img src={UP_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_UP.left + "%", top: LEV_UP.top + "%", width: LEV_UP.w + "%", height: LEV_UP.h + "%", opacity: pressed ? 0 : 1 }} />
