@@ -479,6 +479,8 @@ export default function LastCoin() {
   const [gameOver, setGameOver] = useState(() => !!init.gameOver);   // 3 crack = machine cassee = fin de partie
   const [wonEmpire, setWonEmpire] = useState(() => !!init.empire);
   const [confirmReset, setConfirmReset] = useState(false);   // pause : confirmation avant de recommencer
+  const [cheatSeq, setCheatSeq] = useState([]);              // cheat code pause : son, langue, son, langue, regles -> toggle bouton dev
+  const [devUnlocked, setDevUnlocked] = useState(() => !!init.devUnlocked);  // bouton dev visible dans le bandeau (toggle via cheat)
   // Spin en 2 phases : cruise (vitesse constante, lineaire) puis brake (decel brutale identique pour tous).
   // Le stagger se fait UNIQUEMENT sur la duree du cruise — chaque rouleau brake de la meme facon.
   const REEL_CRUISE_SPEED = 32;                    // cells/sec, identique pour tous (depart plus rapide)
@@ -568,8 +570,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang })); } catch {}
-  }, [cash, lvl, charms, betIdx, pulls, gameOver, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked })); } catch {}
+  }, [cash, lvl, charms, betIdx, pulls, gameOver, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked]);
 
   // peak du patrimoine : suivi en permanence des qu'il monte (acceuil cash + achats)
   useEffect(() => {
@@ -582,6 +584,15 @@ export default function LastCoin() {
   }, [cash, hasAssets, spinning, screen, gameOver]);
 
   const say = (txt) => { setFlash(txt); };
+
+  // Cheat code pause menu : son, langue, son, langue, regles -> ouvre le menu dev. Sinon, action normale du bouton.
+  const CHEAT = ["son", "langue", "son", "langue", "regles"];
+  const pushCheat = (key) => {
+    const next = [...cheatSeq, key].slice(-CHEAT.length);
+    const matched = next.length === CHEAT.length && next.every((k, i) => k === CHEAT[i]);
+    setCheatSeq(matched ? [] : next);
+    return matched;
+  };
 
   const newGame = () => {
     try { localStorage.removeItem(SAVE_KEY); } catch {}
@@ -909,13 +920,15 @@ export default function LastCoin() {
           {income > 0 && <em>+{fmt(income)}{t("par_tour")}</em>}
         </div>
         <div className="lc-bar-actions">
-          <button className="lc-menu" onClick={() => { setConfirmReset(false); setScreen("pause"); }} aria-label={t("pause")} title={t("pause")}><i /><i /></button>
-          <button className="lc-dev" onClick={() => setOverlay("dev")} aria-label={t("dev")} title={t("dev")}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
-              <path fill="currentColor" d="M12 1 L13.5 4 L10.5 4 Z M12 23 L13.5 20 L10.5 20 Z M1 12 L4 13.5 L4 10.5 Z M23 12 L20 13.5 L20 10.5 Z M4.2 4.2 L6.5 6 L4.5 8 L2.5 6.5 Z M19.8 4.2 L17.5 6 L19.5 8 L21.5 6.5 Z M4.2 19.8 L6.5 18 L4.5 16 L2.5 17.5 Z M19.8 19.8 L17.5 18 L19.5 16 L21.5 17.5 Z" />
-            </svg>
-          </button>
+          <button className="lc-menu" onClick={() => { setConfirmReset(false); setCheatSeq([]); setScreen("pause"); }} aria-label={t("pause")} title={t("pause")}><i /><i /></button>
+          {devUnlocked && (
+            <button className="lc-dev" onClick={() => setOverlay("dev")} aria-label={t("dev")} title={t("dev")}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+                <path fill="currentColor" d="M12 1 L13.5 4 L10.5 4 Z M12 23 L13.5 20 L10.5 20 Z M1 12 L4 13.5 L4 10.5 Z M23 12 L20 13.5 L20 10.5 Z M4.2 4.2 L6.5 6 L4.5 8 L2.5 6.5 Z M19.8 4.2 L17.5 6 L19.5 8 L21.5 6.5 Z M4.2 19.8 L6.5 18 L4.5 16 L2.5 17.5 Z M19.8 19.8 L17.5 18 L19.5 16 L21.5 17.5 Z" />
+              </svg>
+            </button>
+          )}
         </div>
         <div className="lc-level">
           <i>{t("niveau")} {level}</i>
@@ -1015,7 +1028,7 @@ export default function LastCoin() {
             </React.Fragment>
           );
         })}
-        <div className="lc-shadow" style={{ top: WIN_TOP + "%", left: REELS[0].l + "%", width: (REELS[2].l + REELS[2].w - REELS[0].l) + "%", height: (WIN_H * 0.16) + "%" }} />
+        <div className="lc-shadow" style={{ top: WIN_TOP + "%", left: (REELS[0].l - 1.5) + "%", width: (REELS[2].l + REELS[2].w - REELS[0].l + 3) + "%", height: (WIN_H * 0.16) + "%" }} />
         {winLine && <div className="lc-winline" style={{ top: (VIS_TOP + VIS_H / 2) + "%", left: REELS[0].l + "%", width: (REELS[2].l + REELS[2].w - REELS[0].l) + "%" }} />}
         {/* gyrophare : halo + rayons + pièce qui tourne comme une toupie sur un gain */}
         <div className={"lc-dome" + (lampOn ? " on" : "")} />
@@ -1179,10 +1192,13 @@ export default function LastCoin() {
                 <div className="lc-stat-row"><span>{t("cartes_obt")}</span><b>{stats.cardsEarned}</b></div>
               </div>
               <div className="lc-menucol">
-                <button className="lc-btn" onClick={() => setScreen("play")}>{t("reprendre")}</button>
-                <button className="lc-btn ghost" onClick={() => { setScreen("play"); setOverlay("rules"); }}>{t("regles")}</button>
-                <button className="lc-btn ghost" onClick={() => setSoundOn((s) => !s)}>{t("son")} · {soundOn ? t("on") : t("off")}</button>
-                <button className="lc-btn ghost" onClick={() => setLang((l) => l === "fr" ? "en" : "fr")}>{t("langue")} · {lang === "fr" ? "FR" : "EN"}</button>
+                <button className="lc-btn" onClick={() => { setCheatSeq([]); setScreen("play"); }}>{t("reprendre")}</button>
+                <button className="lc-btn ghost" onClick={() => {
+                  if (pushCheat("regles")) { setDevUnlocked((v) => !v); }
+                  else { setScreen("play"); setOverlay("rules"); }
+                }}>{t("regles")}</button>
+                <button className="lc-btn ghost" onClick={() => { pushCheat("son"); setSoundOn((s) => !s); }}>{t("son")} · {soundOn ? t("on") : t("off")}</button>
+                <button className="lc-btn ghost" onClick={() => { pushCheat("langue"); setLang((l) => l === "fr" ? "en" : "fr"); }}>{t("langue")} · {lang === "fr" ? "FR" : "EN"}</button>
                 <button className="lc-btn ghost" onClick={() => setConfirmReset(true)}>{t("recommencer")}</button>
               </div>
             </>
@@ -1548,7 +1564,8 @@ const CSS = `
 @keyframes pullbob{0%,100%{transform:translateY(-6%);opacity:.55;}50%{transform:translateY(15%);opacity:.95;}}
 /* Boutons d'armement des capacites HOLD / NUDGE / REPULL sous la machine.
    Click pour activer -> les contreoles (tap rouleau / fleches / cercle) apparaissent dans la machine. */
-.lc-abilities{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:-2px;}
+.lc-abilities{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:-14px;}
+.lc-readout + .lc-ctrl{margin-top:-14px;}
 .lc-abil{display:flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;background:#fff;border:1px solid #141414;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;color:#141414;transition:background .12s,color .12s;}
 .lc-abil b{font-weight:600;letter-spacing:1.5px;}
 .lc-abil:hover:not(:disabled){background:#fafafa;}
@@ -1568,9 +1585,9 @@ const CSS = `
 .lc-ctrl{display:flex;align-items:center;gap:20px;margin-top:2px;flex-wrap:wrap;justify-content:center;}
 .lc-betwrap{display:flex;flex-direction:column;align-items:center;gap:8px;}
 .lc-betbar{display:flex;align-items:center;gap:18px;}
-.lc-betcoin{position:relative;width:66px;height:66px;display:flex;align-items:center;justify-content:center;}
+.lc-betcoin{position:relative;width:66px;height:66px;flex:0 0 66px;}
 .lc-coinart{position:absolute;inset:0;width:100%;height:100%;display:block;}
-.lc-betnum{position:relative;z-index:1;font-weight:600;font-size:14px;letter-spacing:.3px;line-height:1;}
+.lc-betnum{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;letter-spacing:.3px;line-height:1;}
 .lc-bb{width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;font-family:inherit;font-size:16px;color:#141414;line-height:1;}
 .lc-bb:disabled{border-color:#dcdcdc;color:#dcdcdc;cursor:default;}
 .lc-betval{display:flex;flex-direction:column;align-items:center;min-width:62px;}
