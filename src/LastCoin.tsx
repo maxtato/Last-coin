@@ -162,7 +162,7 @@ const FAM0 = { vetements: 0, logement: 0, vehicule: 0, business: 0 };
 // ===== Porte-bonheur : ameliorations a poser sur la machine, achetables 1x, augmentent legerement la RTP =====
 // Ordre cout/bonus croissant : trefle (legere), fer (mid), patte (forte).
 const CHARMS = {
-  clover:    { fr: "Trèfle",       en: "Four-leaf clover", price: 1500,    bonus: 1.04 },
+  clover:    { fr: "Sticker trèfle", en: "Clover sticker",     price: 1500,    bonus: 1.04 },
   horseshoe: { fr: "Fer à cheval", en: "Horseshoe",        price: 35000,   bonus: 1.08 },
   rabbit:    { fr: "Patte de lapin", en: "Rabbit's foot",  price: 500000,  bonus: 1.13 },
 };
