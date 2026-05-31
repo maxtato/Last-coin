@@ -1144,7 +1144,7 @@ export default function LastCoin() {
           ? <span className="lc-neg">{t("broke_msg")}</span>
           : flash ? <span className="lc-flash">{flash}</span>
           : (lastWin && lastWin.neg) ? <span className="lc-neg">{lastWin.neg === "skull" ? t("ruined") : t("crack_msg")}</span>
-          : <span className="lc-idle">{t("idle_msg")}</span>}
+          : null}
       </div>
 
       <div className="lc-gauges">
@@ -1239,7 +1239,6 @@ export default function LastCoin() {
             <span>{t("il_te_reste")}</span>
             <b>{t("une_piece")}</b>
           </div>
-          <p className="lc-intro-tag">{t("intro_tag")}</p>
           <button className="lc-btn big" onClick={() => setScreen("play")}>{t("inserer_piece")}</button>
           <p className="lc-disc">{t("disclaimer")}</p>
         </div></Ovl>
