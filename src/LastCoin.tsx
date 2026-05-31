@@ -355,10 +355,14 @@ const T = {
   // intro
   last_coin:     { fr: "LAST COIN",      en: "LAST COIN" },
   derniere_piece:{ fr: "la dernière pièce", en: "the last coin" },
-  intro_p1:      { fr: "Tu dors dans un garage. Boulot perdu, couple fini, compte vide.",
-                   en: "You sleep in a garage. Job gone, couple over, account empty." },
-  intro_p2:      { fr: "Un soir, sur le trottoir, tu trouves cette machine à sous. Sale, cabossée — mais elle marche encore.",
-                   en: "One night, on the sidewalk, you find this slot machine. Filthy, dented — but it still works." },
+  intro_p1:      { fr: "Tu vis dans un garage.",
+                   en: "You live in a garage." },
+  intro_p2:      { fr: "Plus de boulot, plus de couple, plus d'argent.",
+                   en: "No job, no partner, no money." },
+  intro_p3:      { fr: "Un soir, sur le trottoir, tu tombes sur une vieille machine à sous. Elle est sale, cabossée, presque morte.",
+                   en: "One night, on the sidewalk, you stumble on an old slot machine. Filthy, dented, almost dead." },
+  intro_p4:      { fr: "Le levier bouge encore.",
+                   en: "The lever still moves." },
   il_te_reste:   { fr: "il te reste",    en: "you have left" },
   une_piece:     { fr: "une pièce",      en: "one coin" },
   intro_tag:     { fr: "une pièce a tout commencé · un tour peut tout finir",
@@ -549,8 +553,8 @@ export default function LastCoin() {
   // Le stagger se fait UNIQUEMENT sur la duree du cruise — chaque rouleau brake de la meme facon.
   const REEL_CRUISE_SPEED = 32;                    // cells/sec, identique pour tous (depart plus rapide)
   const REEL_CRUISE_CELLS = [22, 38, 54];          // cruise allonge en consequence pour conserver les durees visibles
-  const REEL_BRAKE_CELLS = 9;                      // cells de frein - distance de freinage plus longue
-  const REEL_BRAKE_DUR = 0.62;                     // frein plus long et plus marque
+  const REEL_BRAKE_CELLS = 14;                     // cells de frein - distance pour voir la fin de course
+  const REEL_BRAKE_DUR = 1.20;                     // brake nettement plus long pour percevoir la deceleration finale
   const REEL_RUN_TOTAL = Math.max(...REEL_CRUISE_CELLS) + REEL_BRAKE_CELLS;  // = 37 cells, taille du strip
   const reelCruiseDur = (r) => REEL_CRUISE_CELLS[r] / REEL_CRUISE_SPEED;
   const reelStartT = (r) => 1 + REEL_BRAKE_CELLS + REEL_CRUISE_CELLS[r];     // index ou cell est centree au debut
@@ -1045,7 +1049,7 @@ export default function LastCoin() {
                   : reelStage[r] === 2
                     ? ("transform " + reelCruiseDur(r) + "s linear")
                     : reelStage[r] === 3
-                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.15,.95,.2,1.08)")
+                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.16,.85,.4,1.03)")
                       : "none",
               }}>
                 {strips[r].cells.map((k, i) => (
@@ -1056,6 +1060,16 @@ export default function LastCoin() {
               </div>
               {canRepull && (
                 <button className="lc-repullbtn" onClick={(e) => { e.stopPropagation(); repull(r); }} aria-label="rejouer ce rouleau">↻</button>
+              )}
+              {held[r] && (
+                <div className="lc-lock" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M7.5 11V7.5a4.5 4.5 0 0 1 9 0V11" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                    <rect x="4.5" y="11" width="15" height="11" rx="1.4" fill="currentColor" />
+                    <circle cx="12" cy="15.4" r="1.6" fill="#fff" />
+                    <rect x="11.2" y="15.4" width="1.6" height="3.6" fill="#fff" />
+                  </svg>
+                </div>
               )}
             </div>
           );
@@ -1175,15 +1189,6 @@ export default function LastCoin() {
           )}
         </div>
       )}
-      {activeAbility && (
-        <div className="lc-abil-hint">
-          {activeAbility === "hold" ? (held.some(Boolean) ? t("hint_held") : t("hint_hold"))
-            : activeAbility === "nudge" ? t("hint_nudge")
-            : activeAbility === "repull" ? t("hint_repull")
-            : ""}
-        </div>
-      )}
-
       <div className="lc-ctrl">
         {jammed
           ? <button className="lc-repair" disabled={cash < repairCost} onClick={repair}>{t("reparer")} · {fmt(repairCost)}</button>
@@ -1227,6 +1232,8 @@ export default function LastCoin() {
           <div className="lc-intro-body">
             <p>{t("intro_p1")}</p>
             <p>{t("intro_p2")}</p>
+            <p>{t("intro_p3")}</p>
+            <p>{t("intro_p4")}</p>
           </div>
           <div className="lc-onecoin">
             <span>{t("il_te_reste")}</span>
@@ -1603,9 +1610,10 @@ const CSS = `
 .lc-reel.holdable{cursor:pointer;}
 /* HOLD armed, rouleau pas encore bloque : badge "HOLD" texte BLANC sur pastille noire = invite a taper */
 .lc-reel.holdable:not(.held)::after{content:"HOLD";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#fff;background:#141414;padding:2px 7px;pointer-events:none;z-index:3;opacity:.88;}
-.lc-reel.held{outline:2px solid #141414;outline-offset:-2px;}
-/* Rouleau bloque : badge "HOLD" texte NOIR sur pastille blanche bordee = etat verrouille confirme */
-.lc-reel.held::after{content:"HOLD";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#141414;background:#fff;border:1px solid #141414;padding:1px 6px;pointer-events:none;z-index:3;}
+/* Rouleau bloque : outline epais + cadenas central visible derriere le symbole */
+.lc-reel.held{outline:3px solid #141414;outline-offset:-3px;}
+.lc-lock{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46%;height:46%;pointer-events:none;z-index:5;color:#141414;filter:drop-shadow(0 0 3px rgba(255,255,255,.9)) drop-shadow(0 0 2px rgba(255,255,255,.7));}
+.lc-lock svg{width:100%;height:100%;display:block;}
 .lc-reel.nudgable{outline:1px dashed #141414;outline-offset:-1px;}
 .lc-nudgebtn{position:absolute;height:3.6%;background:#fff;border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;z-index:6;padding:0;color:#141414;font-family:inherit;transition:background .12s,color .12s;}
 .lc-nudgebtn:hover{background:#141414;color:#fff;}
@@ -1635,7 +1643,6 @@ const CSS = `
 .lc-abil.on{background:#141414;color:#fff;}
 .lc-abil.on img{filter:invert(1);}
 .lc-abil:disabled{opacity:.4;cursor:not-allowed;}
-.lc-abil-hint{font-size:9px;letter-spacing:2px;color:#7f7f7f;text-transform:uppercase;text-align:center;}
 .lc-gauge{display:flex;flex-direction:column;align-items:center;gap:3px;}
 .lc-gauge svg{width:30px;height:30px;display:block;}
 .lc-gauge span{font-size:8px;letter-spacing:2px;color:#707070;text-transform:uppercase;}
