@@ -479,7 +479,8 @@ export default function LastCoin() {
   const [gameOver, setGameOver] = useState(() => !!init.gameOver);   // 3 crack = machine cassee = fin de partie
   const [wonEmpire, setWonEmpire] = useState(() => !!init.empire);
   const [confirmReset, setConfirmReset] = useState(false);   // pause : confirmation avant de recommencer
-  const [cheatSeq, setCheatSeq] = useState([]);              // cheat code pause : son, langue, son, langue, regles -> dev menu
+  const [cheatSeq, setCheatSeq] = useState([]);              // cheat code pause : son, langue, son, langue, regles -> toggle bouton dev
+  const [devUnlocked, setDevUnlocked] = useState(() => !!init.devUnlocked);  // bouton dev visible dans le bandeau (toggle via cheat)
   // Spin en 2 phases : cruise (vitesse constante, lineaire) puis brake (decel brutale identique pour tous).
   // Le stagger se fait UNIQUEMENT sur la duree du cruise — chaque rouleau brake de la meme facon.
   const REEL_CRUISE_SPEED = 32;                    // cells/sec, identique pour tous (depart plus rapide)
@@ -569,8 +570,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang })); } catch {}
-  }, [cash, lvl, charms, betIdx, pulls, gameOver, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked })); } catch {}
+  }, [cash, lvl, charms, betIdx, pulls, gameOver, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked]);
 
   // peak du patrimoine : suivi en permanence des qu'il monte (acceuil cash + achats)
   useEffect(() => {
@@ -920,6 +921,14 @@ export default function LastCoin() {
         </div>
         <div className="lc-bar-actions">
           <button className="lc-menu" onClick={() => { setConfirmReset(false); setCheatSeq([]); setScreen("pause"); }} aria-label={t("pause")} title={t("pause")}><i /><i /></button>
+          {devUnlocked && (
+            <button className="lc-dev" onClick={() => setOverlay("dev")} aria-label={t("dev")} title={t("dev")}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+                <path fill="currentColor" d="M12 1 L13.5 4 L10.5 4 Z M12 23 L13.5 20 L10.5 20 Z M1 12 L4 13.5 L4 10.5 Z M23 12 L20 13.5 L20 10.5 Z M4.2 4.2 L6.5 6 L4.5 8 L2.5 6.5 Z M19.8 4.2 L17.5 6 L19.5 8 L21.5 6.5 Z M4.2 19.8 L6.5 18 L4.5 16 L2.5 17.5 Z M19.8 19.8 L17.5 18 L19.5 16 L21.5 17.5 Z" />
+              </svg>
+            </button>
+          )}
         </div>
         <div className="lc-level">
           <i>{t("niveau")} {level}</i>
@@ -1185,7 +1194,7 @@ export default function LastCoin() {
               <div className="lc-menucol">
                 <button className="lc-btn" onClick={() => { setCheatSeq([]); setScreen("play"); }}>{t("reprendre")}</button>
                 <button className="lc-btn ghost" onClick={() => {
-                  if (pushCheat("regles")) { setOverlay("dev"); }
+                  if (pushCheat("regles")) { setDevUnlocked((v) => !v); }
                   else { setScreen("play"); setOverlay("rules"); }
                 }}>{t("regles")}</button>
                 <button className="lc-btn ghost" onClick={() => { pushCheat("son"); setSoundOn((s) => !s); }}>{t("son")} · {soundOn ? t("on") : t("off")}</button>
@@ -1444,6 +1453,9 @@ const CSS = `
 .lc-menu i{width:3px;height:11px;background:#141414;display:block;transition:.15s;}
 .lc-menu:hover{background:#141414;}
 .lc-menu:hover i{background:#fff;}
+.lc-dev{width:28px;height:28px;border:1px dashed #141414;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;color:#141414;font-family:inherit;flex-shrink:0;transition:.15s;}
+.lc-dev svg{width:14px;height:14px;display:block;}
+.lc-dev:hover{background:#141414;color:#fff;}
 .lc-devlist{display:flex;flex-direction:column;gap:14px;text-align:left;margin:14px 0 20px;}
 .lc-devheader{font-size:9px;letter-spacing:3px;color:#7f7f7f;text-transform:uppercase;padding:4px 0 5px;border-bottom:1px solid #f0f0f0;margin-bottom:8px;}
 .lc-devbtns{display:flex;gap:6px;flex-wrap:wrap;}
