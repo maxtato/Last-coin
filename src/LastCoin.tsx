@@ -355,10 +355,14 @@ const T = {
   // intro
   last_coin:     { fr: "LAST COIN",      en: "LAST COIN" },
   derniere_piece:{ fr: "la dernière pièce", en: "the last coin" },
-  intro_p1:      { fr: "Tu dors dans un garage. Boulot perdu, couple fini, compte vide.",
-                   en: "You sleep in a garage. Job gone, couple over, account empty." },
-  intro_p2:      { fr: "Un soir, sur le trottoir, tu trouves cette machine à sous. Sale, cabossée — mais elle marche encore.",
-                   en: "One night, on the sidewalk, you find this slot machine. Filthy, dented — but it still works." },
+  intro_p1:      { fr: "Tu vis dans un garage.",
+                   en: "You live in a garage." },
+  intro_p2:      { fr: "Plus de boulot, plus de couple, plus d'argent.",
+                   en: "No job, no partner, no money." },
+  intro_p3:      { fr: "Un soir, sur le trottoir, tu tombes sur une vieille machine à sous. Elle est sale, cabossée, presque morte.",
+                   en: "One night, on the sidewalk, you stumble on an old slot machine. Filthy, dented, almost dead." },
+  intro_p4:      { fr: "Le levier bouge encore.",
+                   en: "The lever still moves." },
   il_te_reste:   { fr: "il te reste",    en: "you have left" },
   une_piece:     { fr: "une pièce",      en: "one coin" },
   intro_tag:     { fr: "une pièce a tout commencé · un tour peut tout finir",
@@ -1218,6 +1222,8 @@ export default function LastCoin() {
           <div className="lc-intro-body">
             <p>{t("intro_p1")}</p>
             <p>{t("intro_p2")}</p>
+            <p>{t("intro_p3")}</p>
+            <p>{t("intro_p4")}</p>
           </div>
           <div className="lc-onecoin">
             <span>{t("il_te_reste")}</span>
