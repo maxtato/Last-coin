@@ -583,6 +583,7 @@ export default function LastCoin() {
   const [nudgeAvail, setNudgeAvail] = useState(false);                     // fenêtre de NUDGE ouverte après le tour
   const [lastSpin, setLastSpin] = useState(null);                          // {targets, spend, lk, scale, payout} pour re-eval apres nudge/repull
   const [nudgeAnim, setNudgeAnim] = useState([false, false, false]);       // transition douce sur le rouleau qu'on decale
+  const [landed, setLanded] = useState([false, false, false]);             // courte secousse "thunk" a la fin du brake
   const [repullCharges, setRepullCharges] = useState(() => init.repullCharges || 0); // cartes REPULL (gagnées via Crown)
   const [repullAvail, setRepullAvail] = useState(false);                   // fenêtre de REPULL ouverte après le tour
   const [activeAbility, setActiveAbility] = useState(null);                // "hold" | "nudge" | "repull" | null — capacite armee depuis les boutons sous la machine
@@ -842,8 +843,12 @@ export default function LastCoin() {
         const cruiseMs = Math.round(reelCruiseDur(i) * 1000);
         setTimeout(() => {
           setReelStage((p) => p.map((s, idx) => (idx === i ? 3 : s)));
-          // Son du stop joue a la fin du brake
-          setTimeout(() => sfx("reelStop"), Math.round(REEL_BRAKE_DUR * 1000) - 40);
+          // Son du stop + secousse "thunk" a la fin du brake
+          setTimeout(() => {
+            sfx("reelStop");
+            setLanded((p) => p.map((v, idx) => (idx === i ? true : v)));
+            setTimeout(() => setLanded((p) => p.map((v, idx) => (idx === i ? false : v))), 320);
+          }, Math.round(REEL_BRAKE_DUR * 1000) - 40);
         }, cruiseMs);
       });
     }));
@@ -984,7 +989,11 @@ export default function LastCoin() {
       setReelStage((p) => p.map((s, i) => (i === r ? 2 : s)));
       setTimeout(() => {
         setReelStage((p) => p.map((s, i) => (i === r ? 3 : s)));
-        setTimeout(() => sfx("reelStop"), Math.round(REEL_BRAKE_DUR * 1000) - 40);
+        setTimeout(() => {
+          sfx("reelStop");
+          setLanded((p) => p.map((v, i2) => (i2 === r ? true : v)));
+          setTimeout(() => setLanded((p) => p.map((v, i2) => (i2 === r ? false : v))), 320);
+        }, Math.round(REEL_BRAKE_DUR * 1000) - 40);
       }, Math.round(reelCruiseDur(r) * 1000));
     }));
 
@@ -1063,7 +1072,7 @@ export default function LastCoin() {
           return (
             <div
               key={r}
-              className={"lc-reel" + (held[r] ? " held" : "") + (canHold ? " holdable" : "") + (canNudge || canRepull ? " nudgable" : "")}
+              className={"lc-reel" + (held[r] ? " held" : "") + (canHold ? " holdable" : "") + (canNudge || canRepull ? " nudgable" : "") + (landed[r] ? " landed" : "")}
               onClick={canHold ? () => toggleHold(r) : undefined}
               style={{ left: R.l + "%", top: WIN_TOP + "%", width: R.w + "%", height: WIN_H + "%" }}
             >
@@ -1074,7 +1083,7 @@ export default function LastCoin() {
                   : reelStage[r] === 2
                     ? ("transform " + reelCruiseDur(r) + "s linear")
                     : reelStage[r] === 3
-                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.16,.85,.4,1.03)")
+                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.14,.94,.3,1.18)")
                       : "none",
               }}>
                 {strips[r].cells.map((k, i) => (
@@ -1682,6 +1691,9 @@ const CSS = `
 .lc-ring{position:absolute;width:2.4em;height:2.4em;border:1px solid rgba(255,255,255,.7);border-radius:50%;animation:pring 1s ease-out forwards;}
 @keyframes pring{0%{opacity:.5;transform:scale(.3);}100%{opacity:0;transform:scale(1.3);}}
 .lc-reel{position:absolute;overflow:hidden;background:#fff;transition:outline-color .15s;}
+/* Secousse "thunk" a l'arret du rouleau : descente seche puis micro-rebond */
+.lc-reel.landed{animation:reelthump .32s cubic-bezier(.3,.7,.4,1);}
+@keyframes reelthump{0%{transform:translateY(0);}28%{transform:translateY(3px);}52%{transform:translateY(-1.5px);}78%{transform:translateY(.6px);}100%{transform:translateY(0);}}
 .lc-reel.holdable{cursor:pointer;}
 /* HOLD arme, non bloque : tag minimal "HOLD" en haut du rouleau, gravure inversee blanche sur noir */
 .lc-reel.holdable:not(.held)::after{content:"HOLD";position:absolute;left:50%;top:4px;transform:translateX(-50%);font-size:7px;letter-spacing:3px;font-weight:400;color:#fafafa;background:#141414;padding:2px 7px 1px;pointer-events:none;z-index:4;animation:tagfade .2s ease;}
