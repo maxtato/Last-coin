@@ -1457,7 +1457,7 @@ const CSS = `
 .lc-pips{display:flex;gap:4px;margin-top:7px;}
 .lc-pip{width:8px;height:8px;transform:rotate(45deg);border:1px solid #d2d2d2;}
 .lc-pip.on{background:#141414;border-color:#141414;}
-.lc-head{text-align:center;}
+.lc-head{text-align:center;margin-top:40px;}
 .lc-mark{font-size:13px;font-weight:500;letter-spacing:8px;padding-left:8px;}
 .lc-sub{font-size:10px;letter-spacing:3px;color:#707070;margin-top:5px;}
 .lc-top{display:flex;gap:26px;align-items:flex-end;justify-content:center;flex-wrap:wrap;}
