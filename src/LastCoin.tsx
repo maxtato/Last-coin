@@ -67,18 +67,32 @@ function Gauge({ kind, pct, hot }) {
   );
 }
 const SYM_NAME = { coin: "Coin", star: "Star", house: "House", diamond: "Diamond", crown: "Crown", bolt: "Bolt", eye: "Eye", joker: "Joker", skull: "Skull", crack: "Crack" };
-const SYM_INFO = [
-  ["coin",  "gain de base"],
-  ["star",  "chance — gain supérieur"],
-  ["house", "patrimoine"],
-  ["diamond", "luxe — pierre précieuse"],
-  ["crown", "revanche — gros gain · paire = 1 carte REPULL (rare, max 3)"],
-  ["bolt",  "machine — paire = 1 carte HOLD · triple = 2 cartes (max 9)"],
-  ["eye",   "prédiction — paire = 1 carte NUDGE · triple = 2 cartes (max 9)"],
-  ["joker", "WILD — remplace n'importe quel symbole · 3 = jackpot"],
-  ["skull", "DANGER — 3 alignés = tu perds la mise (crise en Phase 2)"],
-  ["crack", "DANGER — 3 alignés = panne (réparation en Phase 2)"],
-];
+const SYM_INFO = {
+  fr: [
+    ["coin",  "gain de base"],
+    ["star",  "chance — gain supérieur"],
+    ["house", "patrimoine"],
+    ["diamond", "luxe — pierre précieuse"],
+    ["crown", "revanche — gros gain · paire = 1 carte REPULL (rare, max 3)"],
+    ["bolt",  "machine — paire = 1 carte HOLD · triple = 2 cartes (max 9)"],
+    ["eye",   "prédiction — paire = 1 carte NUDGE · triple = 2 cartes (max 9)"],
+    ["joker", "WILD — remplace n'importe quel symbole · 3 = jackpot"],
+    ["skull", "DANGER — 3 alignés = tu perds la mise (crise potentielle)"],
+    ["crack", "DANGER — 3 alignés = panne (à réparer pour rejouer)"],
+  ],
+  en: [
+    ["coin",  "base payout"],
+    ["star",  "luck — higher payout"],
+    ["house", "wealth"],
+    ["diamond", "luxury — precious stone"],
+    ["crown", "revenge — big win · pair = 1 REPULL card (rare, max 3)"],
+    ["bolt",  "machine — pair = 1 HOLD card · triple = 2 cards (max 9)"],
+    ["eye",   "prediction — pair = 1 NUDGE card · triple = 2 cards (max 9)"],
+    ["joker", "WILD — replaces any symbol · 3 = jackpot"],
+    ["skull", "DANGER — 3 aligned = bet lost (potential crisis)"],
+    ["crack", "DANGER — 3 aligned = jammed (repair to play again)"],
+  ],
+};
 
 // ===== Table de gains (multiplicateurs de mise) =====
 // 3 identiques (le joker complète) :
@@ -132,44 +146,50 @@ const cashScale = (nw) =>
 // ===== Patrimoine par FAMILLES. Un nouveau palier REMPLACE l'ancien (reprise de l'ancien). =====
 // Toutes les familles déterminent la CLASSE SOCIALE = le niveau (statut). "business" donne en plus du revenu.
 const FAM = [
-  { id: "vetements", name: "Vêtements", life: true, start: "T-shirt troué", tiers: [
-    { n: "Fringues correctes",              price: 60,       resale: 15, line: "Tu ne sens plus tout à fait la défaite." },
-    { n: "Costume bas de gamme",            price: 18000,    resale: 3000 },
-    { n: "Montre correcte",                 price: 350000,   resale: 90000 },
-    { n: "Lunettes & chaussures de marque", price: 1500000,  resale: 400000 },
-    { n: "Tenue sur-mesure",                price: 12000000, resale: 3000000 },
+  { id: "vetements", name: "Vêtements", name_en: "Clothing", life: true, start: "T-shirt troué", start_en: "Torn t-shirt", tiers: [
+    { n: "Fringues correctes",              n_en: "Decent clothes",            price: 60,       resale: 15,      line: "Tu ne sens plus tout à fait la défaite.", line_en: "You don't quite smell of defeat anymore." },
+    { n: "Costume bas de gamme",            n_en: "Cheap suit",                price: 18000,    resale: 3000 },
+    { n: "Montre correcte",                 n_en: "Decent watch",              price: 350000,   resale: 90000 },
+    { n: "Lunettes & chaussures de marque", n_en: "Designer glasses & shoes",  price: 1500000,  resale: 400000 },
+    { n: "Tenue sur-mesure",                n_en: "Tailored outfit",           price: 12000000, resale: 3000000 },
   ] },
-  { id: "logement", name: "Logement", life: true, start: "Garage", tiers: [
-    { n: "Matelas & frigo",     price: 300,      resale: 80, line: "Ce soir, le sol a perdu." },
-    { n: "Studio humide",       price: 7500,     resale: 4500, line: "Tu quittes le garage. Il ne te regrettera pas." },
-    { n: "Appartement correct", price: 35000,    resale: 24000 },
-    { n: "Maison de banlieue",  price: 250000,   resale: 180000 },
-    { n: "Loft industriel",     price: 2000000,  resale: 1350000 },
-    { n: "Villa moderne",       price: 8000000,  resale: 5600000, line: "Une villa. Le garage n'est plus qu'un mauvais rêve." },
+  { id: "logement", name: "Logement", name_en: "Housing", life: true, start: "Garage", start_en: "Garage", tiers: [
+    { n: "Matelas & frigo",     n_en: "Mattress & fridge",       price: 300,      resale: 80,      line: "Ce soir, le sol a perdu.",                                line_en: "Tonight, the floor lost." },
+    { n: "Studio humide",       n_en: "Damp studio",             price: 7500,     resale: 4500,    line: "Tu quittes le garage. Il ne te regrettera pas.",          line_en: "You leave the garage. It won't miss you." },
+    { n: "Appartement correct", n_en: "Decent flat",             price: 35000,    resale: 24000 },
+    { n: "Maison de banlieue",  n_en: "Suburban house",          price: 250000,   resale: 180000 },
+    { n: "Loft industriel",     n_en: "Industrial loft",         price: 2000000,  resale: 1350000 },
+    { n: "Villa moderne",       n_en: "Modern villa",            price: 8000000,  resale: 5600000, line: "Une villa. Le garage n'est plus qu'un mauvais rêve.",     line_en: "A villa. The garage is just a bad dream now." },
   ] },
-  { id: "vehicule", name: "Véhicule", life: true, start: "À pied", tiers: [
-    { n: "Scooter fatigué",    price: 2500,     resale: 900, line: "Deux roues. L'une d'elles croit en toi." },
-    { n: "Voiture cabossée",   price: 12000,    resale: 5500 },
-    { n: "Voiture compacte",   price: 55000,    resale: 32000 },
-    { n: "Berline d'occasion", price: 120000,   resale: 70000 },
-    { n: "SUV luxueux",        price: 1200000,  resale: 650000 },
-    { n: "Supercar",           price: 12000000, resale: 5500000, line: "Quatre roues. Deux d'entre elles croient en toi." },
+  { id: "vehicule", name: "Véhicule", name_en: "Vehicle", life: true, start: "À pied", start_en: "On foot", tiers: [
+    { n: "Scooter fatigué",    n_en: "Tired scooter",      price: 2500,     resale: 900,     line: "Deux roues. L'une d'elles croit en toi.",                line_en: "Two wheels. One of them believes in you." },
+    { n: "Voiture cabossée",   n_en: "Dented car",         price: 12000,    resale: 5500 },
+    { n: "Voiture compacte",   n_en: "Compact car",        price: 55000,    resale: 32000 },
+    { n: "Berline d'occasion", n_en: "Used sedan",         price: 120000,   resale: 70000 },
+    { n: "SUV luxueux",        n_en: "Luxury SUV",         price: 1200000,  resale: 650000 },
+    { n: "Supercar",           n_en: "Supercar",           price: 12000000, resale: 5500000, line: "Quatre roues. Deux d'entre elles croient en toi.",      line_en: "Four wheels. Two of them believe in you." },
   ] },
-  { id: "business", name: "Business", life: false, start: "Sans revenu", tiers: [
-    { n: "Café minable",        price: 500000,   resale: 260000,  inc: 200, line: "De l'argent qui dort à ta place." },
-    { n: "Laverie automatique", price: 850000,   resale: 520000,  inc: 600 },
-    { n: "Bar de quartier",     price: 3200000,  resale: 1700000, inc: 2500 },
-    { n: "Salle d'arcade",      price: 5000000,  resale: 2400000, inc: 5000 },
-    { n: "Petit hôtel",         price: 18000000,  resale: 10000000, inc: 18000 },
-    { n: "Casino clandestin",   price: 85000000,  resale: 55000000, inc: 80000, line: "Tu possèdes la maison. La maison gagne toujours." },
+  { id: "business", name: "Business", name_en: "Business", life: false, start: "Sans revenu", start_en: "No income", tiers: [
+    { n: "Café minable",        n_en: "Sketchy café",        price: 500000,   resale: 260000,  inc: 200,    line: "De l'argent qui dort à ta place.", line_en: "Money sleeping in your place." },
+    { n: "Laverie automatique", n_en: "Laundromat",          price: 850000,   resale: 520000,  inc: 600 },
+    { n: "Bar de quartier",     n_en: "Neighborhood bar",    price: 3200000,  resale: 1700000, inc: 2500 },
+    { n: "Salle d'arcade",      n_en: "Arcade",              price: 5000000,  resale: 2400000, inc: 5000 },
+    { n: "Petit hôtel",         n_en: "Small hotel",         price: 18000000, resale: 10000000, inc: 18000 },
+    { n: "Casino clandestin",   n_en: "Underground casino",  price: 85000000, resale: 55000000, inc: 80000, line: "Tu possèdes la maison. La maison gagne toujours.", line_en: "You own the house. The house always wins." },
   ] },
 ];
 const FAM0 = { vetements: 0, logement: 0, vehicule: 0, business: 0 };
 const ownedTier = (f, lvl) => (lvl[f.id] > 0 ? f.tiers[lvl[f.id] - 1] : null);
 // classe sociale issue des familles "de vie" (somme des paliers)
-const CLASSES = ["à la rue", "survie", "précaire", "classe moyenne", "aisé", "riche", "grande fortune", "empire"];
+const CLASSES = {
+  fr: ["à la rue", "survie", "précaire", "classe moyenne", "aisé", "riche", "grande fortune", "empire"],
+  en: ["on the street", "survival", "precarious", "middle class", "well-off", "rich", "great fortune", "empire"],
+};
 // chaque classe sociale débloque un LIEU de jeu de plus en plus prestigieux
-const VENUES = ["garage", "bar du coin", "tripot de quartier", "salle de jeux", "casino municipal", "casino privé", "cercle de jeu", "palais du hasard"];
+const VENUES = {
+  fr: ["garage", "bar du coin", "tripot de quartier", "salle de jeux", "casino municipal", "casino privé", "cercle de jeu", "palais du hasard"],
+  en: ["garage", "corner bar", "neighborhood joint", "arcade", "town casino", "private casino", "gaming club", "palace of chance"],
+};
 const classOf = (lvl) => {
   const s = lvl.vetements + lvl.logement + lvl.vehicule + lvl.business;   // 0..23 : tout le patrimoine compte
   return s >= 22 ? 7 : s >= 18 ? 6 : s >= 14 ? 5 : s >= 10 ? 4 : s >= 6 ? 3 : s >= 3 ? 2 : s >= 1 ? 1 : 0;
@@ -242,46 +262,252 @@ const SFX = {
 
 // ===== Narratif (FR + punchlines EN). Rare et ciblé : surtout aux moments forts. =====
 const N = {
-  first:   ["La machine recrache assez de pièces pour un repas."],
-  jackpot: ["Trois jokers. La machine ricane, maintenant.", "Triple joker. Le hasard te fait une faveur presque obscène."],
-  big:     ["Les néons du garage vacillent. La machine sourit.", "Gros. La machine te regarde, soudain intéressée.", "Un éclat. Pour une fois, le sort t'a choisi."],
-  win:     ["Le bac tinte. Petit miracle.", "Assez pour tenir un jour de plus.", "Les rouleaux sont d'accord, pour une fois.", "Tu y crois presque."],
-  lose:    ["Les rouleaux s'arrêtent. Ton souffle aussi.", "Rien. Le silence pèse une tonne.", "La machine ne te doit rien."],
-  skull:   ["Trois crânes. La ruine te frôle."],
-  crack:   ["La machine tousse, se bloque, repart."],
-  buy:     ["Tu achètes un bout de vie.", "Ça change rien. Ça change tout.", "Un objet de plus pour te sentir vivant."],
-  sell:    ["Tu vends ce que tu avais acheté pour te sentir vivant.", "Retour en arrière. Ça fait mal où il faut."],
-  classUp: {
-    1: "Tu n'es plus tout à fait à terre.",
-    2: "Un semblant de toit. Ça compte.",
-    3: "Tu ressembles à quelqu'un de normal. Troublant.",
-    4: "On te tient la porte, maintenant.",
-    5: "Ton ancien patron se souvient soudain de ton nom.",
-    6: "Les gens rient à tes blagues avant la chute.",
-    7: "La ville murmure ton nom. La machine veut encore une pièce.",
+  fr: {
+    first:   ["La machine recrache assez de pièces pour un repas."],
+    jackpot: ["Trois jokers. La machine ricane, maintenant.", "Triple joker. Le hasard te fait une faveur presque obscène."],
+    big:     ["Les néons du garage vacillent. La machine sourit.", "Gros. La machine te regarde, soudain intéressée.", "Un éclat. Pour une fois, le sort t'a choisi."],
+    win:     ["Le bac tinte. Petit miracle.", "Assez pour tenir un jour de plus.", "Les rouleaux sont d'accord, pour une fois.", "Tu y crois presque."],
+    lose:    ["Les rouleaux s'arrêtent. Ton souffle aussi.", "Rien. Le silence pèse une tonne.", "La machine ne te doit rien."],
+    skull:   ["Trois crânes. La ruine te frôle."],
+    crack:   ["La machine tousse, se bloque, repart."],
+    buy:     ["Tu achètes un bout de vie.", "Ça change rien. Ça change tout.", "Un objet de plus pour te sentir vivant."],
+    sell:    ["Tu vends ce que tu avais acheté pour te sentir vivant.", "Retour en arrière. Ça fait mal où il faut."],
+    classUp: {
+      1: "Tu n'es plus tout à fait à terre.",
+      2: "Un semblant de toit. Ça compte.",
+      3: "Tu ressembles à quelqu'un de normal. Troublant.",
+      4: "On te tient la porte, maintenant.",
+      5: "Ton ancien patron se souvient soudain de ton nom.",
+      6: "Les gens rient à tes blagues avant la chute.",
+      7: "La ville murmure ton nom. La machine veut encore une pièce.",
+    },
+  },
+  en: {
+    first:   ["The machine spits out enough coins for a meal."],
+    jackpot: ["Three jokers. The machine sneers now.", "Triple joker. Luck gives you an almost obscene favor."],
+    big:     ["The garage neons flicker. The machine smiles.", "Big. The machine looks at you, suddenly interested.", "A flash. For once, fate has picked you."],
+    win:     ["The tray chimes. Small miracle.", "Enough to last one more day.", "The reels agree, for once.", "You almost believe it."],
+    lose:    ["The reels stop. So does your breath.", "Nothing. The silence weighs a ton.", "The machine owes you nothing."],
+    skull:   ["Three skulls. Ruin brushes by."],
+    crack:   ["The machine coughs, jams, restarts."],
+    buy:     ["You buy a piece of a life.", "It changes nothing. It changes everything.", "One more object to feel alive."],
+    sell:    ["You sell what you bought to feel alive.", "Walking it back. It hurts where it should."],
+    classUp: {
+      1: "You're not quite on the ground anymore.",
+      2: "A semblance of a roof. It counts.",
+      3: "You look like a normal person. Unsettling.",
+      4: "People hold the door for you now.",
+      5: "Your old boss suddenly remembers your name.",
+      6: "People laugh at your jokes before the punchline.",
+      7: "The city whispers your name. The machine wants another coin.",
+    },
   },
 };
 
 // ===== Phase 2 : Hope, Risk, crises =====
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const HOPE0 = 70;
+
+// ===== I18N : table de traduction FR / EN, lookup via t(key) en runtime =====
+const T = {
+  // header
+  argent:        { fr: "argent",         en: "money" },
+  niveau:        { fr: "niveau",         en: "level" },
+  par_tour:      { fr: "/tour",          en: "/spin" },
+  // status readouts
+  jammed_msg:    { fr: "machine bloquée · répare-la",      en: "machine jammed · repair it" },
+  broke_msg:     { fr: "à sec · vends un bien",            en: "broke · sell something" },
+  ruined:        { fr: "ruine évitée",                     en: "ruin avoided" },
+  crack_msg:     { fr: "panne",                            en: "jammed" },
+  idle_msg:      { fr: "une pièce a tout commencé · un tour peut tout finir",
+                   en: "one coin started it · one pull can end it" },
+  // bet area
+  mise:          { fr: "mise",           en: "bet" },
+  mise_max:      { fr: "mise max",       en: "max bet" },
+  reparer:       { fr: "réparer",        en: "repair" },
+  // shop buttons
+  acheter:       { fr: "Acheter",        en: "Buy" },
+  ma_vie:        { fr: "Ma vie",         en: "My life" },
+  wild:          { fr: "wild",           en: "wild" },
+  danger:        { fr: "danger",         en: "danger" },
+  // pause menu
+  pause:         { fr: "pause",          en: "pause" },
+  reprendre:     { fr: "reprendre",      en: "resume" },
+  regles:        { fr: "règles",         en: "rules" },
+  son:           { fr: "son",            en: "sound" },
+  mode_sombre:   { fr: "mode sombre",    en: "dark mode" },
+  langue:        { fr: "langue",         en: "language" },
+  recommencer:   { fr: "recommencer",    en: "restart" },
+  on:            { fr: "on",             en: "on" },
+  off:           { fr: "off",            en: "off" },
+  oui:           { fr: "oui",            en: "yes" },
+  non:           { fr: "non",            en: "no" },
+  confirm_reset: { fr: "Tu effaces tout.|Une pièce.|Sûr ?",
+                   en: "You wipe it all.|One coin.|Sure?" },
+  // stats labels
+  tours_joues:   { fr: "tours joués",         en: "spins played" },
+  plus_gros_gain:{ fr: "plus gros gain",      en: "biggest win" },
+  peak_patrim:   { fr: "patrimoine peak",     en: "peak wealth" },
+  crises_endur:  { fr: "crises endurées",     en: "crises survived" },
+  refus:         { fr: "refus",               en: "refused" },
+  cartes_obt:    { fr: "cartes obtenues",     en: "cards earned" },
+  net:           { fr: "net",                 en: "net" },
+  // intro
+  last_coin:     { fr: "LAST COIN",      en: "LAST COIN" },
+  derniere_piece:{ fr: "la dernière pièce", en: "the last coin" },
+  intro_p1:      { fr: "Tu dors dans un garage. Boulot perdu, couple fini, compte vide.",
+                   en: "You sleep in a garage. Job gone, couple over, account empty." },
+  intro_p2:      { fr: "Un soir, sur le trottoir, tu trouves cette machine à sous. Sale, cabossée — mais elle marche encore.",
+                   en: "One night, on the sidewalk, you find this slot machine. Filthy, dented — but it still works." },
+  il_te_reste:   { fr: "il te reste",    en: "you have left" },
+  une_piece:     { fr: "une pièce",      en: "one coin" },
+  intro_tag:     { fr: "une pièce a tout commencé · un tour peut tout finir",
+                   en: "one coin started it · one pull can end it" },
+  inserer_piece: { fr: "insérer la pièce", en: "insert the coin" },
+  disclaimer:    { fr: "argent fictif · aucun paiement réel",
+                   en: "fake money · no real wagering" },
+  // buy modal
+  ma_vie_improve:{ fr: "ma vie · améliorer",       en: "my life · upgrade" },
+  monte_classe:  { fr: "monte de classe sociale",  en: "climb a social class" },
+  cash:          { fr: "Cash",                     en: "Cash" },
+  buy_explain:   { fr: "un nouveau palier remplace l'ancien",
+                   en: "a new tier replaces the old one" },
+  remplace:      { fr: "remplace",                 en: "replaces" },
+  max_atteint:   { fr: "max atteint",              en: "max reached" },
+  retour:        { fr: "retour",                   en: "back" },
+  revenu:        { fr: "revenu",                   en: "income" },
+  // assets modal
+  patrimoine:    { fr: "patrimoine",      en: "wealth" },
+  vendre:        { fr: "vendre",          en: "sell" },
+  sell_warn:     { fr: "la revente fait mal — tu repars de zéro dans la famille",
+                   en: "selling hurts — you start from zero in this family" },
+  // rules
+  comment:       { fr: "comment ça marche", en: "how it works" },
+  rules_short:   { fr: "mise · tire le levier · encaisse ou re-risque",
+                   en: "bet · pull the lever · cash in or re-risk" },
+  symboles:      { fr: "symboles",          en: "symbols" },
+  combinaisons:  { fr: "combinaisons",      en: "combinations" },
+  c_3:           { fr: "3 identiques",      en: "3 of a kind" },
+  c_3_d:         { fr: "gain selon le symbole (×3 à ×75)",
+                   en: "payout depends on symbol (×3 to ×75)" },
+  c_2:           { fr: "2 identiques",      en: "2 of a kind" },
+  c_2_d:         { fr: "petit gain (paire)", en: "small win (pair)" },
+  c_2j:          { fr: "2 + Joker",         en: "2 + Joker" },
+  c_2j_d:        { fr: "compté comme 3 identiques", en: "counted as 3 of a kind" },
+  c_3j:          { fr: "3 Jokers",          en: "3 Jokers" },
+  c_3j_d:        { fr: "jackpot",           en: "jackpot" },
+  c_neg:         { fr: "3 Crâne / 3 Fissure",
+                   en: "3 Skulls / 3 Cracks" },
+  c_neg_d:       { fr: "danger — mise perdue", en: "danger — bet lost" },
+  moral_risk:    { fr: "moral & risque",    en: "hope & risk" },
+  moral_t:       { fr: "Moral (le cœur)",   en: "Hope (heart)" },
+  moral_d:       { fr: "ta résistance aux coups durs. Monte quand tu gagnes et quand tu améliores ta vie (surtout le logement). Tombe sur les pertes, les crises et les reventes. À zéro : c'est la spirale — tu perds gros et tu redescends d'un cran.",
+                   en: "your resilience to hard times. Goes up on wins and upgrades (housing especially). Drops on losses, crises and forced sells. At zero: spiral — you lose big and drop one social tier." },
+  risk_t:        { fr: "Risque (le triangle)", en: "Risk (triangle)" },
+  risk_d:        { fr: "ton exposition au danger. Monte quand tu mises gros et quand ton train de vie est voyant. Plus il est haut, plus les crises tombent souvent (loyer, fisc, cambriolage, saisie). Il redescend tout seul si tu joues petit.",
+                   en: "your exposure to danger. Rises when you bet big and when your lifestyle is loud. The higher it is, the more often crises hit (rent, tax, burglary, seizure). It cools down by itself when you play small." },
+  hold_t:        { fr: "HOLD · bloquer un rouleau", en: "HOLD · lock a reel" },
+  hold_cards:    { fr: "Cartes HOLD",       en: "HOLD cards" },
+  hold_d:        { fr: "une paire de Bolt fait tomber 1 carte, un triple en fait tomber 2 (plafond 9). Avant de tirer, tape un rouleau pour le bloquer : il garde son symbole au tour suivant. Coût : 1 carte par rouleau bloqué.",
+                   en: "a Bolt pair drops 1 card, a triple drops 2 (cap 9). Before pulling, tap a reel to lock it: it keeps its symbol on the next spin. Cost: 1 card per locked reel." },
+  nudge_t:       { fr: "NUDGE · décaler après le spin", en: "NUDGE · shift after the spin" },
+  nudge_cards:   { fr: "Cartes NUDGE",      en: "NUDGE cards" },
+  nudge_d:       { fr: "une paire d'Eye fait tomber 1 carte, un triple en fait tomber 2 (plafond 9). Après un tour, des flèches ▲ ▼ apparaissent sur les rouleaux : un clic décale le rouleau d'un cran et te paie le bonus si le nouveau combo est meilleur. Une seule manipulation par tour.",
+                   en: "an Eye pair drops 1 card, a triple drops 2 (cap 9). After a spin, ▲ ▼ arrows appear on the reels: one click nudges the reel by one cell and pays the bonus if the new combo is better. One action per spin." },
+  repull_t:      { fr: "REPULL · rejouer un rouleau",  en: "REPULL · re-spin a reel" },
+  repull_cards:  { fr: "Cartes REPULL",                en: "REPULL cards" },
+  repull_d:      { fr: "capacité la plus puissante donc la plus rare (plafond 3). Une paire de Crown fait tomber 1 carte, un triple en fait tomber 2. Après un tour, un bouton ↻ apparaît sur chaque rouleau : clic = ce rouleau seul rejoue au hasard. Les deux autres restent bloqués. Bonus payé si le nouveau combo est meilleur. Une capacité par tour, toutes confondues.",
+                   en: "the most powerful ability so the rarest (cap 3). A Crown pair drops 1 card, a triple drops 2. After a spin, a ↻ button appears on each reel: click = that reel alone re-spins randomly. The other two stay locked. Bonus paid if the new combo is better. One ability per spin, all combined." },
+  rules_foot:    { fr: "petite mise = sûr mais lent · grosse mise = gros gains ou ruine",
+                   en: "small bet = safe but slow · big bet = big wins or ruin" },
+  // holdbar hints
+  hint_repull:   { fr: "↻ rejoue un rouleau",                   en: "↻ re-spin a reel" },
+  hint_nudge:    { fr: "ajuste un rouleau · ▲ ou ▼",            en: "nudge a reel · ▲ or ▼" },
+  hint_held:     { fr: "rouleau bloqué · tire le levier",       en: "reel locked · pull the lever" },
+  hint_hold:     { fr: "tape un rouleau pour le bloquer",        en: "tap a reel to lock it" },
+  // empire / game over
+  empire:        { fr: "EMPIRE",                                  en: "EMPIRE" },
+  empire_sub:    { fr: "la ville a ton nom",                      en: "the city bears your name" },
+  empire_lead:   { fr: "Parti d'une pièce. Regarde-toi.",         en: "Started with one coin. Look at you now." },
+  empire_tag:    { fr: "Ton nom est sur les murs.|La machine, elle, ne lit pas.",
+                   en: "Your name is on the walls.|The machine, it doesn't read." },
+  encore_tour:   { fr: "encore un tour",                          en: "one more pull" },
+  over:          { fr: "À SEC",                                   en: "BROKE" },
+  over_sub:      { fr: "tout est parti",                          en: "all gone" },
+  over_tag:      { fr: "Le bac est silencieux.|La machine, elle, est patiente.",
+                   en: "The tray is silent.|The machine, it's patient." },
+  // levelup
+  nouveau_statut:{ fr: "nouveau statut",  en: "new status" },
+  // cards notif
+  carte:         { fr: "carte",            en: "card" },
+  // dev menu
+  dev:           { fr: "menu développeur", en: "developer menu" },
+  dev_lead:      { fr: "raccourcis de test", en: "test shortcuts" },
+  dev_money:     { fr: "argent",           en: "money" },
+  dev_cards:     { fr: "cartes de capacité", en: "ability cards" },
+  dev_gauges:    { fr: "jauges",           en: "gauges" },
+  dev_crisis:    { fr: "crises & machine", en: "crises & machine" },
+  dev_screens:   { fr: "écrans",           en: "screens" },
+  dev_reset_cash:{ fr: "reset 1$",         en: "reset $1" },
+  dev_max_all:   { fr: "max all",          en: "max all" },
+  dev_clear:     { fr: "vider",            en: "clear" },
+  dev_moral:     { fr: "moral",            en: "hope" },
+  dev_risk:      { fr: "risque",           en: "risk" },
+  dev_jam:       { fr: "jammer",           en: "jam" },
+  dev_unjam:     { fr: "déjammer",         en: "unjam" },
+  dev_intro:     { fr: "intro",            en: "intro" },
+  dev_empire:    { fr: "empire",           en: "empire" },
+  dev_over:      { fr: "game over",        en: "game over" },
+  // crisis modal action labels
+  payer:         { fr: "payer",            en: "pay" },
+  refuser:       { fr: "refuser",          en: "refuse" },
+  encaisser:     { fr: "encaisser",        en: "take it" },
+  subir:         { fr: "subir",            en: "endure" },
+  a_payer:       { fr: "à payer",          en: "to pay" },
+  taxe:          { fr: "taxe",             en: "tax" },
+  lose_cash_msg: { fr: "tu perds une partie de ton cash",
+                   en: "you lose part of your cash" },
+  seize_msg:     { fr: "ton bien le plus cher est saisi",
+                   en: "your most valuable asset is seized" },
+  spirale_msg:   { fr: "tu redescends d'un cran — mais tu gardes une pièce",
+                   en: "you fall one tier — but you keep one coin" },
+};
+
 // stats agregees sur la partie : alimentees par les hooks de gameplay, persistees, affichees pause/over/empire
 const STATS0 = { biggestWin: 0, peakWorth: 0, cardsEarned: 0, crisesSurvived: 0, crisesRefused: 0, totalBet: 0, totalWon: 0 };
 // risque de fond selon le train de vie : plus tu exhibes, plus tu es exposé
 const luxBase = (nw) => (nw >= 5e6 ? 14 : nw >= 5e5 ? 9 : nw >= 50000 ? 5 : nw >= 5000 ? 2 : 0);
 const CRISIS = {
-  loyer:       { t: "LOYER DÛ",        s: "Le proprio veut son dû. Maintenant." },
-  cambriolage: { t: "CAMBRIOLAGE",     s: "On a forcé ta porte. Le tiroir crie famine." },
-  fisc:        { t: "LE FISC",         s: "Une lettre polie. Des chiffres qui le sont moins." },
-  venteforcee: { t: "SAISIE",          s: "L'huissier choisit. Pas toi." },
-  spirale:     { t: "TOUT S'EFFONDRE", s: "Trop haut, trop vite. Le sol se dérobe." },
+  fr: {
+    loyer:       { t: "LOYER DÛ",        s: "Le proprio veut son dû. Maintenant." },
+    cambriolage: { t: "CAMBRIOLAGE",     s: "On a forcé ta porte. Le tiroir crie famine." },
+    fisc:        { t: "LE FISC",         s: "Une lettre polie. Des chiffres qui le sont moins." },
+    venteforcee: { t: "SAISIE",          s: "L'huissier choisit. Pas toi." },
+    spirale:     { t: "TOUT S'EFFONDRE", s: "Trop haut, trop vite. Le sol se dérobe." },
+  },
+  en: {
+    loyer:       { t: "RENT DUE",        s: "The landlord wants his cut. Now." },
+    cambriolage: { t: "BREAK-IN",        s: "Someone forced your door. The drawer is starving." },
+    fisc:        { t: "TAX MAN",         s: "A polite letter. The numbers, less so." },
+    venteforcee: { t: "SEIZURE",         s: "The bailiff picks. Not you." },
+    spirale:     { t: "EVERYTHING COLLAPSES", s: "Too high, too fast. The ground gives way." },
+  },
 };
 const N_CRISIS = {
-  loyer: "Encore un mois. Gagné, ou juste reporté.",
-  cambriolage: "Tu comptes ce qui reste. Vite fait.",
-  fisc: "L'État aussi joue à la machine. Il gagne toujours.",
-  venteforcee: "Ils emportent un bout de toi.",
-  spirale: "Presque tout. Tu gardes une pièce.",
+  fr: {
+    loyer: "Encore un mois. Gagné, ou juste reporté.",
+    cambriolage: "Tu comptes ce qui reste. Vite fait.",
+    fisc: "L'État aussi joue à la machine. Il gagne toujours.",
+    venteforcee: "Ils emportent un bout de toi.",
+    spirale: "Presque tout. Tu gardes une pièce.",
+  },
+  en: {
+    loyer: "One more month. Won, or just postponed.",
+    cambriolage: "You count what's left. Fast.",
+    fisc: "The State plays the slots too. It always wins.",
+    venteforcee: "They take a piece of you.",
+    spirale: "Almost everything. You keep one coin.",
+  },
 };
 function makeCrisis(id, nw, has) {
   if (id === "roll") id = pick(has ? ["loyer", "cambriolage", "fisc", "venteforcee"] : ["loyer", "cambriolage", "fisc"]);
@@ -320,7 +546,8 @@ export default function LastCoin() {
   const [crisis, setCrisis] = useState(null);                  // crise active (modale)
   const [wonEmpire, setWonEmpire] = useState(() => !!init.empire);
   const [confirmReset, setConfirmReset] = useState(false);   // pause : confirmation avant de recommencer
-  const [durations] = useState([1.6, 2.25, 2.9]);   // roulement plus long
+  const [durations] = useState([2.4, 3.2, 4.0]);   // roulement nettement plus long
+  const [stopShock, setStopShock] = useState([false, false, false]);   // anim de choc breve a chaque arret
   const [held, setHeld] = useState([false, false, false]);                 // rouleaux marqués HOLD avant le tour
   const [holdCharges, setHoldCharges] = useState(() => init.holdCharges || 0);  // jetons HOLD dispos (gagnés via Bolt)
   const [spinHeld, setSpinHeld] = useState([false, false, false]);         // rouleaux figés pendant l'anim du tour
@@ -332,18 +559,28 @@ export default function LastCoin() {
   const [repullAvail, setRepullAvail] = useState(false);                   // fenêtre de REPULL ouverte après le tour
   const [stats, setStats] = useState(() => ({ ...STATS0, ...(init.stats || {}) }));
   const [soundOn, setSoundOn] = useState(() => init.soundOn !== false);    // son ON par defaut
+  const [darkMode, setDarkMode] = useState(() => !!init.darkMode);
+  const [lang, setLang] = useState(() => init.lang || "fr");                // "fr" | "en"
+  const t = (k) => (T[k] && T[k][lang]) || k;                              // helper i18n
+  const famName  = (f) => lang === "en" ? f.name_en  : f.name;             // i18n field accessors
+  const famStart = (f) => lang === "en" ? f.start_en : f.start;
+  const tierName = (x) => lang === "en" ? x.n_en     : x.n;
+  const tierLine = (x) => lang === "en" ? x.line_en  : x.line;
   const soundOnRef = useRef(soundOn);
   useEffect(() => { soundOnRef.current = soundOn; }, [soundOn]);
   const sfx = (name) => { if (soundOnRef.current && SFX[name]) SFX[name](); };
   const machineRef = useRef(null);
   const lampTimer = useRef(null);                    // gyro : timer de 5 s
 
-  // strips
+  // strips : sens TOP-TO-BOTTOM. cells[1] = symbole au repos (bandAt(band, stop)).
+  // cells[0] = bandAt(stop+1) (visible juste en dessous au repos), cells[k>=2] = bandAt(stop - (k-1)).
+  // Pendant l'animation, le strip passe de cells[cells.length-1] (cell tout en bas du strip,
+  // donc visible apres une longue translation vers le bas) jusqu'a cells[1] (rest).
   const makeStrip = (band, stop, run) => {
     const n = run + 2;
-    const cells = [];
-    for (let k = -n; k <= 1; k++) cells.push(bandAt(band, stop + k));
-    return { cells, t: cells.length - 2 };
+    const cells = [bandAt(band, stop + 1)];
+    for (let k = 0; k <= n; k++) cells.push(bandAt(band, stop - k));
+    return { cells, t: 1, startT: cells.length - 1 };
   };
   const restStrip = (r) => makeStrip(BANDS[r], 1, 0);
   const [strips, setStrips] = useState(() => REELS.map((_, r) => restStrip(r)));
@@ -355,8 +592,8 @@ export default function LastCoin() {
   const ownedCount = FAM.reduce((s, f) => s + (lvl[f.id] > 0 ? 1 : 0), 0);
   const classIdx = classOf(lvl);          // classe sociale = niveau (via familles de vie)
   const level = classIdx + 1;
-  const socialClass = CLASSES[classIdx];
-  const venue = VENUES[classIdx];         // lieu de jeu débloqué par la classe
+  const socialClass = CLASSES[lang][classIdx];
+  const venue = VENUES[lang][classIdx];   // lieu de jeu débloqué par la classe
   const maxBetIdx = (() => { let m = 0; for (let i = 0; i < BET_STEPS.length; i++) { if (BET_STEPS[i] <= cash) m = i; else break; } return m; })();
   const bet = cash >= 1 ? BET_STEPS[Math.min(betIdx, maxBetIdx)] : 0;
   const repairCost = Math.max(15, Math.round(netWorth * 0.02));
@@ -372,7 +609,9 @@ export default function LastCoin() {
   const reelY = (r) => {
     if (!cellH) return 0;
     if (spinHeld[r]) return restY(strips[r].t);                 // rouleau bloqué : reste sur place
-    return phase === "start" ? 0 : restY(strips[r].t);
+    // phase "start" : strip pousse vers le HAUT (cell tout en bas centree).
+    // phase "run"   : strip descend jusqu'a la position de repos -> spin top-to-bottom.
+    return phase === "start" ? restY(strips[r].startT || strips[r].t) : restY(strips[r].t);
   };
 
   useLayoutEffect(() => {
@@ -384,8 +623,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn })); } catch {}
-  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, darkMode, lang })); } catch {}
+  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, darkMode, lang]);
 
   // peak du patrimoine : suivi en permanence des qu'il monte (acceuil cash + achats)
   useEffect(() => {
@@ -506,12 +745,13 @@ export default function LastCoin() {
     }
 
     // narratif : rare et ciblé (toujours sur 1er gain / jackpot / gros gain / danger ; sinon faible chance)
-    if (first) say(N.first[0]);
-    else if (res.kind === 3 && res.sym === "joker") say(pick(N.jackpot));
-    else if (big) say(pick(N.big));
-    else if (res.kind === -1) say(res.sym === "skull" ? pick(N.skull) : pick(N.crack));
-    else if (payout > 0) say(Math.random() < 0.10 ? pick(N.win) : "");
-    else say(Math.random() < 0.05 ? pick(N.lose) : "");
+    const NL = N[lang];
+    if (first) say(NL.first[0]);
+    else if (res.kind === 3 && res.sym === "joker") say(pick(NL.jackpot));
+    else if (big) say(pick(NL.big));
+    else if (res.kind === -1) say(res.sym === "skull" ? pick(NL.skull) : pick(NL.crack));
+    else if (payout > 0) say(Math.random() < 0.10 ? pick(NL.win) : "");
+    else say(Math.random() < 0.05 ? pick(NL.lose) : "");
   }, [income, pulls]);
 
   const spin = () => {
@@ -557,12 +797,21 @@ export default function LastCoin() {
     setStrips(newStrips);
     setPhase("start");
     requestAnimationFrame(() => requestAnimationFrame(() => setPhase("run")));
-    // stops des rouleaux : 1 son par rouleau qui s'arrete, hors held
-    durations.forEach((d, i) => { if (!holdSnap[i]) setTimeout(() => sfx("reelStop"), Math.round(d * 1000) - 20); });
+    // a chaque rouleau qui s'arrete : son + anim de choc breve (220ms)
+    durations.forEach((d, i) => {
+      if (holdSnap[i]) return;
+      const stopAt = Math.round(d * 1000);
+      setTimeout(() => {
+        sfx("reelStop");
+        setStopShock((p) => p.map((v, idx) => idx === i ? true : v));
+        setTimeout(() => setStopShock((p) => p.map((v, idx) => idx === i ? false : v)), 240);
+      }, stopAt - 20);
+    });
+    const longest = Math.round(Math.max(...durations) * 1000) + 280;
     setTimeout(() => {
       resolveAll(targets, bet, lk, snap);
       setPhase("idle"); setSpinning(false); setSpinHeld([false, false, false]);
-    }, 3150);
+    }, longest);
   };
 
   const buyNext = (f) => {                       // monte d'un palier (remplace l'ancien, reprise déduite)
@@ -578,19 +827,19 @@ export default function LastCoin() {
     sfx("coin");
     // narratif ciblé : montée de classe > achat emblématique > parfois
     if (classUp) {
-      say(N.classUp[newClass]);
-      setLevelUp({ n: newClass + 1, cls: CLASSES[newClass], k: Date.now() });
+      say(N[lang].classUp[newClass]);
+      setLevelUp({ n: newClass + 1, cls: CLASSES[lang][newClass], k: Date.now() });
       setTimeout(() => setLevelUp(null), 2100);
       if (newClass === 7 && !wonEmpire) { setWonEmpire(true); setTimeout(() => { setOverlay(null); setScreen("empire"); }, 2200); }
-    } else if (tier.line) say(tier.line);
-    else if (Math.random() < 0.28) say(pick(N.buy));
+    } else if (tierLine(tier)) say(tierLine(tier));
+    else if (Math.random() < 0.28) say(pick(N[lang].buy));
     else say("");
   };
   const sellFam = (f) => {                        // revente d'urgence : liquide la famille
     const L = lvl[f.id];
     if (L <= 0) return;
     setCash((c) => c + f.tiers[L - 1].resale); setLvl((v) => ({ ...v, [f.id]: 0 }));
-    setHope((h) => clamp(h - 10, 0, 100)); say(pick(N.sell));
+    setHope((h) => clamp(h - 10, 0, 100)); say(pick(N[lang].sell));
     sfx("coin");
   };
 
@@ -612,7 +861,7 @@ export default function LastCoin() {
     else if (c.id === "cambriolage") { setCash((x) => Math.round(x * 0.78)); setHope((h) => clamp(h - 6, 0, 100)); }
     else if (c.id === "venteforcee") { forceSell(); setHope((h) => clamp(h - 10, 0, 100)); }
     else if (c.id === "spirale") { setCash((x) => Math.round(x * 0.7)); dropTop(); setHope(28); setRisk(0); }
-    say(N_CRISIS[c.id] || ""); setCrisis(null);
+    say(N_CRISIS[lang][c.id] || ""); setCrisis(null);
     setStats((s) => ({ ...s, crisesSurvived: s.crisesSurvived + 1 }));
   };
   const refuseCrisis = () => {
@@ -712,18 +961,26 @@ export default function LastCoin() {
   const betMax = () => setBetIdx(maxBetIdx);
 
   return (
-    <div className="lc">
+    <div className={"lc" + (darkMode ? " dark" : "")}>
       <style>{CSS}</style>
 
       <div className="lc-bar">
         <div className="lc-cash">
-          <i>argent</i>
+          <i>{t("argent")}</i>
           <b>{fmt(cash)}</b>
-          {income > 0 && <em>+{fmt(income)}/tour</em>}
+          {income > 0 && <em>+{fmt(income)}{t("par_tour")}</em>}
         </div>
-        <button className="lc-menu" onClick={() => { setConfirmReset(false); setScreen("pause"); }} aria-label="pause" title="pause"><i /><i /></button>
+        <div className="lc-bar-actions">
+          <button className="lc-menu" onClick={() => { setConfirmReset(false); setScreen("pause"); }} aria-label={t("pause")} title={t("pause")}><i /><i /></button>
+          <button className="lc-dev" onClick={() => setOverlay("dev")} aria-label={t("dev")} title={t("dev")}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+              <path fill="currentColor" d="M12 1 L13.5 4 L10.5 4 Z M12 23 L13.5 20 L10.5 20 Z M1 12 L4 13.5 L4 10.5 Z M23 12 L20 13.5 L20 10.5 Z M4.2 4.2 L6.5 6 L4.5 8 L2.5 6.5 Z M19.8 4.2 L17.5 6 L19.5 8 L21.5 6.5 Z M4.2 19.8 L6.5 18 L4.5 16 L2.5 17.5 Z M19.8 19.8 L17.5 18 L19.5 16 L21.5 17.5 Z" />
+            </svg>
+          </button>
+        </div>
         <div className="lc-level">
-          <i>niveau {level}</i>
+          <i>{t("niveau")} {level}</i>
           <b>{socialClass}</b>
           <div className="lc-pips">
             {Array.from({ length: 7 }).map((_, i) => <span key={i} className={"lc-pip" + (i < classIdx ? " on" : "")} />)}
@@ -749,7 +1006,7 @@ export default function LastCoin() {
           return (
             <div
               key={r}
-              className={"lc-reel" + (held[r] ? " held" : "") + (canHold ? " holdable" : "") + (canNudge || canRepull ? " nudgable" : "")}
+              className={"lc-reel" + (held[r] ? " held" : "") + (canHold ? " holdable" : "") + (canNudge || canRepull ? " nudgable" : "") + (stopShock[r] ? " shock" : "")}
               onClick={canHold ? () => toggleHold(r) : undefined}
               style={{ left: R.l + "%", top: WIN_TOP + "%", width: R.w + "%", height: WIN_H + "%" }}
             >
@@ -767,16 +1024,32 @@ export default function LastCoin() {
                   </div>
                 ))}
               </div>
-              {canNudge && (
-                <>
-                  <button className="lc-nudgebtn up" onClick={(e) => { e.stopPropagation(); nudge(r, +1); }} aria-label="nudge haut">▲</button>
-                  <button className="lc-nudgebtn dn" onClick={(e) => { e.stopPropagation(); nudge(r, -1); }} aria-label="nudge bas">▼</button>
-                </>
-              )}
               {canRepull && (
                 <button className="lc-repullbtn" onClick={(e) => { e.stopPropagation(); repull(r); }} aria-label="rejouer ce rouleau">↻</button>
               )}
             </div>
+          );
+        })}
+        {/* Boutons NUDGE rendus en siblings des rouleaux, positionnes au-dessus et en-dessous,
+            pour ne pas cacher le symbole central. Sens top-to-bottom : ▲ = symbole d'avant, ▼ = symbole suivant. */}
+        {REELS.map((R, r) => {
+          const canNudge = !spinning && !jammed && !crisis && nudgeAvail && nudgeCharges > 0 && screen === "play";
+          if (!canNudge) return null;
+          return (
+            <React.Fragment key={"nb" + r}>
+              <button
+                className="lc-nudgebtn up"
+                onClick={() => nudge(r, +1)}
+                aria-label="nudge haut"
+                style={{ left: R.l + "%", top: (WIN_TOP - 4.2) + "%", width: R.w + "%" }}
+              >▲</button>
+              <button
+                className="lc-nudgebtn dn"
+                onClick={() => nudge(r, -1)}
+                aria-label="nudge bas"
+                style={{ left: R.l + "%", top: (WIN_TOP + WIN_H + 0.5) + "%", width: R.w + "%" }}
+              >▼</button>
+            </React.Fragment>
           );
         })}
         <div className="lc-shadow" style={{ top: WIN_TOP + "%", left: REELS[0].l + "%", width: (REELS[2].l + REELS[2].w - REELS[0].l) + "%", height: (WIN_H * 0.16) + "%" }} />
@@ -822,12 +1095,12 @@ export default function LastCoin() {
 
       <div className="lc-readout">
         {jammed
-          ? <span className="lc-neg">machine bloquée · répare-la</span>
+          ? <span className="lc-neg">{t("jammed_msg")}</span>
           : (bet < 1 && hasAssets && screen === "play")
-          ? <span className="lc-neg">à sec · vends un bien</span>
+          ? <span className="lc-neg">{t("broke_msg")}</span>
           : flash ? <span className="lc-flash">{flash}</span>
-          : (lastWin && lastWin.neg) ? <span className="lc-neg">{lastWin.neg === "skull" ? "ruine évitée" : "panne"}</span>
-          : <span className="lc-idle">une pièce a tout commencé · un tour peut tout finir</span>}
+          : (lastWin && lastWin.neg) ? <span className="lc-neg">{lastWin.neg === "skull" ? t("ruined") : t("crack_msg")}</span>
+          : <span className="lc-idle">{t("idle_msg")}</span>}
       </div>
 
       <div className="lc-gauges">
@@ -847,10 +1120,10 @@ export default function LastCoin() {
             <span className="lc-hb-item"><Ink k="crown" size={13} /><b>×{repullCharges}</b></span>
           )}
           <em>
-            {repullAvail && repullCharges > 0 ? "↻ rejoue un rouleau"
-              : nudgeAvail && nudgeCharges > 0 ? "ajuste un rouleau · ▲ ou ▼"
-              : held.some(Boolean) ? "rouleau bloqué · tire le levier"
-              : holdCharges > 0 ? "tape un rouleau pour le bloquer"
+            {repullAvail && repullCharges > 0 ? t("hint_repull")
+              : nudgeAvail && nudgeCharges > 0 ? t("hint_nudge")
+              : held.some(Boolean) ? t("hint_held")
+              : holdCharges > 0 ? t("hint_hold")
               : ""}
           </em>
         </div>
@@ -858,11 +1131,11 @@ export default function LastCoin() {
 
       <div className="lc-ctrl">
         {jammed
-          ? <button className="lc-repair" disabled={cash < repairCost} onClick={repair}>réparer · {fmt(repairCost)}</button>
+          ? <button className="lc-repair" disabled={cash < repairCost} onClick={repair}>{t("reparer")} · {fmt(repairCost)}</button>
           : <div className="lc-betwrap">
               <div className="lc-betbar">
                 <button className="lc-bb" disabled={spinning || betIdx <= 0} onClick={betDown}>–</button>
-                <div className="lc-betcoin" title="mise">
+                <div className="lc-betcoin" title={t("mise")}>
                   <svg className="lc-coinart" viewBox="0 0 100 100" aria-hidden="true">
                     <circle cx="50" cy="52.5" r="47" fill="#141414" />
                     <circle cx="50" cy="50" r="47.5" fill="#fff" stroke="#141414" strokeWidth="2" />
@@ -875,74 +1148,79 @@ export default function LastCoin() {
                 </div>
                 <button className="lc-bb" disabled={spinning || betIdx >= maxBetIdx} onClick={betUp}>+</button>
               </div>
-              <button className="lc-bmax" disabled={spinning} onClick={betMax}>mise max</button>
+              <button className="lc-bmax" disabled={spinning} onClick={betMax}>{t("mise_max")}</button>
             </div>}
       </div>
 
       <div className="lc-shopbtns">
-        <button className="lc-sb" disabled={spinning} onClick={() => setOverlay("buy")}>Acheter</button>
-        <button className="lc-sb" disabled={spinning} onClick={() => setOverlay("assets")}>Ma vie{ownedCount ? " · " + ownedCount : ""}</button>
+        <button className="lc-sb" disabled={spinning} onClick={() => setOverlay("buy")}>{t("acheter")}</button>
+        <button className="lc-sb" disabled={spinning} onClick={() => setOverlay("assets")}>{t("ma_vie")}{ownedCount ? " · " + ownedCount : ""}</button>
       </div>
 
       <div className="lc-pay">
         {PAY_ROW.map((k) => (
           <span key={k} className="lc-pr" title={SYM_NAME[k]}><Ink k={k} size={16} faint /> ×{PAY3[k]}</span>
         ))}
-        <span className="lc-pr" title="Joker"><Ink k="joker" size={16} faint /> wild</span>
-        <span className="lc-pr danger" title="Skull / Crack"><Ink k="skull" size={16} faint /> danger</span>
+        <span className="lc-pr" title="Joker"><Ink k="joker" size={16} faint /> {t("wild")}</span>
+        <span className="lc-pr danger" title="Skull / Crack"><Ink k="skull" size={16} faint /> {t("danger")}</span>
       </div>
 
       {screen === "intro" && (
-        <Ovl><div className="lc-modal">
-          <div className="lc-mt">LAST COIN</div>
-          <p className="lc-ms">la dernière pièce</p>
-          <div className="lc-rules">
-            <p>Tu dors dans un garage. Boulot perdu, couple fini, compte vide.</p>
-            <p>Un soir, tu trouves cette machine à sous abandonnée sur le trottoir. Sale, cabossée — mais elle marche encore.</p>
-            <p>Il te reste <b>une pièce</b>.</p>
-            <p className="lc-tag">« Une pièce a tout commencé. Un tour peut tout finir. »</p>
+        <Ovl><div className="lc-modal intro">
+          <div className="lc-mt-big">LAST<br/>COIN</div>
+          <p className="lc-ms-big">{t("derniere_piece")}</p>
+          <div className="lc-intro-body">
+            <p>{t("intro_p1")}</p>
+            <p>{t("intro_p2")}</p>
           </div>
-          <button className="lc-btn" onClick={() => setScreen("play")}>insérer la pièce</button>
-          <p className="lc-disc">argent fictif · aucun paiement réel</p>
+          <div className="lc-onecoin">
+            <span>{t("il_te_reste")}</span>
+            <b>{t("une_piece")}</b>
+          </div>
+          <p className="lc-intro-tag">{t("intro_tag")}</p>
+          <button className="lc-btn big" onClick={() => setScreen("play")}>{t("inserer_piece")}</button>
+          <p className="lc-disc">{t("disclaimer")}</p>
         </div></Ovl>
       )}
 
       {screen === "pause" && (
         <Ovl><div className="lc-modal">
-          <div className="lc-mh">PAUSE</div>
-          <p className="lc-ms">niveau {level} · {socialClass} · {fmt(netWorth)}</p>
+          <div className="lc-mh">{t("pause").toUpperCase()}</div>
+          <p className="lc-ms">{t("niveau")} {level} · {socialClass} · {fmt(netWorth)}</p>
           {!confirmReset ? (
             <>
               <div className="lc-statbox">
-                <div className="lc-stat-row"><span>tours joués</span><b>{pulls}</b></div>
-                <div className="lc-stat-row"><span>plus gros gain</span><b>{fmt(stats.biggestWin)}</b></div>
-                <div className="lc-stat-row"><span>patrimoine peak</span><b>{fmt(stats.peakWorth)}</b></div>
-                <div className="lc-stat-row"><span>crises endurées</span><b>{stats.crisesSurvived}</b></div>
-                <div className="lc-stat-row"><span>cartes obtenues</span><b>{stats.cardsEarned}</b></div>
+                <div className="lc-stat-row"><span>{t("tours_joues")}</span><b>{pulls}</b></div>
+                <div className="lc-stat-row"><span>{t("plus_gros_gain")}</span><b>{fmt(stats.biggestWin)}</b></div>
+                <div className="lc-stat-row"><span>{t("peak_patrim")}</span><b>{fmt(stats.peakWorth)}</b></div>
+                <div className="lc-stat-row"><span>{t("crises_endur")}</span><b>{stats.crisesSurvived}</b></div>
+                <div className="lc-stat-row"><span>{t("cartes_obt")}</span><b>{stats.cardsEarned}</b></div>
               </div>
               <div className="lc-menucol">
-                <button className="lc-btn" onClick={() => setScreen("play")}>reprendre</button>
-                <button className="lc-btn ghost" onClick={() => { setScreen("play"); setOverlay("rules"); }}>règles</button>
-                <button className="lc-btn ghost" onClick={() => setSoundOn((s) => !s)}>son · {soundOn ? "on" : "off"}</button>
-                <button className="lc-btn ghost" onClick={() => setConfirmReset(true)}>recommencer</button>
+                <button className="lc-btn" onClick={() => setScreen("play")}>{t("reprendre")}</button>
+                <button className="lc-btn ghost" onClick={() => { setScreen("play"); setOverlay("rules"); }}>{t("regles")}</button>
+                <button className="lc-btn ghost" onClick={() => setSoundOn((s) => !s)}>{t("son")} · {soundOn ? t("on") : t("off")}</button>
+                <button className="lc-btn ghost" onClick={() => setDarkMode((d) => !d)}>{t("mode_sombre")} · {darkMode ? t("on") : t("off")}</button>
+                <button className="lc-btn ghost" onClick={() => setLang((l) => l === "fr" ? "en" : "fr")}>{t("langue")} · {lang === "fr" ? "FR" : "EN"}</button>
+                <button className="lc-btn ghost" onClick={() => setConfirmReset(true)}>{t("recommencer")}</button>
               </div>
             </>
           ) : (
             <div className="lc-menucol">
-              <p className="lc-mb">tout perdre et repartir d'une seule pièce ?</p>
-              <button className="lc-btn" onClick={newGame}>oui</button>
-              <button className="lc-btn ghost" onClick={() => setConfirmReset(false)}>non</button>
+              <p className="lc-confirm">{t("confirm_reset").split("|").map((s, i) => <React.Fragment key={i}>{s}{i < 2 ? <br/> : null}</React.Fragment>)}</p>
+              <button className="lc-btn" onClick={newGame}>{t("oui")}</button>
+              <button className="lc-btn ghost" onClick={() => setConfirmReset(false)}>{t("non")}</button>
             </div>
           )}
-          <p className="lc-disc">argent fictif · aucun paiement réel</p>
+          <p className="lc-disc">{t("disclaimer")}</p>
         </div></Ovl>
       )}
 
       {overlay === "buy" && (
         <Ovl><div className="lc-modal wide">
-          <p className="lc-el">ma vie · améliorer</p>
-          <div className="lc-en">monte de classe sociale</div>
-          <p className="lc-ms">Cash : {fmt(cash)} · un nouveau palier remplace l'ancien</p>
+          <p className="lc-el">{t("ma_vie_improve")}</p>
+          <div className="lc-en">{t("monte_classe")}</div>
+          <p className="lc-ms">{t("cash")} : {fmt(cash)} · {t("buy_explain")}</p>
           <div className="lc-list">
             {FAM.map((f) => {
               const L = lvl[f.id];
@@ -952,161 +1230,222 @@ export default function LastCoin() {
               const ok = next && cash >= netCost;
               return (
                 <div className="lc-fam" key={f.id}>
-                  <div className="lc-famh">{f.name}{f.life ? "" : " · revenu"}<span>{cur ? cur.n : f.start}</span></div>
+                  <div className="lc-famh">{famName(f)}{f.life ? "" : " · " + t("revenu")}<span>{cur ? tierName(cur) : famStart(f)}</span></div>
                   {next
                     ? <button className={"lc-up" + (ok ? "" : " off")} disabled={!ok} onClick={() => buyNext(f)}>
-                        <span className="lc-upn">{next.n}{next.inc ? " · +" + fmt(next.inc) + "/tour" : ""}{cur ? <i>remplace {cur.n}</i> : null}</span>
+                        <span className="lc-upn">{tierName(next)}{next.inc ? " · +" + fmt(next.inc) + t("par_tour") : ""}{cur ? <i>{t("remplace")} {tierName(cur)}</i> : null}</span>
                         <span className="lc-upp">{fmt(netCost)}</span>
                       </button>
-                    : <div className="lc-max">max atteint</div>}
+                    : <div className="lc-max">{t("max_atteint")}</div>}
                 </div>
               );
             })}
           </div>
-          <button className="lc-btn" onClick={() => setOverlay(null)}>retour</button>
+          <button className="lc-btn" onClick={() => setOverlay(null)}>{t("retour")}</button>
         </div></Ovl>
       )}
 
       {overlay === "assets" && (
         <Ovl><div className="lc-modal wide">
-          <p className="lc-el">ma vie</p>
+          <p className="lc-el">{t("ma_vie")}</p>
           <div className="lc-en">{socialClass}</div>
-          <p className="lc-ms">niveau {level} · {venue} · patrimoine {fmt(netWorth)}{income > 0 ? " · +" + fmt(income) + "/tour" : ""}</p>
+          <p className="lc-ms">{t("niveau")} {level} · {venue} · {t("patrimoine")} {fmt(netWorth)}{income > 0 ? " · +" + fmt(income) + t("par_tour") : ""}</p>
           <div className="lc-list">
             {FAM.map((f) => {
               const L = lvl[f.id];
               const cur = L > 0 ? f.tiers[L - 1] : null;
               return (
                 <div key={f.id} className="lc-row own">
-                  <span className="lc-rn">{cur ? cur.n : f.start}<i>{f.name}{cur && cur.inc ? " · +" + fmt(cur.inc) + "/tour" : ""}</i></span>
+                  <span className="lc-rn">{cur ? tierName(cur) : famStart(f)}<i>{famName(f)}{cur && cur.inc ? " · +" + fmt(cur.inc) + t("par_tour") : ""}</i></span>
                   {cur
-                    ? <button className="lc-sell" onClick={() => sellFam(f)}>vendre · {fmt(cur.resale)}</button>
+                    ? <button className="lc-sell" onClick={() => sellFam(f)}>{t("vendre")} · {fmt(cur.resale)}</button>
                     : <span className="lc-rp">—</span>}
                 </div>
               );
             })}
           </div>
-          <p className="lc-disc" style={{ marginBottom: 18 }}>la revente fait mal — tu repars de zéro dans la famille</p>
-          <button className="lc-btn" onClick={() => setOverlay(null)}>retour</button>
+          <p className="lc-disc" style={{ marginBottom: 18 }}>{t("sell_warn")}</p>
+          <button className="lc-btn" onClick={() => setOverlay(null)}>{t("retour")}</button>
         </div></Ovl>
       )}
 
       {overlay === "rules" && (
         <Ovl><div className="lc-modal wide">
-          <p className="lc-el">règles</p>
-          <div className="lc-en">comment ça marche</div>
-          <p className="lc-ms">mise · tire le levier · encaisse ou re-risque</p>
+          <p className="lc-el">{t("regles")}</p>
+          <div className="lc-en">{t("comment")}</div>
+          <p className="lc-ms">{t("rules_short")}</p>
           <div className="lc-list">
-            <div className="lc-acth">symboles</div>
-            {SYM_INFO.map(([k, t]) => (
+            <div className="lc-acth">{t("symboles")}</div>
+            {SYM_INFO[lang].map(([k, desc]) => (
               <div key={k} className="lc-rule">
                 <Ink k={k} size={26} />
                 <div className="lc-rule-txt">
                   <b>{SYM_NAME[k]}{PAY3[k] && !NEG[k] && k !== "joker" ? " · ×" + PAY3[k] : ""}</b>
-                  <i>{t}</i>
+                  <i>{desc}</i>
                 </div>
               </div>
             ))}
-            <div className="lc-acth">combinaisons</div>
-            <div className="lc-combo"><b>3 identiques</b><i>gain selon le symbole (×3 à ×75)</i></div>
-            <div className="lc-combo"><b>2 identiques</b><i>petit gain (paire)</i></div>
-            <div className="lc-combo"><b>2 + Joker</b><i>compté comme 3 identiques</i></div>
-            <div className="lc-combo"><b>3 Jokers</b><i>jackpot ×95</i></div>
-            <div className="lc-combo"><b>3 Crâne / 3 Fissure</b><i>danger — mise perdue</i></div>
+            <div className="lc-acth">{t("combinaisons")}</div>
+            <div className="lc-combo"><b>{t("c_3")}</b><i>{t("c_3_d")}</i></div>
+            <div className="lc-combo"><b>{t("c_2")}</b><i>{t("c_2_d")}</i></div>
+            <div className="lc-combo"><b>{t("c_2j")}</b><i>{t("c_2j_d")}</i></div>
+            <div className="lc-combo"><b>{t("c_3j")}</b><i>{t("c_3j_d")} ×{PAY3.joker}</i></div>
+            <div className="lc-combo"><b>{t("c_neg")}</b><i>{t("c_neg_d")}</i></div>
 
-            <div className="lc-acth">moral &amp; risque</div>
+            <div className="lc-acth">{t("moral_risk")}</div>
             <div className="lc-rule">
               <Gauge kind="hope" pct={70} />
-              <div className="lc-rule-txt"><b>Moral (le cœur)</b><i>ta résistance aux coups durs. Monte quand tu gagnes et quand tu améliores ta vie (surtout le logement). Tombe sur les pertes, les crises et les reventes. À zéro : c'est la spirale — tu perds gros et tu redescends d'un cran.</i></div>
+              <div className="lc-rule-txt"><b>{t("moral_t")}</b><i>{t("moral_d")}</i></div>
             </div>
             <div className="lc-rule">
               <Gauge kind="risk" pct={80} />
-              <div className="lc-rule-txt"><b>Risque (le triangle)</b><i>ton exposition au danger. Monte quand tu mises gros et quand ton train de vie est voyant. Plus il est haut, plus les crises tombent souvent (loyer, fisc, cambriolage, saisie). Il redescend tout seul si tu joues petit.</i></div>
+              <div className="lc-rule-txt"><b>{t("risk_t")}</b><i>{t("risk_d")}</i></div>
             </div>
-            <div className="lc-acth">HOLD · bloquer un rouleau</div>
+            <div className="lc-acth">{t("hold_t")}</div>
             <div className="lc-rule">
               <Ink k="bolt" size={26} />
-              <div className="lc-rule-txt"><b>Cartes HOLD</b><i>une paire de Bolt fait tomber 1 carte, un triple en fait tomber 2 (plafond 9). Avant de tirer, tape un rouleau pour le bloquer : il garde son symbole au tour suivant. Coût : 1 carte par rouleau bloqué.</i></div>
+              <div className="lc-rule-txt"><b>{t("hold_cards")}</b><i>{t("hold_d")}</i></div>
             </div>
-            <div className="lc-acth">NUDGE · décaler après le spin</div>
+            <div className="lc-acth">{t("nudge_t")}</div>
             <div className="lc-rule">
               <Ink k="eye" size={26} />
-              <div className="lc-rule-txt"><b>Cartes NUDGE</b><i>une paire d'Eye fait tomber 1 carte, un triple en fait tomber 2 (plafond 9). Après un tour, des flèches ▲ ▼ apparaissent sur les rouleaux : un clic décale le rouleau d'un cran et te paie le bonus si le nouveau combo est meilleur. Une seule manipulation par tour.</i></div>
+              <div className="lc-rule-txt"><b>{t("nudge_cards")}</b><i>{t("nudge_d")}</i></div>
             </div>
-            <div className="lc-acth">REPULL · rejouer un rouleau</div>
+            <div className="lc-acth">{t("repull_t")}</div>
             <div className="lc-rule">
               <Ink k="crown" size={26} />
-              <div className="lc-rule-txt"><b>Cartes REPULL</b><i>capacité la plus puissante donc la plus rare (plafond 3). Une paire de Crown fait tomber 1 carte, un triple en fait tomber 2. Après un tour, un bouton ↻ apparaît sur chaque rouleau : clic = ce rouleau seul rejoue au hasard. Les deux autres restent bloqués. Bonus payé si le nouveau combo est meilleur. Une capacité par tour, toutes confondues.</i></div>
+              <div className="lc-rule-txt"><b>{t("repull_cards")}</b><i>{t("repull_d")}</i></div>
             </div>
           </div>
-          <p className="lc-ms">petite mise = sûr mais lent · grosse mise = gros gains ou ruine</p>
-          <button className="lc-btn" onClick={() => setOverlay(null)}>retour</button>
+          <p className="lc-ms">{t("rules_foot")}</p>
+          <button className="lc-btn" onClick={() => setOverlay(null)}>{t("retour")}</button>
+        </div></Ovl>
+      )}
+
+      {overlay === "dev" && (
+        <Ovl><div className="lc-modal wide">
+          <p className="lc-el">{t("dev")}</p>
+          <div className="lc-en">DEV</div>
+          <p className="lc-ms">{t("dev_lead")}</p>
+          <div className="lc-devlist">
+            <div className="lc-devgroup">
+              <div className="lc-devheader">{t("dev_money")}</div>
+              <div className="lc-devbtns">
+                <button onClick={() => setCash((c) => c + 100)}>+100$</button>
+                <button onClick={() => setCash((c) => c + 1000)}>+1K$</button>
+                <button onClick={() => setCash((c) => c + 10000)}>+10K$</button>
+                <button onClick={() => setCash((c) => c + 100000)}>+100K$</button>
+                <button onClick={() => setCash((c) => c + 1000000)}>+1M$</button>
+                <button onClick={() => setCash(1)}>{t("dev_reset_cash")}</button>
+              </div>
+            </div>
+            <div className="lc-devgroup">
+              <div className="lc-devheader">{t("dev_cards")}</div>
+              <div className="lc-devbtns">
+                <button onClick={() => setHoldCharges((c) => Math.min(9, c + 1))}>+1 HOLD</button>
+                <button onClick={() => setNudgeCharges((c) => Math.min(9, c + 1))}>+1 NUDGE</button>
+                <button onClick={() => setRepullCharges((c) => Math.min(3, c + 1))}>+1 REPULL</button>
+                <button onClick={() => { setHoldCharges(9); setNudgeCharges(9); setRepullCharges(3); }}>{t("dev_max_all")}</button>
+                <button onClick={() => { setHoldCharges(0); setNudgeCharges(0); setRepullCharges(0); }}>{t("dev_clear")}</button>
+              </div>
+            </div>
+            <div className="lc-devgroup">
+              <div className="lc-devheader">{t("dev_gauges")}</div>
+              <div className="lc-devbtns">
+                <button onClick={() => setHope(100)}>{t("dev_moral")} 100</button>
+                <button onClick={() => setHope(50)}>{t("dev_moral")} 50</button>
+                <button onClick={() => setHope(0)}>{t("dev_moral")} 0</button>
+                <button onClick={() => setRisk(100)}>{t("dev_risk")} 100</button>
+                <button onClick={() => setRisk(0)}>{t("dev_risk")} 0</button>
+              </div>
+            </div>
+            <div className="lc-devgroup">
+              <div className="lc-devheader">{t("dev_crisis")}</div>
+              <div className="lc-devbtns">
+                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("loyer", netWorth, hasAssets)); }}>{CRISIS[lang].loyer.t.toLowerCase()}</button>
+                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("fisc", netWorth, hasAssets)); }}>{CRISIS[lang].fisc.t.toLowerCase()}</button>
+                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("cambriolage", netWorth, hasAssets)); }}>{CRISIS[lang].cambriolage.t.toLowerCase()}</button>
+                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("venteforcee", netWorth, hasAssets)); }}>{CRISIS[lang].venteforcee.t.toLowerCase()}</button>
+                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("spirale", netWorth, hasAssets)); }}>{CRISIS[lang].spirale.t.toLowerCase()}</button>
+                <button onClick={() => setJammed((j) => !j)}>{jammed ? t("dev_unjam") : t("dev_jam")}</button>
+              </div>
+            </div>
+            <div className="lc-devgroup">
+              <div className="lc-devheader">{t("dev_screens")}</div>
+              <div className="lc-devbtns">
+                <button onClick={() => { setOverlay(null); setScreen("intro"); }}>{t("dev_intro")}</button>
+                <button onClick={() => { setOverlay(null); setScreen("empire"); }}>{t("dev_empire")}</button>
+                <button onClick={() => { setOverlay(null); setScreen("over"); }}>{t("dev_over")}</button>
+              </div>
+            </div>
+          </div>
+          <button className="lc-btn" onClick={() => setOverlay(null)}>{t("retour")}</button>
         </div></Ovl>
       )}
 
       {crisis && (
         <Ovl><div className="lc-modal">
-          <div className="lc-mh">{CRISIS[crisis.id].t}</div>
-          <p className="lc-ms">{CRISIS[crisis.id].s}</p>
+          <div className="lc-mh">{CRISIS[lang][crisis.id].t}</div>
+          <p className="lc-ms">{CRISIS[lang][crisis.id].s}</p>
           {crisis.id === "loyer" ? (
-            <><p className="lc-mb">à payer : {fmt(crisis.amount)}</p>
+            <><p className="lc-mb">{t("a_payer")} : {fmt(crisis.amount)}</p>
               <div className="lc-crow">
-                <button className="lc-btn" disabled={cash < crisis.amount} onClick={payCrisis}>payer</button>
-                <button className="lc-btn ghost" onClick={refuseCrisis}>refuser</button>
+                <button className="lc-btn" disabled={cash < crisis.amount} onClick={payCrisis}>{t("payer")}</button>
+                <button className="lc-btn ghost" onClick={refuseCrisis}>{t("refuser")}</button>
               </div></>
           ) : crisis.id === "fisc" ? (
-            <><p className="lc-mb">taxe : {fmt(crisis.amount)}</p><button className="lc-btn" onClick={payCrisis}>payer</button></>
+            <><p className="lc-mb">{t("taxe")} : {fmt(crisis.amount)}</p><button className="lc-btn" onClick={payCrisis}>{t("payer")}</button></>
           ) : crisis.id === "cambriolage" ? (
-            <><p className="lc-mb">tu perds une partie de ton cash</p><button className="lc-btn" onClick={payCrisis}>encaisser</button></>
+            <><p className="lc-mb">{t("lose_cash_msg")}</p><button className="lc-btn" onClick={payCrisis}>{t("encaisser")}</button></>
           ) : crisis.id === "venteforcee" ? (
-            <><p className="lc-mb">ton bien le plus cher est saisi</p><button className="lc-btn" onClick={payCrisis}>subir</button></>
+            <><p className="lc-mb">{t("seize_msg")}</p><button className="lc-btn" onClick={payCrisis}>{t("subir")}</button></>
           ) : (
-            <><p className="lc-mb">tu redescends d'un cran — mais tu gardes une pièce</p><button className="lc-btn" onClick={payCrisis}>encaisser</button></>
+            <><p className="lc-mb">{t("spirale_msg")}</p><button className="lc-btn" onClick={payCrisis}>{t("encaisser")}</button></>
           )}
         </div></Ovl>
       )}
 
       {screen === "empire" && (
         <Ovl><div className="lc-modal">
-          <div className="lc-mh">EMPIRE</div>
-          <p className="lc-ms">la ville a ton nom</p>
-          <p className="lc-mb">Parti d'une pièce. Regarde-toi.</p>
+          <div className="lc-mh">{t("empire")}</div>
+          <p className="lc-ms">{t("empire_sub")}</p>
+          <p className="lc-mb">{t("empire_lead")}</p>
           <div className="lc-statbox">
-            <div className="lc-stat-row"><span>tours joués</span><b>{pulls}</b></div>
-            <div className="lc-stat-row"><span>plus gros gain</span><b>{fmt(stats.biggestWin)}</b></div>
-            <div className="lc-stat-row"><span>patrimoine peak</span><b>{fmt(stats.peakWorth)}</b></div>
-            <div className="lc-stat-row"><span>crises endurées</span><b>{stats.crisesSurvived}</b></div>
-            <div className="lc-stat-row"><span>cartes obtenues</span><b>{stats.cardsEarned}</b></div>
-            <div className="lc-stat-row"><span>net</span><b>{fmt(stats.totalWon - stats.totalBet)}</b></div>
+            <div className="lc-stat-row"><span>{t("tours_joues")}</span><b>{pulls}</b></div>
+            <div className="lc-stat-row"><span>{t("plus_gros_gain")}</span><b>{fmt(stats.biggestWin)}</b></div>
+            <div className="lc-stat-row"><span>{t("peak_patrim")}</span><b>{fmt(stats.peakWorth)}</b></div>
+            <div className="lc-stat-row"><span>{t("crises_endur")}</span><b>{stats.crisesSurvived}</b></div>
+            <div className="lc-stat-row"><span>{t("cartes_obt")}</span><b>{stats.cardsEarned}</b></div>
+            <div className="lc-stat-row"><span>{t("net")}</span><b>{fmt(stats.totalWon - stats.totalBet)}</b></div>
           </div>
-          <p className="lc-tag">« La ville porte ton nom. La machine veut encore une pièce. »</p>
+          <p className="lc-finaltag">{t("empire_tag").split("|").map((s, i) => <React.Fragment key={i}>{s}{i === 0 ? <br/> : null}</React.Fragment>)}</p>
           <div className="lc-crow">
-            <button className="lc-btn" onClick={() => setScreen("play")}>encore un tour</button>
-            <button className="lc-btn ghost" onClick={newGame}>recommencer</button>
+            <button className="lc-btn" onClick={() => setScreen("play")}>{t("encore_tour")}</button>
+            <button className="lc-btn ghost" onClick={newGame}>{t("recommencer")}</button>
           </div>
         </div></Ovl>
       )}
 
       {screen === "over" && (
         <Ovl><div className="lc-modal">
-          <div className="lc-mh">À SEC</div>
-          <p className="lc-ms">tout est parti</p>
+          <div className="lc-mh">{t("over")}</div>
+          <p className="lc-ms">{t("over_sub")}</p>
           <div className="lc-statbox">
-            <div className="lc-stat-row"><span>tours joués</span><b>{pulls}</b></div>
-            <div className="lc-stat-row"><span>plus gros gain</span><b>{fmt(stats.biggestWin)}</b></div>
-            <div className="lc-stat-row"><span>patrimoine peak</span><b>{fmt(stats.peakWorth)}</b></div>
-            <div className="lc-stat-row"><span>crises endurées</span><b>{stats.crisesSurvived}</b>{stats.crisesRefused > 0 ? <i> · {stats.crisesRefused} refus</i> : null}</div>
-            <div className="lc-stat-row"><span>cartes obtenues</span><b>{stats.cardsEarned}</b></div>
-            <div className="lc-stat-row"><span>net</span><b>{fmt(stats.totalWon - stats.totalBet)}</b></div>
+            <div className="lc-stat-row"><span>{t("tours_joues")}</span><b>{pulls}</b></div>
+            <div className="lc-stat-row"><span>{t("plus_gros_gain")}</span><b>{fmt(stats.biggestWin)}</b></div>
+            <div className="lc-stat-row"><span>{t("peak_patrim")}</span><b>{fmt(stats.peakWorth)}</b></div>
+            <div className="lc-stat-row"><span>{t("crises_endur")}</span><b>{stats.crisesSurvived}</b>{stats.crisesRefused > 0 ? <i> · {stats.crisesRefused} {t("refus")}</i> : null}</div>
+            <div className="lc-stat-row"><span>{t("cartes_obt")}</span><b>{stats.cardsEarned}</b></div>
+            <div className="lc-stat-row"><span>{t("net")}</span><b>{fmt(stats.totalWon - stats.totalBet)}</b></div>
           </div>
-          <p className="lc-tag">« Une dernière pièce. La machine attend. »</p>
-          <button className="lc-btn" onClick={newGame}>recommencer</button>
+          <p className="lc-finaltag">{t("over_tag").split("|").map((s, i) => <React.Fragment key={i}>{s}{i === 0 ? <br/> : null}</React.Fragment>)}</p>
+          <button className="lc-btn" onClick={newGame}>{t("recommencer")}</button>
         </div></Ovl>
       )}
 
       {levelUp && (
         <div className="lc-levelup" key={levelUp.k}>
-          <div className="lc-lu-l">niveau {levelUp.n} · nouveau statut</div>
+          <div className="lc-lu-l">{t("niveau")} {levelUp.n} · {t("nouveau_statut")}</div>
           <div className="lc-lu-n">{levelUp.cls}</div>
         </div>
       )}
@@ -1115,7 +1454,7 @@ export default function LastCoin() {
         <div className="lc-cardnotif" key={cardNotif.k}>
           <Ink k={cardNotif.type === "repull" ? "crown" : cardNotif.type === "nudge" ? "eye" : "bolt"} size={32} />
           <div className="lc-cn-body">
-            <span className="lc-cn-l">carte {cardNotif.type === "repull" ? "REPULL" : cardNotif.type === "nudge" ? "NUDGE" : "HOLD"}</span>
+            <span className="lc-cn-l">{t("carte")} {cardNotif.type === "repull" ? "REPULL" : cardNotif.type === "nudge" ? "NUDGE" : "HOLD"}</span>
             <span className="lc-cn-n">+{cardNotif.n}</span>
           </div>
         </div>
@@ -1133,10 +1472,19 @@ const CSS = `
   font-family:'Jost',-apple-system,sans-serif;font-weight:300;}
 .lc-bar{width:100%;max-width:330px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:flex-start;gap:12px;}
 .lc-barleft{display:flex;align-items:flex-start;gap:11px;}
-.lc-menu{display:flex;gap:3px;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;padding:0;flex-shrink:0;align-self:center;transition:.15s;}
+.lc-bar-actions{display:flex;gap:6px;align-items:center;align-self:center;}
+.lc-menu{display:flex;gap:3px;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;padding:0;flex-shrink:0;transition:.15s;}
 .lc-menu i{width:3px;height:11px;background:#141414;display:block;transition:.15s;}
 .lc-menu:hover{background:#141414;}
 .lc-menu:hover i{background:#fff;}
+.lc-dev{width:28px;height:28px;border:1px dashed #141414;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;color:#141414;font-family:inherit;flex-shrink:0;transition:.15s;}
+.lc-dev svg{width:14px;height:14px;display:block;}
+.lc-dev:hover{background:#141414;color:#fff;}
+.lc-devlist{display:flex;flex-direction:column;gap:14px;text-align:left;margin:14px 0 20px;}
+.lc-devheader{font-size:9px;letter-spacing:3px;color:#7f7f7f;text-transform:uppercase;padding:4px 0 5px;border-bottom:1px solid #f0f0f0;margin-bottom:8px;}
+.lc-devbtns{display:flex;gap:6px;flex-wrap:wrap;}
+.lc-devbtns button{background:none;border:1px solid #d9d9d9;color:#555;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;padding:6px 10px;transition:.15s;}
+.lc-devbtns button:hover{border-color:#141414;color:#141414;background:#fafafa;}
 .lc-menucol{display:flex;flex-direction:column;gap:10px;align-items:center;margin:4px 0 2px;}
 .lc-menucol .lc-btn{min-width:180px;}
 .lc-cash{display:flex;flex-direction:column;align-items:flex-start;}
@@ -1198,15 +1546,21 @@ const CSS = `
 .lc-ring{position:absolute;width:2.4em;height:2.4em;border:1px solid rgba(255,255,255,.7);border-radius:50%;animation:pring 1s ease-out forwards;}
 @keyframes pring{0%{opacity:.5;transform:scale(.3);}100%{opacity:0;transform:scale(1.3);}}
 .lc-reel{position:absolute;overflow:hidden;background:#fff;transition:outline-color .15s;}
+/* anim de choc quand un rouleau s'arrete : petite secousse verticale, plus l'inertie d'un thud */
+.lc-reel.shock{animation:reelthump .24s cubic-bezier(.2,1.4,.4,1);}
+@keyframes reelthump{
+  0%   {transform:translateY(0);}
+  35%  {transform:translateY(3px);}
+  70%  {transform:translateY(-1.2px);}
+  100% {transform:translateY(0);}
+}
 .lc-reel.holdable{cursor:pointer;}
 .lc-reel.held{outline:2px solid #141414;outline-offset:-2px;}
 .lc-reel.held::after{content:"HOLD";position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-size:8px;letter-spacing:2px;font-weight:600;color:#fff;background:#141414;padding:1px 6px;pointer-events:none;z-index:3;}
 .lc-reel.nudgable{outline:1px dashed #141414;outline-offset:-1px;}
-.lc-nudgebtn{position:absolute;left:50%;transform:translateX(-50%);width:60%;height:14%;background:rgba(255,255,255,.78);border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;z-index:6;padding:0;color:#141414;font-family:inherit;transition:.12s;backdrop-filter:blur(2px);}
-.lc-nudgebtn.up{top:2px;}
-.lc-nudgebtn.dn{bottom:2px;}
+.lc-nudgebtn{position:absolute;height:3.6%;background:#fff;border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;z-index:6;padding:0;color:#141414;font-family:inherit;transition:background .12s,color .12s;}
 .lc-nudgebtn:hover{background:#141414;color:#fff;}
-.lc-nudgebtn:active{transform:translateX(-50%) scale(.92);}
+.lc-nudgebtn:active{transform:scale(.94);}
 .lc-repullbtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:34px;height:34px;background:rgba(255,255,255,.82);border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;z-index:7;padding:0;color:#141414;font-family:inherit;transition:.12s;backdrop-filter:blur(2px);}
 .lc-repullbtn:hover{background:#141414;color:#fff;}
 .lc-repullbtn:active{transform:translate(-50%,-50%) scale(.9);}
@@ -1291,6 +1645,18 @@ const CSS = `
 .lc-mh{font-size:16px;font-weight:500;letter-spacing:6px;}
 .lc-ms{font-size:11px;letter-spacing:2px;color:#707070;margin:7px 0 18px;}
 .lc-mb{font-size:12px;letter-spacing:1px;color:#555;margin:8px 0 4px;}
+/* INTRO monumental */
+.lc-modal.intro{max-width:480px;padding:46px 32px 32px;}
+.lc-mt-big{font-size:46px;font-weight:600;letter-spacing:10px;line-height:.95;padding-left:10px;}
+.lc-ms-big{font-size:11px;letter-spacing:6px;color:#7a7a7a;text-transform:uppercase;margin:18px 0 36px;}
+.lc-intro-body{text-align:left;display:flex;flex-direction:column;gap:14px;font-size:15.5px;line-height:1.6;color:#2a2a2a;margin-bottom:24px;}
+.lc-onecoin{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 0 22px;border-top:1px solid #141414;border-bottom:1px solid #141414;margin:6px 0 22px;}
+.lc-onecoin span{font-size:10px;letter-spacing:4px;color:#7a7a7a;text-transform:uppercase;}
+.lc-onecoin b{font-size:30px;font-weight:600;letter-spacing:6px;color:#141414;line-height:1;}
+.lc-intro-tag{color:#141414;font-style:italic;letter-spacing:1px;text-align:center;margin:0 0 30px;font-size:12px;}
+.lc-btn.big{font-size:14px;letter-spacing:7px;padding:14px 38px 14px 45px;}
+.lc-confirm{font-size:14px;line-height:1.55;color:#141414;letter-spacing:.5px;text-align:center;margin:8px 0 26px;}
+.lc-finaltag{color:#141414;font-style:italic;letter-spacing:.4px;text-align:center;font-size:13px;line-height:1.55;margin:18px 0 28px;}
 .lc-statbox{display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid #ededed;padding:12px 14px;margin:14px 0 16px;background:#fafafa;}
 .lc-stat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:11px;letter-spacing:.5px;color:#444;}
 .lc-stat-row span{color:#7a7a7a;text-transform:uppercase;letter-spacing:1.5px;font-size:9px;}
@@ -1329,4 +1695,62 @@ const CSS = `
 .lc-combo{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #f7f7f7;font-size:12px;}
 .lc-combo b{font-weight:500;}
 .lc-combo i{font-style:normal;color:#707070;text-align:right;}
+
+/* ===== MODE SOMBRE ===== invert palette mais garde la machine telle quelle */
+.lc.dark{background:#0d0d0d;color:#ececec;}
+.lc.dark .lc-cash>i,.lc.dark .lc-level>i,.lc.dark .lc-stat-row span,.lc.dark .lc-ms,.lc.dark .lc-el,.lc.dark .lc-sub,.lc.dark .lc-disc,.lc.dark .lc-acth,.lc.dark .lc-lu-l,.lc.dark .lc-cn-l,.lc.dark .lc-flash,.lc.dark .lc-idle,.lc.dark .lc-cardhint{color:#999;}
+.lc.dark .lc-cash>b,.lc.dark .lc-level>b,.lc.dark .lc-mt,.lc.dark .lc-mh,.lc.dark .lc-mt-big,.lc.dark .lc-en,.lc.dark .lc-mb,.lc.dark .lc-stat-row b,.lc.dark .lc-lu-n,.lc.dark .lc-cn-n,.lc.dark .lc-tag,.lc.dark .lc-intro-tag,.lc.dark .lc-finaltag,.lc.dark .lc-confirm,.lc.dark .lc-onecoin b,.lc.dark .lc-intro-body{color:#f5f5f5;}
+.lc.dark .lc-cash>em{color:#777;}
+.lc.dark .lc-modal{background:#1a1a1a;border-color:#3a3a3a;}
+.lc.dark .lc-modal.intro .lc-onecoin{border-color:#f5f5f5;}
+.lc.dark .lc-statbox{background:#141414;border-color:#2a2a2a;}
+.lc.dark .lc-rule,.lc.dark .lc-row,.lc.dark .lc-up,.lc.dark .lc-combo,.lc.dark .lc-famh{border-color:#2a2a2a;}
+.lc.dark .lc-famh{color:#ececec;}
+.lc.dark .lc-famh span,.lc.dark .lc-upn i,.lc.dark .lc-rules,.lc.dark .lc-row,.lc.dark .lc-rn i,.lc.dark .lc-rule-txt i,.lc.dark .lc-combo i{color:#888;}
+.lc.dark .lc-rule-txt b,.lc.dark .lc-upn,.lc.dark .lc-upp,.lc.dark .lc-rn,.lc.dark .lc-combo b,.lc.dark .lc-rp{color:#ececec;}
+.lc.dark .lc-pip{border-color:#444;}
+.lc.dark .lc-pip.on{background:#f5f5f5;border-color:#f5f5f5;}
+.lc.dark .lc-bb,.lc.dark .lc-menu,.lc.dark .lc-dev,.lc.dark .lc-sb,.lc.dark .lc-bmax,.lc.dark .lc-sell,.lc.dark .lc-devbtns button{border-color:#9a9a9a;color:#ececec;}
+.lc.dark .lc-menu i{background:#ececec;}
+.lc.dark .lc-bb:disabled{border-color:#3a3a3a;color:#555;}
+.lc.dark .lc-bmax:disabled{color:#444;}
+.lc.dark .lc-sb:disabled{color:#3a3a3a;border-color:#2a2a2a;}
+.lc.dark .lc-menu:hover{background:#ececec;}
+.lc.dark .lc-menu:hover i{background:#0d0d0d;}
+.lc.dark .lc-dev:hover,.lc.dark .lc-sb:hover:not(:disabled),.lc.dark .lc-bb:hover:not(:disabled),.lc.dark .lc-sell:hover,.lc.dark .lc-devbtns button:hover{background:#ececec;color:#0d0d0d;}
+.lc.dark .lc-up:hover:not(:disabled),.lc.dark .lc-row:hover:not(:disabled){background:#242424;}
+.lc.dark .lc-btn{background:#ececec;color:#0d0d0d;border-color:#ececec;}
+.lc.dark .lc-btn:hover{background:#0d0d0d;color:#ececec;border-color:#ececec;}
+.lc.dark .lc-btn.ghost{background:transparent;color:#ececec;}
+.lc.dark .lc-btn.ghost:hover{background:#ececec;color:#0d0d0d;}
+.lc.dark .lc-repair{background:#ececec;color:#0d0d0d;border-color:#ececec;}
+.lc.dark .lc-repair:disabled{background:transparent;color:#3a3a3a;border-color:#3a3a3a;}
+.lc.dark .lc-ovl{background:rgba(13,13,13,.9);}
+.lc.dark .lc-betcoin .lc-betnum{color:#ececec;}
+.lc.dark .lc-coinart circle:first-child{fill:#ececec;}
+.lc.dark .lc-coinart circle:nth-child(2){fill:#0d0d0d;stroke:#ececec;}
+.lc.dark .lc-coinart circle:nth-child(3),.lc.dark .lc-coinart circle:nth-child(4){stroke:#ececec;}
+.lc.dark .lc-coinart path{fill:#ececec;}
+.lc.dark .lc-pr{color:#888;}
+.lc.dark .lc-pr.danger{color:#555;}
+.lc.dark .lc-pr img,.lc.dark .lc-rule>img,.lc.dark .lc-acth+img,.lc.dark .lc-up img,.lc.dark .lc-cn img{filter:invert(1);}
+.lc.dark .lc-cell img,.lc.dark .lc-pullhint,.lc.dark .lc-reel,.lc.dark .lc-rays,.lc.dark .lc-shadow,.lc.dark .lc-img,.lc.dark .lc-sp,.lc.dark .lc-winline,.lc.dark .lc-gyrocoin{filter:none;}
+.lc.dark .lc-hb-item img{filter:invert(1);}
+.lc.dark .lc-cardnotif{background:#1a1a1a;border-color:#ececec;}
+.lc.dark .lc-cardnotif img{filter:invert(1);}
+.lc.dark .lc-cardtip{background:#141414;border-color:#2a2a2a;color:#ececec;}
+.lc.dark .lc-nudgebtn{background:#1a1a1a;color:#ececec;border-color:#9a9a9a;}
+.lc.dark .lc-nudgebtn:hover{background:#ececec;color:#0d0d0d;}
+.lc.dark .lc-repullbtn{background:rgba(20,20,20,.82);border-color:#ececec;color:#ececec;}
+.lc.dark .lc-repullbtn:hover{background:#ececec;color:#0d0d0d;}
+.lc.dark .lc-levelup{background:radial-gradient(circle at 50% 45%,rgba(13,13,13,.92),rgba(13,13,13,.55) 45%,rgba(13,13,13,0) 72%);}
+.lc.dark .lc-gauge svg path:first-child{fill:#2a2a2a;}
+.lc.dark .lc-gauge svg path:nth-child(2){fill:#ececec;}
+.lc.dark .lc-gauge svg path:nth-child(3){stroke:#ececec;}
+.lc.dark .lc-gauge svg path:last-child{stroke:#0d0d0d;}
+.lc.dark .lc-gauge span{color:#999;}
+.lc.dark .lc-burst .lc-cn{color:#ececec;text-shadow:0 0 3px #0d0d0d,0 0 2px #0d0d0d;}
+.lc.dark .lc-mark,.lc.dark .lc-sub{color:#ececec;}
+.lc.dark .lc-bar-actions .lc-menu:hover{background:#ececec;}
+.lc.dark .lc-betcoin{filter:none;}
 `;
