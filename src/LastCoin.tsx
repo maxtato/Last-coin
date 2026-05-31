@@ -27,7 +27,7 @@ const SHAPES = {
   star:  '<path d="M50 7 L61.8 38.2 L95 39 L68.5 59.6 L78.5 91.5 L50 72.5 L21.5 91.5 L31.5 59.6 L5 39 L38.2 38.2 Z" fill="__C__"/>',
   house: '<path d="M50 14 L88 46 H78 V86 H22 V46 H12 Z" fill="__C__"/><rect x="42" y="60" width="16" height="26" fill="#fff"/>',
   diamond: '<path d="M30 16 H70 L88 40 L50 92 L12 40 Z" fill="none" stroke="__C__" stroke-width="6" stroke-linejoin="round"/><path d="M12 40 H88 M30 16 L50 40 L70 16 M12 40 L50 92 M50 40 L50 92" fill="none" stroke="__C__" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>',
-  crown: '<path d="M14 78 L22 36 L38 56 L50 30 L62 56 L78 36 L86 78 Z" fill="__C__"/><rect x="14" y="80" width="72" height="10" fill="__C__"/>',
+  crown: '<path d="M14 68 L22 26 L38 46 L50 20 L62 46 L78 26 L86 68 Z" fill="__C__"/><rect x="14" y="70" width="72" height="10" fill="__C__"/>',
   bolt:  '<path d="M58 6 L24 56 H46 L40 94 L78 40 H54 Z" fill="__C__"/>',
   eye:   '<path d="M6 50 Q50 18 94 50 Q50 82 6 50 Z" fill="none" stroke="__C__" stroke-width="6"/><circle cx="50" cy="50" r="13" fill="__C__"/>',
   joker: '<path d="M50 6 L58 42 L94 50 L58 58 L50 94 L42 58 L6 50 L42 42 Z" fill="__C__"/>',
@@ -179,6 +179,15 @@ const FAM = [
   ] },
 ];
 const FAM0 = { vetements: 0, logement: 0, vehicule: 0, business: 0 };
+// ===== Porte-bonheur : ameliorations a poser sur la machine, achetables 1x, augmentent legerement la RTP =====
+// Ordre cout/bonus croissant : trefle (legere), fer (mid), patte (forte).
+const CHARMS = {
+  clover:    { fr: "Trèfle",       en: "Four-leaf clover", price: 1500,    bonus: 1.04 },
+  horseshoe: { fr: "Fer à cheval", en: "Horseshoe",        price: 35000,   bonus: 1.08 },
+  rabbit:    { fr: "Patte de lapin", en: "Rabbit's foot",  price: 500000,  bonus: 1.13 },
+};
+const CHARM_KEYS = ["clover", "horseshoe", "rabbit"];
+const CHARMS_0 = { clover: false, horseshoe: false, rabbit: false };
 const ownedTier = (f, lvl) => (lvl[f.id] > 0 ? f.tiers[lvl[f.id] - 1] : null);
 // classe sociale issue des familles "de vie" (somme des paliers)
 const CLASSES = {
@@ -379,6 +388,10 @@ const T = {
   remplace:      { fr: "remplace",                 en: "replaces" },
   max_atteint:   { fr: "max atteint",              en: "max reached" },
   retour:        { fr: "retour",                   en: "back" },
+  charms_title:  { fr: "Porte-bonheur",            en: "Lucky charms" },
+  charms_sub:    { fr: "bonus de chance permanent", en: "permanent luck bonus" },
+  chance:        { fr: "de chance",                en: "luck" },
+  possede:       { fr: "possédé",                  en: "owned" },
   revenu:        { fr: "revenu",                   en: "income" },
   // assets modal
   patrimoine:    { fr: "patrimoine",      en: "wealth" },
@@ -528,6 +541,7 @@ export default function LastCoin() {
   const [screen, setScreen] = useState(() => (init.cash != null ? "play" : "intro"));
   const [cash, setCash] = useState(() => (init.cash != null ? init.cash : 1));
   const [lvl, setLvl] = useState(() => ({ ...FAM0, ...(init.lvl || {}) }));
+  const [charms, setCharms] = useState(() => ({ ...CHARMS_0, ...(init.charms || {}) }));   // porte-bonheur achetes
   const [betIdx, setBetIdx] = useState(() => init.betIdx || 0);
   const [pulls, setPulls] = useState(() => init.pulls || 0);
 
@@ -639,8 +653,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang })); } catch {}
-  }, [cash, lvl, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, hope, risk, jammed, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang })); } catch {}
+  }, [cash, lvl, charms, betIdx, pulls, hope, risk, jammed, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang]);
 
   // peak du patrimoine : suivi en permanence des qu'il monte (acceuil cash + achats)
   useEffect(() => {
@@ -656,7 +670,7 @@ export default function LastCoin() {
 
   const newGame = () => {
     try { localStorage.removeItem(SAVE_KEY); } catch {}
-    setCash(1); setLvl({ ...FAM0 }); setBetIdx(0); setPulls(0);
+    setCash(1); setLvl({ ...FAM0 }); setCharms({ ...CHARMS_0 }); setBetIdx(0); setPulls(0);
     setHope(HOPE0); setRisk(0); setJammed(false); setCrisis(null); setWonEmpire(false);
     setLastWin(null); setFlash(""); setLampOn(false); setWinLine(false);
     setStrips(REELS.map((_, r) => restStrip(r))); setReelStage([0, 0, 0]); setSpinning(false);
@@ -672,7 +686,8 @@ export default function LastCoin() {
   const resolveAll = useCallback((targets, spend, lk, snap) => {
     const res = evaluate(targets);
     const scale = cashScale(snap.nw);            // gains rabotes en mid/end game (palier des 10K)
-    const payout = res.kind > 0 ? Math.round(spend * res.mult * lk * scale) : 0;
+    const charmBonus = CHARM_KEYS.reduce((b, k) => charms[k] ? b * CHARMS[k].bonus : b, 1);
+    const payout = res.kind > 0 ? Math.round(spend * res.mult * lk * scale * charmBonus) : 0;
     setCash((c) => c + payout + income);   // c = cash déjà amputé de la mise au lancement
     setPulls((p) => p + 1);
 
@@ -702,7 +717,7 @@ export default function LastCoin() {
     }
 
     // memorise le tour pour pouvoir re-evaluer apres un nudge/repull ; ouvre les fenetres si on a les cartes
-    setLastSpin({ targets: targets.slice(), spend, lk, scale, payout });
+    setLastSpin({ targets: targets.slice(), spend, lk, scale, charmBonus, payout });
     if ((nudgeCharges + nudgeGain) > 0) setNudgeAvail(true);
     if ((repullCharges + repullGain) > 0) setRepullAvail(true);
 
@@ -858,6 +873,14 @@ export default function LastCoin() {
     else if (Math.random() < 0.28) say(pick(N[lang].buy));
     else say("");
   };
+  // achete un porte-bonheur (1 fois) et applique son bonus permanent au RTP
+  const buyCharm = (k) => {
+    const c = CHARMS[k];
+    if (!c || charms[k] || cash < c.price) return;
+    setCash((x) => x - c.price);
+    setCharms((p) => ({ ...p, [k]: true }));
+    sfx("coin");
+  };
   const sellFam = (f) => {                        // revente d'urgence : liquide la famille
     const L = lvl[f.id];
     if (L <= 0) return;
@@ -917,7 +940,7 @@ export default function LastCoin() {
     const newTargets = lastSpin.targets.slice();
     newTargets[r] = newSym;
     const newRes = evaluate(newTargets);
-    const newPayout = newRes.kind > 0 ? Math.round(lastSpin.spend * newRes.mult * lastSpin.lk * lastSpin.scale) : 0;
+    const newPayout = newRes.kind > 0 ? Math.round(lastSpin.spend * newRes.mult * lastSpin.lk * lastSpin.scale * (lastSpin.charmBonus || 1)) : 0;
     const delta = newPayout - lastSpin.payout;
     if (delta > 0) {
       setCash((c) => c + delta);
@@ -966,7 +989,7 @@ export default function LastCoin() {
       const newTargets = lastSpin.targets.slice();
       newTargets[r] = newSym;
       const newRes = evaluate(newTargets);
-      const newPayout = newRes.kind > 0 ? Math.round(lastSpin.spend * newRes.mult * lastSpin.lk * lastSpin.scale) : 0;
+      const newPayout = newRes.kind > 0 ? Math.round(lastSpin.spend * newRes.mult * lastSpin.lk * lastSpin.scale * (lastSpin.charmBonus || 1)) : 0;
       const delta = newPayout - lastSpin.payout;
       if (delta > 0) {
         setCash((c) => c + delta);
@@ -1119,6 +1142,36 @@ export default function LastCoin() {
         <div className={"lc-gyrocoin" + (lampOn ? " on" : "")} style={{ width: Math.max(6, machineW * 0.053) + "px", height: Math.max(10, machineW * 0.111) + "px" }}>
           <div className="lc-gc" />
         </div>
+
+        {/* Porte-bonheur achetes : poses sur la machine (fer haut-droite, patte gauche, trefle facade droite) */}
+        {charms.horseshoe && (
+          <svg className="lc-charm horseshoe" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3.5 9 V12 a8.5 8.5 0 0 0 17 0 V9 L17 9 V12 a5.5 5.5 0 0 1 -11 0 V9 Z" fill="#141414" />
+            <circle cx="5.5" cy="10.5" r=".7" fill="#fafafa" />
+            <circle cx="5.5" cy="13" r=".7" fill="#fafafa" />
+            <circle cx="18.5" cy="10.5" r=".7" fill="#fafafa" />
+            <circle cx="18.5" cy="13" r=".7" fill="#fafafa" />
+          </svg>
+        )}
+        {charms.rabbit && (
+          <svg className="lc-charm rabbit" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="10" y="1" width="4" height="2.5" fill="#141414" />
+            <path d="M11 3.5 L11 6 M13 3.5 L13 6" stroke="#141414" strokeWidth="1.2" />
+            <rect x="8.5" y="6" width="7" height="2" fill="#141414" />
+            <ellipse cx="12" cy="15" rx="4" ry="7" fill="none" stroke="#141414" strokeWidth="1.4" />
+            <path d="M10 11 L9.5 13 M12 10.5 L11.5 12.5 M14 11 L14.5 13 M9.5 16 L9 18 M14.5 16 L15 18 M11 18 L11 20 M13 18 L13 20" stroke="#141414" strokeWidth=".8" strokeLinecap="round" />
+          </svg>
+        )}
+        {charms.clover && (
+          <svg className="lc-charm clover" viewBox="0 0 24 24" aria-hidden="true">
+            <ellipse cx="12" cy="6" rx="3.6" ry="4.4" fill="#141414" />
+            <ellipse cx="6" cy="12" rx="4.4" ry="3.6" fill="#141414" />
+            <ellipse cx="18" cy="12" rx="4.4" ry="3.6" fill="#141414" />
+            <ellipse cx="12" cy="18" rx="3.6" ry="4.4" fill="#141414" />
+            <circle cx="12" cy="12" r="1.4" fill="#fafafa" />
+            <path d="M14 14 L18 22" stroke="#141414" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+        )}
 
         {winFx && (
           <div className="lc-payout" key={winFx.k} style={{ fontSize: Math.max(12, machineW * 0.085) + "px" }}>
@@ -1308,6 +1361,24 @@ export default function LastCoin() {
                       </button>
                     : <div className="lc-max">{t("max_atteint")}</div>}
                 </div>
+              );
+            })}
+            <div className="lc-famh">{t("charms_title")}<span>{t("charms_sub")}</span></div>
+            {CHARM_KEYS.map((k) => {
+              const c = CHARMS[k];
+              const owned = charms[k];
+              const ok = !owned && cash >= c.price;
+              const pctBonus = Math.round((c.bonus - 1) * 100);
+              return (
+                <button
+                  key={k}
+                  className={"lc-up" + (ok ? "" : " off")}
+                  disabled={!ok}
+                  onClick={() => buyCharm(k)}
+                >
+                  <span className="lc-upn">{c[lang]} · +{pctBonus}% {t("chance")}{owned ? <i>{t("possede")}</i> : null}</span>
+                  <span className="lc-upp">{owned ? "✓" : fmt(c.price)}</span>
+                </button>
               );
             })}
           </div>
@@ -1600,6 +1671,11 @@ const CSS = `
 .lc-dome.on{animation:domeglow 1.1s ease-in-out infinite;}
 @keyframes domeglow{0%,100%{opacity:0;}50%{opacity:1;}}
 .lc-gyrocoin{position:absolute;left:50.1%;top:6.9%;transform:translate(-50%,-50%);z-index:4;pointer-events:none;}
+/* Porte-bonheur achetes : poses physiquement sur la machine */
+.lc-charm{position:absolute;pointer-events:none;z-index:4;}
+.lc-charm.horseshoe{top:1.5%;left:64%;width:10%;height:10%;}
+.lc-charm.rabbit{top:14%;left:1%;width:9%;height:18%;}
+.lc-charm.clover{top:67.5%;left:60%;width:8.5%;height:8.5%;transform:rotate(-12deg);}
 .lc-gc{width:100%;height:100%;border-radius:50%;filter:blur(1.6px);transform:scaleX(.18);
   background:radial-gradient(50% 50% at 50% 50%,rgba(20,20,20,.75),rgba(20,20,20,.48) 55%,rgba(20,20,20,0) 100%);}
 .lc-gyrocoin.on .lc-gc{animation:coinspin .5s linear infinite;}
