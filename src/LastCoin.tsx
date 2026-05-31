@@ -721,7 +721,15 @@ export default function LastCoin() {
           <b>{fmt(cash)}</b>
           {income > 0 && <em>+{fmt(income)}/tour</em>}
         </div>
-        <button className="lc-menu" onClick={() => { setConfirmReset(false); setScreen("pause"); }} aria-label="pause" title="pause"><i /><i /></button>
+        <div className="lc-bar-actions">
+          <button className="lc-menu" onClick={() => { setConfirmReset(false); setScreen("pause"); }} aria-label="pause" title="pause"><i /><i /></button>
+          <button className="lc-dev" onClick={() => setOverlay("dev")} aria-label="menu dev" title="menu dev">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+              <path fill="currentColor" d="M12 1 L13.5 4 L10.5 4 Z M12 23 L13.5 20 L10.5 20 Z M1 12 L4 13.5 L4 10.5 Z M23 12 L20 13.5 L20 10.5 Z M4.2 4.2 L6.5 6 L4.5 8 L2.5 6.5 Z M19.8 4.2 L17.5 6 L19.5 8 L21.5 6.5 Z M4.2 19.8 L6.5 18 L4.5 16 L2.5 17.5 Z M19.8 19.8 L17.5 18 L19.5 16 L21.5 17.5 Z" />
+            </svg>
+          </button>
+        </div>
         <div className="lc-level">
           <i>niveau {level}</i>
           <b>{socialClass}</b>
@@ -1044,6 +1052,67 @@ export default function LastCoin() {
         </div></Ovl>
       )}
 
+      {overlay === "dev" && (
+        <Ovl><div className="lc-modal wide">
+          <p className="lc-el">menu développeur</p>
+          <div className="lc-en">DEV</div>
+          <p className="lc-ms">raccourcis de test · ne touchent pas la sauvegarde des stats agrégées</p>
+          <div className="lc-devlist">
+            <div className="lc-devgroup">
+              <div className="lc-devheader">argent</div>
+              <div className="lc-devbtns">
+                <button onClick={() => setCash((c) => c + 100)}>+100$</button>
+                <button onClick={() => setCash((c) => c + 1000)}>+1K$</button>
+                <button onClick={() => setCash((c) => c + 10000)}>+10K$</button>
+                <button onClick={() => setCash((c) => c + 100000)}>+100K$</button>
+                <button onClick={() => setCash((c) => c + 1000000)}>+1M$</button>
+                <button onClick={() => setCash(1)}>reset 1$</button>
+              </div>
+            </div>
+            <div className="lc-devgroup">
+              <div className="lc-devheader">cartes de capacité</div>
+              <div className="lc-devbtns">
+                <button onClick={() => setHoldCharges((c) => Math.min(9, c + 1))}>+1 HOLD</button>
+                <button onClick={() => setNudgeCharges((c) => Math.min(9, c + 1))}>+1 NUDGE</button>
+                <button onClick={() => setRepullCharges((c) => Math.min(3, c + 1))}>+1 REPULL</button>
+                <button onClick={() => { setHoldCharges(9); setNudgeCharges(9); setRepullCharges(3); }}>max all</button>
+                <button onClick={() => { setHoldCharges(0); setNudgeCharges(0); setRepullCharges(0); }}>vider</button>
+              </div>
+            </div>
+            <div className="lc-devgroup">
+              <div className="lc-devheader">jauges</div>
+              <div className="lc-devbtns">
+                <button onClick={() => setHope(100)}>moral 100</button>
+                <button onClick={() => setHope(50)}>moral 50</button>
+                <button onClick={() => setHope(0)}>moral 0</button>
+                <button onClick={() => setRisk(100)}>risque 100</button>
+                <button onClick={() => setRisk(0)}>risque 0</button>
+              </div>
+            </div>
+            <div className="lc-devgroup">
+              <div className="lc-devheader">crises &amp; machine</div>
+              <div className="lc-devbtns">
+                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("loyer", netWorth, hasAssets)); }}>loyer</button>
+                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("fisc", netWorth, hasAssets)); }}>fisc</button>
+                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("cambriolage", netWorth, hasAssets)); }}>cambriolage</button>
+                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("venteforcee", netWorth, hasAssets)); }}>saisie</button>
+                <button onClick={() => { setOverlay(null); setCrisis(makeCrisis("spirale", netWorth, hasAssets)); }}>spirale</button>
+                <button onClick={() => setJammed((j) => !j)}>{jammed ? "déjammer" : "jammer"}</button>
+              </div>
+            </div>
+            <div className="lc-devgroup">
+              <div className="lc-devheader">écrans</div>
+              <div className="lc-devbtns">
+                <button onClick={() => { setOverlay(null); setScreen("intro"); }}>intro</button>
+                <button onClick={() => { setOverlay(null); setScreen("empire"); }}>empire</button>
+                <button onClick={() => { setOverlay(null); setScreen("over"); }}>game over</button>
+              </div>
+            </div>
+          </div>
+          <button className="lc-btn" onClick={() => setOverlay(null)}>retour</button>
+        </div></Ovl>
+      )}
+
       {crisis && (
         <Ovl><div className="lc-modal">
           <div className="lc-mh">{CRISIS[crisis.id].t}</div>
@@ -1133,10 +1202,19 @@ const CSS = `
   font-family:'Jost',-apple-system,sans-serif;font-weight:300;}
 .lc-bar{width:100%;max-width:330px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:flex-start;gap:12px;}
 .lc-barleft{display:flex;align-items:flex-start;gap:11px;}
-.lc-menu{display:flex;gap:3px;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;padding:0;flex-shrink:0;align-self:center;transition:.15s;}
+.lc-bar-actions{display:flex;gap:6px;align-items:center;align-self:center;}
+.lc-menu{display:flex;gap:3px;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;padding:0;flex-shrink:0;transition:.15s;}
 .lc-menu i{width:3px;height:11px;background:#141414;display:block;transition:.15s;}
 .lc-menu:hover{background:#141414;}
 .lc-menu:hover i{background:#fff;}
+.lc-dev{width:28px;height:28px;border:1px dashed #141414;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;color:#141414;font-family:inherit;flex-shrink:0;transition:.15s;}
+.lc-dev svg{width:14px;height:14px;display:block;}
+.lc-dev:hover{background:#141414;color:#fff;}
+.lc-devlist{display:flex;flex-direction:column;gap:14px;text-align:left;margin:14px 0 20px;}
+.lc-devheader{font-size:9px;letter-spacing:3px;color:#7f7f7f;text-transform:uppercase;padding:4px 0 5px;border-bottom:1px solid #f0f0f0;margin-bottom:8px;}
+.lc-devbtns{display:flex;gap:6px;flex-wrap:wrap;}
+.lc-devbtns button{background:none;border:1px solid #d9d9d9;color:#555;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;padding:6px 10px;transition:.15s;}
+.lc-devbtns button:hover{border-color:#141414;color:#141414;background:#fafafa;}
 .lc-menucol{display:flex;flex-direction:column;gap:10px;align-items:center;margin:4px 0 2px;}
 .lc-menucol .lc-btn{min-width:180px;}
 .lc-cash{display:flex;flex-direction:column;align-items:flex-start;}
