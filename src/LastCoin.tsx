@@ -1143,7 +1143,7 @@ export default function LastCoin() {
           {holdCharges > 0 && (
             <button
               className={"lc-abil" + (activeAbility === "hold" ? " on" : "")}
-              disabled={spinning || jammed || !!crisis || nudgeAvail || repullAvail}
+              disabled={spinning || jammed || !!crisis}
               onClick={() => setActiveAbility((a) => a === "hold" ? null : "hold")}
               title="HOLD"
             >
