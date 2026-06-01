@@ -16,7 +16,7 @@ import table7 from "./img/tables/level_7.png";
 const TABLES = [table0, table1, table2, table3, table4, table5, table6, table7];
 
 /* ============================================================
-   LAST COIN — machine à sous narrative. Une pièce → un empire.
+   ONE MORE PULL — machine à sous narrative. Une pièce → un empire.
    Argent fictif, aucun paiement réel.
    Symboles, table de gains, Cash/Net Worth, achats +
    revente, revenu passif, sauvegarde. Skull/Crack = effets punitifs sur 2 ou 3 alignes.
@@ -500,7 +500,7 @@ const T = {
   cartes_obt:    { fr: "cartes obtenues",     en: "cards earned" },
   net:           { fr: "net",                 en: "net" },
   // intro
-  last_coin:     { fr: "LAST COIN",      en: "LAST COIN" },
+  last_coin:     { fr: "ONE MORE PULL", en: "ONE MORE PULL" },
   derniere_piece:{ fr: "la dernière pièce", en: "the last coin" },
   intro_p1:      { fr: "Tu vis dans un garage.",
                    en: "You live in a garage." },
@@ -1140,7 +1140,7 @@ export default function LastCoin() {
       </div>
 
       <div className="lc-head">
-        <div className="lc-mark">LAST COIN</div>
+        <div className="lc-mark">ONE MORE PULL</div>
         <div className="lc-quip" aria-live="polite">{flash}</div>
       </div>
 
@@ -1383,7 +1383,7 @@ export default function LastCoin() {
 
       {screen === "intro" && (
         <Ovl><div className="lc-modal intro">
-          <div className="lc-mt-big">LAST<br/>COIN</div>
+          <div className="lc-mt-big">ONE MORE<br/>PULL</div>
           <p className="lc-ms-big">{t("derniere_piece")}</p>
           <div className="lc-intro-body">
             <p>{t("intro_p1")}</p>
