@@ -1597,7 +1597,7 @@ const CSS = `
 /* Aise : encore plus grande */
 .lc-table.t4{bottom:-76%;width:210%;}
 /* Riche : table marbre simple */
-.lc-table.t5{bottom:-52%;width:220%;}
+.lc-table.t5{bottom:-44%;width:220%;}
 /* Grande fortune : utilise l'ancienne image riche, garde son ancienne position */
 .lc-table.t6{bottom:-49%;width:230%;}
 /* Empire : plus grande + descend */
