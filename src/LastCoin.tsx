@@ -277,16 +277,121 @@ const SFX = {
   coin:       () => { tone(880, 0.05, "triangle", 0.10); tone(1175, 0.06, "triangle", 0.10, 0.04); },
 };
 
-// ===== Narratif (FR + punchlines EN). Rare et ciblé : surtout aux moments forts. =====
+// ===== Narratif : punchlines noir/blanc, ironiques, affichees de temps en temps =====
+const QUIPS_FR = {
+  perte: [
+    "Bien joué, tu viens de financer la machine.",
+    "La mise disparaît. Étonnant.",
+    "Rien. Même pas un petit effort.",
+    "La machine garde tout, comme prévu.",
+    "Tu paies pour regarder des rouleaux tourner.",
+    "Zéro gain. Belle optimisation.",
+    "La mise est partie vivre ailleurs.",
+    "Rien ne tombe, sauf ton solde.",
+    "Encore une décision brillante.",
+    "La machine te remercie pour le don.",
+  ],
+  petit: [
+    "Tu gagnes presque quelque chose.",
+    "Incroyable, quelques pièces.",
+    "Ça rembourse à peine l'erreur.",
+    "Petit gain, grande illusion.",
+    "Tu peux rejouer et reperdre.",
+    "La machine a eu pitié. Un peu.",
+    "Pas riche, juste moins ridicule.",
+    "Le minimum syndical.",
+    "Ça paie le bruit du levier.",
+    "Tu avances d'un demi millimètre.",
+  ],
+  moyen: [
+    "Ah, enfin un truc qui paie.",
+    "Pas mal. La machine s'est trompée.",
+    "Tu récupères un peu de dignité.",
+    "Voilà, ça ressemble à un gain.",
+    "La mise revient avec des copains.",
+    "Correct. Ne prends pas confiance.",
+    "Tu viens de gagner le droit de tenter pire.",
+    "Solde en hausse, ego aussi. Mauvaise idée.",
+    "Ça paie. Pour une fois.",
+    "La machine lâche du cash sous contrainte.",
+  ],
+  gros: [
+    "Là, ça devient moins honteux.",
+    "Beau coup. Essaie de ne pas tout rendre.",
+    "La machine vient de rater son coup.",
+    "Ton solde respire. Temporairement.",
+    "Gros gain. Mauvaise nouvelle pour ta prudence.",
+    "Tu viens de gagner assez pour devenir dangereux.",
+    "Le tiroir crache enfin quelque chose d'utile.",
+    "Bien. Maintenant tu vas croire que tu maîtrises.",
+    "Ça monte. Reste calme, donc impossible.",
+    "Le cash revient, la sagesse non.",
+  ],
+  tres_gros: [
+    "Gros coup. La machine doit être malade.",
+    "Là, même ton banquier cligne des yeux.",
+    "Tu viens de transformer une mauvaise idée en argent.",
+    "Beau miracle statistique.",
+    "Tu viens de gagner beaucoup trop pour rester prudent.",
+    "Le jeu vient de t'encourager à faire n'importe quoi.",
+    "Tu montes vite. La chute aura du style.",
+    "La machine paie. Profite, elle va s'en souvenir.",
+    "Ça sent la confiance excessive.",
+    "Très gros gain. Très mauvaise influence.",
+  ],
+  jackpot: [
+    "Jackpot. Tu vas devenir insupportable.",
+    "Voilà. Maintenant tu penses être un génie.",
+    "La machine vient de perdre patience.",
+    "Gros jackpot. Mauvaise leçon apprise.",
+    "Tu viens de battre les probabilités et le bon sens.",
+    "Le tiroir déborde, ton calme aussi.",
+    "Jackpot. Évite de faire semblant que c'était prévu.",
+    "Tu gagnes très gros. La prudence quitte la pièce.",
+    "Félicitations, tu es officiellement dangereux.",
+    "La machine lâche tout. Accident industriel.",
+  ],
+  skull1: [
+    "Mauvais signe. Continue, évidemment.",
+    "Un crâne. Ambiance saine.",
+    "Petit rappel que tout peut mal finir.",
+    "Rien ne saute. Pas encore.",
+  ],
+  skull2: [
+    "La moitié du cash disparaît. Propre.",
+    "50 % du cash perdu. Gestion exemplaire.",
+    "Ton solde vient de se faire couper en deux.",
+    "Demi ruine. On progresse.",
+  ],
+  skull3: [
+    "Tout ton cash et ton patrimoine sautent.",
+    "Ruine totale. Très belle performance.",
+    "Plus rien. Même la machine trouve ça violent.",
+    "Cash perdu, patrimoine perdu, ego touché.",
+  ],
+  crack1: [
+    "Une fissure. La machine juge ton choix.",
+    "Ça craque. Comme ta stratégie.",
+    "Premier avertissement gratuit. Rare.",
+    "La machine encaisse. Pour l'instant.",
+  ],
+  crack2: [
+    "25 % du cash perdu. Ça pique.",
+    "Un quart du cash disparaît. Décision rentable.",
+    "25 % de cash en moins. Merci la fissure.",
+    "La machine craque, ton solde aussi.",
+    "Quart de cash perdu. Simple, net, humiliant.",
+  ],
+  crack3: [
+    "Machine cassée. Fin de partie.",
+    "Trois fissures. Rideau.",
+    "La machine lâche. Score sauvegardé.",
+    "Fin de run. Elle aura tenu plus longtemps que toi.",
+  ],
+};
 const N = {
   fr: {
-    first:   ["La machine recrache assez de pièces pour un repas."],
-    jackpot: ["Trois jokers. La machine ricane, maintenant.", "Triple joker. Le hasard te fait une faveur presque obscène."],
-    big:     ["Les néons du garage vacillent. La machine sourit.", "Gros. La machine te regarde, soudain intéressée.", "Un éclat. Pour une fois, le sort t'a choisi."],
-    win:     ["Le bac tinte. Petit miracle.", "Assez pour tenir un jour de plus.", "Les rouleaux sont d'accord, pour une fois.", "Tu y crois presque."],
-    lose:    ["Les rouleaux s'arrêtent. Ton souffle aussi.", "Rien. Le silence pèse une tonne.", "La machine ne te doit rien."],
-    skull:   ["Trois crânes. La ruine te frôle."],
-    crack:   ["La machine tousse, se bloque, repart."],
+    ...QUIPS_FR,
     buy:     ["Tu achètes un bout de vie.", "Ça change rien. Ça change tout.", "Un objet de plus pour te sentir vivant."],
     sell:    ["Tu vends ce que tu avais acheté pour te sentir vivant.", "Retour en arrière. Ça fait mal où il faut."],
     classUp: {
@@ -299,14 +404,10 @@ const N = {
       7: "La ville murmure ton nom. La machine veut encore une pièce.",
     },
   },
+  // Pour l'instant les punchlines de tirage sont en FR meme en mode EN
+  // (le commentaire dit "interface en francais, repliques en anglais" mais les nouvelles repliques sont en FR uniquement)
   en: {
-    first:   ["The machine spits out enough coins for a meal."],
-    jackpot: ["Three jokers. The machine sneers now.", "Triple joker. Luck gives you an almost obscene favor."],
-    big:     ["The garage neons flicker. The machine smiles.", "Big. The machine looks at you, suddenly interested.", "A flash. For once, fate has picked you."],
-    win:     ["The tray chimes. Small miracle.", "Enough to last one more day.", "The reels agree, for once.", "You almost believe it."],
-    lose:    ["The reels stop. So does your breath.", "Nothing. The silence weighs a ton.", "The machine owes you nothing."],
-    skull:   ["Three skulls. Ruin brushes by."],
-    crack:   ["The machine coughs, jams, restarts."],
+    ...QUIPS_FR,
     buy:     ["You buy a piece of a life.", "It changes nothing. It changes everything.", "One more object to feel alive."],
     sell:    ["You sell what you bought to feel alive.", "Walking it back. It hurts where it should."],
     classUp: {
@@ -319,6 +420,39 @@ const N = {
       7: "The city whispers your name. The machine wants another coin.",
     },
   },
+};
+
+// ===== Classement du tirage pour piocher la bonne categorie de punchline =====
+// Renvoie une cle dans QUIPS_FR ou null si on ne dit rien
+function classifyForQuip(res, targets) {
+  // 2 ou 3 skull/crack : evenement punitif, prioritaire
+  if (res.kind === -1) {
+    const lvl = res.count >= 3 ? 3 : 2;
+    return res.sym === "skull" ? "skull" + lvl : "crack" + lvl;
+  }
+  // gains
+  if (res.kind === 3 && res.sym === "joker") return "jackpot";
+  if (res.kind > 0) {
+    const m = res.mult || 0;
+    if (m >= 100) return "jackpot";
+    if (m >= 40)  return "tres_gros";
+    if (m >= 18)  return "gros";
+    if (m >= 8)   return "moyen";
+    return "petit";
+  }
+  // ni gain ni penalite : si 1 skull / 1 crack on peut piquer un warning, sinon perte simple
+  const skulls = targets.filter((t) => t === "skull").length;
+  const cracks = targets.filter((t) => t === "crack").length;
+  if (skulls >= 1) return "skull1";
+  if (cracks >= 1) return "crack1";
+  return "perte";
+}
+
+// Chance d'afficher la punchline selon la categorie : evenements rares = plus souvent
+const QUIP_P = {
+  jackpot: 0.95, tres_gros: 0.85, gros: 0.55, moyen: 0.35, petit: 0.30, perte: 0.30,
+  skull1: 0.25, skull2: 0.90, skull3: 1.00,
+  crack1: 0.25, crack2: 0.90, crack3: 1.00,
 };
 
 
@@ -721,7 +855,6 @@ export default function LastCoin() {
       }
     }
 
-    const first = pulls === 0;
     const big = res.kind === 3 && res.mult >= 20;
     setLastWin(payout > 0 ? { amount: payout, big } : res.kind === -1 ? { neg: res.sym, count: res.count } : { amount: 0 });
     if (payout > 0) {
@@ -745,14 +878,16 @@ export default function LastCoin() {
       sfx(res.sym === "skull" ? "skull" : "crack");
     }
 
-    // narratif : rare et ciblé (toujours sur 1er gain / jackpot / gros gain / danger ; sinon faible chance)
-    const NL = N[lang];
-    if (first) say(NL.first[0]);
-    else if (res.kind === 3 && res.sym === "joker") say(pick(NL.jackpot));
-    else if (big) say(pick(NL.big));
-    else if (res.kind === -1) say(res.sym === "skull" ? pick(NL.skull) : pick(NL.crack));
-    else if (payout > 0) say(Math.random() < 0.10 ? pick(NL.win) : "");
-    else say(Math.random() < 0.05 ? pick(NL.lose) : "");
+    // narratif : punchline aleatoire selon la categorie du tirage (de temps en temps)
+    const cat = classifyForQuip(res, targets);
+    const proba = QUIP_P[cat] || 0.30;
+    if (cat && Math.random() < proba) {
+      const bag = N[lang][cat] || [];
+      if (bag.length) say(pick(bag));
+      else say("");
+    } else {
+      say("");
+    }
   }, [income, pulls]);
 
   const spin = () => {
