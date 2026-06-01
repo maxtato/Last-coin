@@ -1587,7 +1587,7 @@ const CSS = `
 /* Degrade : court, au-dessus de la table. La partie blanche ne va pas plus bas que les boutons Acheter/Ma vie. */
 .lc-table-fade{position:absolute;left:-50%;right:-50%;width:200%;bottom:-78%;height:75%;background:linear-gradient(to bottom,rgba(250,250,250,0) 0%,#fafafa 18%,#fafafa 100%);pointer-events:none;}
 /* A la rue (carton garage) : un poil plus grande */
-.lc-table.t0{bottom:-12%;width:148%;}
+.lc-table.t0{bottom:-8%;width:148%;}
 /* Survie : palette neuve centree */
 .lc-table.t1{bottom:-18%;}
 /* Precaire : remonte un poil */
@@ -1595,11 +1595,11 @@ const CSS = `
 /* Classe moyenne : descend + plus grande */
 .lc-table.t3{bottom:-54%;width:174%;}
 /* Aise : encore plus grande */
-.lc-table.t4{bottom:-50%;width:190%;}
+.lc-table.t4{bottom:-58%;width:190%;}
 /* Riche : utilise l'ancienne image grande fortune, garde son ancienne position */
-.lc-table.t5{bottom:-33%;width:174%;}
+.lc-table.t5{bottom:-27%;width:174%;}
 /* Grande fortune : utilise l'ancienne image riche, garde son ancienne position */
-.lc-table.t6{bottom:-50%;width:174%;}
+.lc-table.t6{bottom:-44%;width:174%;}
 /* Empire : plus grande + descend */
 .lc-table.t7{bottom:-54%;width:178%;}
 /* Bascule seche gauche-droite quand le levier est tire */
