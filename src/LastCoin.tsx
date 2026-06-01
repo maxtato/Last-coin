@@ -1587,6 +1587,16 @@ const CSS = `
   mask-image:linear-gradient(to bottom,#000 0,#000 90%,transparent 100%);}
 /* Stage 1 (carton garage) : reste a sa position et taille d'origine */
 .lc-table.t0{bottom:-10%;width:120%;}
+/* Classe moyenne : descend + un poil plus grande */
+.lc-table.t3{bottom:-42%;width:148%;}
+/* Aise : plus grande */
+.lc-table.t4{bottom:-35%;width:152%;}
+/* Riche : descend + plus grande */
+.lc-table.t5{bottom:-42%;width:152%;}
+/* Grande fortune : plus grande + remonte un peu */
+.lc-table.t6{bottom:-28%;width:152%;}
+/* Empire : plus grande + descend */
+.lc-table.t7{bottom:-45%;width:155%;}
 /* Bascule seche gauche-droite quand le levier est tire */
 .lc-stage.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
 @keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
