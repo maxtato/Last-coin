@@ -1590,7 +1590,7 @@ const CSS = `
 /* Survie : remonte un peu + decale a gauche */
 .lc-table.t1{bottom:-42%;left:48%;}
 /* Precaire : remonte un poil */
-.lc-table.t2{bottom:-35%;}
+.lc-table.t2{bottom:-35%;width:148%;}
 /* Classe moyenne : descend + plus grande */
 .lc-table.t3{bottom:-54%;width:174%;}
 /* Aise : encore plus grande */
