@@ -1596,7 +1596,7 @@ const CSS = `
 /* Aise : encore plus grande */
 .lc-table.t4{bottom:-54%;width:190%;}
 /* Riche : descend encore */
-.lc-table.t5{bottom:-64%;width:174%;}
+.lc-table.t5{bottom:-55%;width:174%;}
 /* Grande fortune : plus grande + remonte un peu */
 .lc-table.t6{bottom:-33%;width:174%;}
 /* Empire : plus grande + descend */
