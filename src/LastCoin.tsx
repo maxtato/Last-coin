@@ -1686,7 +1686,7 @@ const CSS = `
 @keyframes pullbob{0%,100%{transform:translateY(-6%);opacity:.55;}50%{transform:translateY(15%);opacity:.95;}}
 /* Boutons d'armement des capacites HOLD / NUDGE / REPULL sous la machine.
    Click pour activer -> les contreoles (tap rouleau / fleches / cercle) apparaissent dans la machine. */
-.lc-abilities{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:-14px;}
+.lc-abilities{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:-14px;position:relative;z-index:2;}
 .lc-readout + .lc-ctrl{margin-top:-14px;}
 .lc-abil{display:flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;background:#fff;border:1px solid #141414;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;color:#141414;transition:background .12s,color .12s;}
 .lc-abil b{font-weight:600;letter-spacing:1.5px;}
@@ -1697,14 +1697,14 @@ const CSS = `
 .lc-crow{display:flex;gap:12px;justify-content:center;}
 .lc-btn.ghost{background:#fff;color:#141414;}
 .lc-btn.ghost:hover{background:#141414;color:#fff;}
-.lc-readout{height:38px;display:flex;align-items:center;justify-content:center;text-align:center;padding:3px 16px;}
+.lc-readout{height:38px;display:flex;align-items:center;justify-content:center;text-align:center;padding:3px 16px;position:relative;z-index:2;}
 .lc-win{font-size:25px;font-weight:300;letter-spacing:1px;}
 .lc-win.big{font-weight:500;}
 .lc-lose{font-size:22px;color:#b4b4b4;}
 .lc-neg{font-size:12px;letter-spacing:3px;color:#9a9a9a;text-transform:uppercase;}
 .lc-idle{font-size:10px;letter-spacing:2px;color:#7f7f7f;}
 .lc-flash{font-size:11px;letter-spacing:.5px;color:#666;font-style:italic;line-height:1.35;max-width:380px;}
-.lc-ctrl{display:flex;align-items:center;gap:20px;margin-top:2px;flex-wrap:wrap;justify-content:center;}
+.lc-ctrl{display:flex;align-items:center;gap:20px;margin-top:2px;flex-wrap:wrap;justify-content:center;position:relative;z-index:2;}
 .lc-betwrap{display:flex;flex-direction:column;align-items:center;gap:8px;}
 .lc-betbar{display:flex;align-items:center;gap:18px;}
 .lc-betcoin{position:relative;width:66px;height:66px;flex:0 0 66px;contain:layout style paint;}
@@ -1721,13 +1721,13 @@ const CSS = `
   font-size:13px;letter-spacing:6px;padding:11px 30px 11px 36px;transition:.15s;}
 .lc-pull:hover:not(:disabled){background:#fff;color:#141414;}
 .lc-pull:disabled{border-color:#dcdcdc;color:#dcdcdc;background:#fff;cursor:default;}
-.lc-shopbtns{display:flex;gap:14px;}
+.lc-shopbtns{display:flex;gap:14px;position:relative;z-index:2;}
 .lc-sb{background:none;border:1px solid #141414;color:#141414;cursor:pointer;font-family:inherit;
   font-size:13px;font-weight:500;letter-spacing:3px;padding:11px 26px;transition:.15s;text-transform:uppercase;}
 .lc-sb:hover:not(:disabled){border-color:#141414;color:#141414;}
 .lc-sb:disabled{color:#dcdcdc;border-color:#ededed;cursor:default;}
 .lc-pay{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center;
-  font-size:11px;color:#868686;letter-spacing:1px;margin-top:2px;}
+  font-size:11px;color:#868686;letter-spacing:1px;margin-top:2px;position:relative;z-index:2;}
 .lc-pr{display:flex;align-items:center;gap:5px;}
 .lc-pr.danger{color:#b4b4b4;}
 .lc-fam{margin-bottom:13px;}
