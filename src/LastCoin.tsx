@@ -5,6 +5,15 @@ import horseshoeImg from "./charms/horseshoe.png";
 import rabbitImg from "./charms/rabbit.png";
 import reelStopUrl from "./audio/reelstop.wav";
 import clickUrl from "./audio/click.wav";
+import table0 from "./img/tables/level_0.png";
+import table1 from "./img/tables/level_1.png";
+import table2 from "./img/tables/level_2.png";
+import table3 from "./img/tables/level_3.png";
+import table4 from "./img/tables/level_4.png";
+import table5 from "./img/tables/level_5.png";
+import table6 from "./img/tables/level_6.png";
+import table7 from "./img/tables/level_7.png";
+const TABLES = [table0, table1, table2, table3, table4, table5, table6, table7];
 
 /* ============================================================
    LAST COIN — machine à sous narrative. Une pièce → un empire.
@@ -79,7 +88,7 @@ const SYM_INFO = {
 
 // ===== Table de gains (multiplicateurs de mise) =====
 // 3 identiques (le joker complète) :
-const PAY3 = { coin: 9, star: 13, house: 19, diamond: 29, crown: 100, bolt: 13, eye: 17, joker: 130 };
+const PAY3 = { coin: 11, star: 16, house: 23, diamond: 35, crown: 120, bolt: 16, eye: 20, joker: 156 };
 // 2 identiques sans joker (petit gain) :
 const PAY2 = { coin: 2, star: 3, house: 4, diamond: 5, crown: 13, bolt: 3, eye: 3 };
 const NEG = { skull: true, crack: true };           // symboles "danger"
@@ -1011,6 +1020,7 @@ export default function LastCoin() {
       )}
 
       <div className={"lc-stage" + (pressed || blockedSpin ? " shake" : "")}>
+      <img src={TABLES[Math.min(classIdx, TABLES.length - 1)]} className="lc-table" alt="" draggable={false} />
       <div className="lc-machine" ref={machineRef} style={{ aspectRatio: "870 / 950" }}>
         <img src={IMG} alt="machine" className="lc-img" draggable={false} />
         <img src={UP_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_UP.left + "%", top: LEV_UP.top + "%", width: LEV_UP.w + "%", height: LEV_UP.h + "%", opacity: pressed ? 0 : 1 }} />
@@ -1569,7 +1579,14 @@ const CSS = `
 .lc-stat i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
 .lc-stat b{font-weight:400;font-size:16px;letter-spacing:1px;}
 .lc-stat.big b{font-size:24px;font-weight:500;}
-.lc-stage{width:100%;max-width:300px;}
+.lc-stage{width:100%;max-width:300px;position:relative;}
+/* Table/socle sur lequel repose la machine, change avec la classe sociale */
+/* Fond degrade qui rogne le bas (pieds) et les cotes des tables larges, on garde le plateau central */
+.lc-table{position:absolute;left:50%;bottom:-5%;transform:translateX(-50%);width:120%;height:auto;pointer-events:none;z-index:0;user-select:none;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,#000 0,#000 55%,transparent 92%);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,#000 0,#000 55%,transparent 92%);
+  mask-composite:intersect;}
 /* Bascule seche gauche-droite quand le levier est tire */
 .lc-stage.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
 @keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
