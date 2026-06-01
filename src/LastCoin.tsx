@@ -1588,19 +1588,19 @@ const CSS = `
 /* A la rue (carton garage) : un poil plus grande */
 .lc-table.t0{bottom:-12%;width:148%;}
 /* Survie : remonte un peu + decale a gauche */
-.lc-table.t1{bottom:-32%;left:42%;}
+.lc-table.t1{bottom:-42%;left:56%;}
 /* Precaire : remonte un poil */
 .lc-table.t2{bottom:-35%;}
 /* Classe moyenne : descend + plus grande */
-.lc-table.t3{bottom:-50%;width:174%;}
+.lc-table.t3{bottom:-54%;width:174%;}
 /* Aise : encore plus grande */
-.lc-table.t4{bottom:-42%;width:190%;}
+.lc-table.t4{bottom:-46%;width:190%;}
 /* Riche : descend encore */
-.lc-table.t5{bottom:-60%;width:174%;}
+.lc-table.t5{bottom:-64%;width:174%;}
 /* Grande fortune : plus grande + remonte un peu */
 .lc-table.t6{bottom:-33%;width:174%;}
 /* Empire : plus grande + descend */
-.lc-table.t7{bottom:-50%;width:178%;}
+.lc-table.t7{bottom:-54%;width:178%;}
 /* Bascule seche gauche-droite quand le levier est tire */
 .lc-stage.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
 @keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
