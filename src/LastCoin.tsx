@@ -1587,6 +1587,8 @@ const CSS = `
   mask-image:linear-gradient(to bottom,#000 0,#000 72%,transparent 84%);}
 /* A la rue (carton garage) : un poil plus grande */
 .lc-table.t0{bottom:5%;width:148%;}
+/* Survie : remonte un peu + decale a gauche */
+.lc-table.t1{bottom:-32%;left:42%;}
 /* Precaire : remonte un poil */
 .lc-table.t2{bottom:-35%;}
 /* Classe moyenne : descend + plus grande */
