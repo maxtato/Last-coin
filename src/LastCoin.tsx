@@ -1587,16 +1587,16 @@ const CSS = `
 .lc-table-fade{position:absolute;left:-50%;right:-50%;width:200%;bottom:-78%;height:75%;background:linear-gradient(to bottom,rgba(250,250,250,0) 0%,#fafafa 18%,#fafafa 100%);pointer-events:none;}
 /* A la rue (carton garage) : un poil plus grande */
 .lc-table.t0{bottom:-12%;width:148%;}
-/* Survie : remonte un peu + decale a gauche */
-.lc-table.t1{bottom:-38%;left:44%;}
+/* Survie : palette neuve centree */
+.lc-table.t1{bottom:-38%;}
 /* Precaire : remonte un poil */
 .lc-table.t2{bottom:-35%;width:148%;}
 /* Classe moyenne : descend + plus grande */
 .lc-table.t3{bottom:-54%;width:174%;}
 /* Aise : encore plus grande */
-.lc-table.t4{bottom:-46%;width:190%;}
+.lc-table.t4{bottom:-54%;width:190%;}
 /* Riche : descend encore */
-.lc-table.t5{bottom:-64%;width:174%;}
+.lc-table.t5{bottom:-55%;width:174%;}
 /* Grande fortune : plus grande + remonte un peu */
 .lc-table.t6{bottom:-33%;width:174%;}
 /* Empire : plus grande + descend */
