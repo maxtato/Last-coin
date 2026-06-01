@@ -1586,13 +1586,13 @@ const CSS = `
   -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 72%,transparent 84%);
   mask-image:linear-gradient(to bottom,#000 0,#000 72%,transparent 84%);}
 /* A la rue (carton garage) : un poil plus grande */
-.lc-table.t0{bottom:-3%;width:148%;}
+.lc-table.t0{bottom:5%;width:148%;}
 /* Precaire : remonte un poil */
 .lc-table.t2{bottom:-35%;}
 /* Classe moyenne : descend + plus grande */
 .lc-table.t3{bottom:-50%;width:174%;}
 /* Aise : encore plus grande */
-.lc-table.t4{bottom:-42%;width:180%;}
+.lc-table.t4{bottom:-42%;width:190%;}
 /* Riche : descend encore */
 .lc-table.t5{bottom:-60%;width:174%;}
 /* Grande fortune : plus grande + remonte un peu */
