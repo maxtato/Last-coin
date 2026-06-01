@@ -9,7 +9,10 @@ import table0 from "./img/tables/level_0.png";
 import table1 from "./img/tables/level_1.png";
 import table2 from "./img/tables/level_2.png";
 import table3 from "./img/tables/level_3.png";
-const TABLES = [table0, table1, table2, table3];
+import table4 from "./img/tables/level_4.png";
+import table5 from "./img/tables/level_5.png";
+import table6 from "./img/tables/level_6.png";
+const TABLES = [table0, table1, table2, table3, table4, table5, table6];
 
 /* ============================================================
    LAST COIN — machine à sous narrative. Une pièce → un empire.
