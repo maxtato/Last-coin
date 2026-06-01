@@ -1043,9 +1043,9 @@ export default function LastCoin() {
                 transition: nudgeAnim[r]
                   ? "transform .3s ease-out"
                   : reelStage[r] === 2
-                    ? ("transform " + reelCruiseDur(r) + "s cubic-bezier(0,0,.7,1)")
+                    ? ("transform " + reelCruiseDur(r) + "s linear")
                     : reelStage[r] === 3
-                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.18,.85,.28,1)")
+                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.4,.4,.25,1.10)")
                       : "none",
               }}>
                 <div className={"lc-cellwrap" + (landed[r] ? " landed" : "")}>
