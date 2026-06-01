@@ -1,4 +1,4 @@
-# Last Coin
+# One More Pull
 
 Machine à sous **narrative** en React + TypeScript. Tu commences avec **une seule
 pièce** et une vieille machine trouvée sur le trottoir. Mise, tire le levier,
