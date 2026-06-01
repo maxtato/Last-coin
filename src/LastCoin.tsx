@@ -1599,7 +1599,7 @@ const CSS = `
 /* Riche : table marbre Louis XV, agrandit avec clip lateral pour ne pas deborder du cadre */
 .lc-table.t5{bottom:-44%;width:270%;clip-path:inset(0 31.5% 0 31.5%);}
 /* Grande fortune : utilise l'ancienne image riche, garde son ancienne position */
-.lc-table.t6{bottom:-46%;width:230%;}
+.lc-table.t6{bottom:-49%;width:230%;}
 /* Empire : plus grande + descend */
 .lc-table.t7{bottom:-54%;width:178%;}
 /* Bascule seche gauche-droite quand le levier est tire */
