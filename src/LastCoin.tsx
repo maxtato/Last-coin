@@ -1021,6 +1021,7 @@ export default function LastCoin() {
 
       <div className={"lc-stage" + (pressed || blockedSpin ? " shake" : "")}>
       <img src={TABLES[Math.min(classIdx, TABLES.length - 1)]} className={"lc-table t" + Math.min(classIdx, TABLES.length - 1)} alt="" draggable={false} />
+      <div className="lc-table-fade" aria-hidden="true" />
       <div className="lc-machine" ref={machineRef} style={{ aspectRatio: "870 / 950" }}>
         <img src={IMG} alt="machine" className="lc-img" draggable={false} />
         <img src={UP_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_UP.left + "%", top: LEV_UP.top + "%", width: LEV_UP.w + "%", height: LEV_UP.h + "%", opacity: pressed ? 0 : 1 }} />
@@ -1581,12 +1582,11 @@ const CSS = `
 .lc-stat.big b{font-size:24px;font-weight:500;}
 .lc-stage{width:100%;max-width:300px;position:relative;}
 /* Table/socle sur lequel repose la machine, change avec la classe sociale */
-/* Fade vertical court uniquement sur les pieds, pas sur les cotes */
-.lc-table{position:absolute;left:50%;bottom:-40%;transform:translateX(-50%);width:162%;height:auto;pointer-events:none;z-index:0;user-select:none;
-  -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 72%,transparent 84%);
-  mask-image:linear-gradient(to bottom,#000 0,#000 72%,transparent 84%);}
+.lc-table{position:absolute;left:50%;bottom:-40%;transform:translateX(-50%);width:162%;height:auto;pointer-events:none;z-index:0;user-select:none;}
+/* Bande de degrade blanche fixe a la hauteur de la mise, masque la base de toutes les tables au meme endroit */
+.lc-table-fade{position:absolute;left:-25%;right:-25%;width:150%;bottom:-58%;height:30%;background:linear-gradient(to bottom,rgba(250,250,250,0) 0%,#fafafa 60%);pointer-events:none;z-index:1;}
 /* A la rue (carton garage) : un poil plus grande */
-.lc-table.t0{bottom:5%;width:148%;}
+.lc-table.t0{bottom:-12%;width:148%;}
 /* Survie : remonte un peu + decale a gauche */
 .lc-table.t1{bottom:-32%;left:42%;}
 /* Precaire : remonte un poil */
