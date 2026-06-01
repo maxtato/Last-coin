@@ -1043,9 +1043,9 @@ export default function LastCoin() {
                 transition: nudgeAnim[r]
                   ? "transform .3s ease-out"
                   : reelStage[r] === 2
-                    ? ("transform " + reelCruiseDur(r) + "s cubic-bezier(0,0,.7,1)")
+                    ? ("transform " + reelCruiseDur(r) + "s linear")
                     : reelStage[r] === 3
-                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.08,.85,.18,1.14)")
+                      ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.4,.4,.25,1.10)")
                       : "none",
               }}>
                 <div className={"lc-cellwrap" + (landed[r] ? " landed" : "")}>
@@ -1587,7 +1587,7 @@ const CSS = `
 /* Degrade : court, au-dessus de la table. La partie blanche ne va pas plus bas que les boutons Acheter/Ma vie. */
 .lc-table-fade{position:absolute;left:-50%;right:-50%;width:200%;bottom:-78%;height:75%;background:linear-gradient(to bottom,rgba(250,250,250,0) 0%,#fafafa 18%,#fafafa 100%);pointer-events:none;}
 /* A la rue (carton garage) : un poil plus grande */
-.lc-table.t0{bottom:-12%;width:148%;}
+.lc-table.t0{bottom:-8%;width:148%;}
 /* Survie : palette neuve centree */
 .lc-table.t1{bottom:-18%;}
 /* Precaire : remonte un poil */
@@ -1595,11 +1595,11 @@ const CSS = `
 /* Classe moyenne : descend + plus grande */
 .lc-table.t3{bottom:-54%;width:174%;}
 /* Aise : encore plus grande */
-.lc-table.t4{bottom:-50%;width:190%;}
+.lc-table.t4{bottom:-58%;width:190%;}
 /* Riche : utilise l'ancienne image grande fortune, garde son ancienne position */
-.lc-table.t5{bottom:-33%;width:174%;}
+.lc-table.t5{bottom:-27%;width:174%;}
 /* Grande fortune : utilise l'ancienne image riche, garde son ancienne position */
-.lc-table.t6{bottom:-50%;width:174%;}
+.lc-table.t6{bottom:-44%;width:174%;}
 /* Empire : plus grande + descend */
 .lc-table.t7{bottom:-54%;width:178%;}
 /* Bascule seche gauche-droite quand le levier est tire */
@@ -1651,8 +1651,8 @@ const CSS = `
 @keyframes pring{0%{opacity:.5;transform:scale(.3);}100%{opacity:0;transform:scale(1.3);}}
 .lc-reel{position:absolute;overflow:hidden;background:#fff;transition:outline-color .15s;}
 /* Secousse "thunk" a l'arret : appliquee uniquement sur les symboles internes, le cadre blanc ne bouge pas */
-.lc-cellwrap.landed{animation:reelthump .17s cubic-bezier(.4,.7,.3,1);}
-@keyframes reelthump{0%{transform:translateY(0);}38%{transform:translateY(1.1px);}100%{transform:translateY(0);}}
+/* Thump retire : pas de coup additionnel a l'arret du rouleau */
+.lc-cellwrap.landed{}
 .lc-reel.holdable{cursor:pointer;}
 /* HOLD arme, non bloque : tag minimal "HOLD" en haut du rouleau, gravure inversee blanche sur noir */
 .lc-reel.holdable:not(.held)::after{content:"HOLD";position:absolute;left:50%;top:4px;transform:translateX(-50%);font-size:7px;letter-spacing:3px;font-weight:400;color:#fafafa;background:#141414;padding:2px 7px 1px;pointer-events:none;z-index:4;animation:tagfade .2s ease;}
