@@ -526,7 +526,7 @@ export default function LastCoin() {
   // Spin en 2 phases : cruise (vitesse constante, lineaire) puis brake (decel brutale identique pour tous).
   // Le stagger se fait UNIQUEMENT sur la duree du cruise — chaque rouleau brake de la meme facon.
   const REEL_CRUISE_SPEED = 36;                    // cells/sec, identique pour tous (tourne vite)
-  const REEL_CRUISE_CELLS = [22, 48, 74];          // stagger marque (~0.72s entre stops)
+  const REEL_CRUISE_CELLS = [32, 58, 84];          // cruise rallonge + stagger marque
   const REEL_BRAKE_CELLS = 8;                      // brake plus court : ralentit a peine puis se bloque
   const REEL_BRAKE_DUR = 0.50;                     // brake bref et sec, avec rebond du bezier
   const REEL_RUN_TOTAL = Math.max(...REEL_CRUISE_CELLS) + REEL_BRAKE_CELLS;  // = 37 cells, taille du strip
@@ -1043,7 +1043,7 @@ export default function LastCoin() {
                 transition: nudgeAnim[r]
                   ? "transform .3s ease-out"
                   : reelStage[r] === 2
-                    ? ("transform " + reelCruiseDur(r) + "s linear")
+                    ? ("transform " + reelCruiseDur(r) + "s cubic-bezier(0,0,.7,1)")
                     : reelStage[r] === 3
                       ? ("transform " + REEL_BRAKE_DUR + "s cubic-bezier(.08,.85,.18,1.14)")
                       : "none",
@@ -1583,12 +1583,12 @@ const CSS = `
 .lc-stage{width:100%;max-width:300px;position:relative;}
 /* Table/socle sur lequel repose la machine, change avec la classe sociale */
 .lc-table{position:absolute;left:50%;bottom:-40%;transform:translateX(-50%);width:162%;height:auto;pointer-events:none;z-index:0;user-select:none;}
-/* Bande de degrade blanche fixe a la hauteur de la mise, masque la base de toutes les tables au meme endroit */
-.lc-table-fade{position:absolute;left:-25%;right:-25%;width:150%;bottom:-8%;height:18%;background:linear-gradient(to bottom,rgba(250,250,250,0) 0%,#fafafa 70%);pointer-events:none;z-index:1;}
+/* Degrade : commence un poil au-dessus de la piece de mise et devient blanc opaque sur toute la partie basse */
+.lc-table-fade{position:absolute;left:-50%;right:-50%;width:200%;bottom:-400%;height:430%;background:linear-gradient(to bottom,rgba(250,250,250,0) 0%,#fafafa 10%,#fafafa 100%);pointer-events:none;}
 /* A la rue (carton garage) : un poil plus grande */
 .lc-table.t0{bottom:-12%;width:148%;}
 /* Survie : remonte un peu + decale a gauche */
-.lc-table.t1{bottom:-42%;left:40%;}
+.lc-table.t1{bottom:-38%;left:44%;}
 /* Precaire : remonte un poil */
 .lc-table.t2{bottom:-35%;width:148%;}
 /* Classe moyenne : descend + plus grande */
