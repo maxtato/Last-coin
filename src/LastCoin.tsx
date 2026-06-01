@@ -1583,8 +1583,8 @@ const CSS = `
 .lc-stage{width:100%;max-width:300px;position:relative;}
 /* Table/socle sur lequel repose la machine, change avec la classe sociale */
 .lc-table{position:absolute;left:50%;bottom:-40%;transform:translateX(-50%);width:162%;height:auto;pointer-events:none;z-index:0;user-select:none;}
-/* Degrade : descendu (juste au-dessus de la table) et stack derriere machine/mise/cartes */
-.lc-table-fade{position:absolute;left:-50%;right:-50%;width:200%;bottom:-400%;height:395%;background:linear-gradient(to bottom,rgba(250,250,250,0) 0%,#fafafa 7%,#fafafa 100%);pointer-events:none;}
+/* Degrade : court, au-dessus de la table. La partie blanche ne va pas plus bas que les boutons Acheter/Ma vie. */
+.lc-table-fade{position:absolute;left:-50%;right:-50%;width:200%;bottom:-78%;height:75%;background:linear-gradient(to bottom,rgba(250,250,250,0) 0%,#fafafa 18%,#fafafa 100%);pointer-events:none;}
 /* A la rue (carton garage) : un poil plus grande */
 .lc-table.t0{bottom:-12%;width:148%;}
 /* Survie : remonte un peu + decale a gauche */
