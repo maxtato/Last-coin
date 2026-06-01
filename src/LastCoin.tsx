@@ -1019,10 +1019,10 @@ export default function LastCoin() {
         <div className="lc-ability-expl" key="blocked-msg">{t("expl_broke")}</div>
       )}
 
-      <div className={"lc-stage" + (pressed || blockedSpin ? " shake" : "")}>
+      <div className="lc-stage">
       <img src={TABLES[Math.min(classIdx, TABLES.length - 1)]} className={"lc-table t" + Math.min(classIdx, TABLES.length - 1)} alt="" draggable={false} />
       <div className="lc-table-fade" aria-hidden="true" />
-      <div className="lc-machine" ref={machineRef} style={{ aspectRatio: "870 / 950" }}>
+      <div className={"lc-machine" + (pressed || blockedSpin ? " shake" : "")} ref={machineRef} style={{ aspectRatio: "870 / 950" }}>
         <img src={IMG} alt="machine" className="lc-img" draggable={false} />
         <img src={UP_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_UP.left + "%", top: LEV_UP.top + "%", width: LEV_UP.w + "%", height: LEV_UP.h + "%", opacity: pressed ? 0 : 1 }} />
         <img src={COVER_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_COVER.left + "%", top: LEV_COVER.top + "%", width: LEV_COVER.w + "%", height: LEV_COVER.h + "%", opacity: pressed ? 1 : 0 }} />
@@ -1602,7 +1602,7 @@ const CSS = `
 /* Empire : plus grande + descend */
 .lc-table.t7{bottom:-54%;width:178%;}
 /* Bascule seche gauche-droite quand le levier est tire */
-.lc-stage.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
+.lc-machine.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
 @keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
 .lc-machine{position:relative;width:100%;user-select:none;}
 .lc-burst{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:5;}
