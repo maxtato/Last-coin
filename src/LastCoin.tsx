@@ -1601,7 +1601,7 @@ const CSS = `
 /* Grande fortune : utilise l'ancienne image riche, garde son ancienne position */
 .lc-table.t6{bottom:-49%;width:230%;}
 /* Empire : plus grande + descend */
-.lc-table.t7{bottom:-40%;width:220%;}
+.lc-table.t7{bottom:-44%;width:245%;}
 /* Bascule seche gauche-droite quand le levier est tire */
 .lc-machine.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
 @keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
