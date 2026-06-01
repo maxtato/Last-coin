@@ -1141,7 +1141,7 @@ export default function LastCoin() {
 
       <div className="lc-head">
         <div className="lc-mark">LAST COIN</div>
-        <div className="lc-sub">{venue}</div>
+        <div className="lc-quip" aria-live="polite">{flash}</div>
       </div>
 
       {activeAbility && (
@@ -1301,7 +1301,6 @@ export default function LastCoin() {
           ? <span className="lc-neg">{t("broken_msg")}</span>
           : (bet < 1 && hasAssets && screen === "play")
           ? <span className="lc-neg">{t("broke_msg")}</span>
-          : flash ? <span className="lc-flash">{flash}</span>
           : (lastWin && lastWin.neg) ? <span className="lc-neg">{
               lastWin.neg === "skull" ? (lastWin.count === 3 ? t("skull_3_msg") : t("skull_2_msg"))
                                       : (lastWin.count === 3 ? t("crack_3_msg") : t("crack_2_msg"))
@@ -1703,14 +1702,15 @@ const CSS = `
 .lc-pips{display:flex;gap:4px;margin-top:7px;}
 .lc-pip{width:8px;height:8px;transform:rotate(45deg);border:1px solid #d2d2d2;}
 .lc-pip.on{background:#141414;border-color:#141414;}
-.lc-head{text-align:center;margin-top:40px;}
+.lc-head{text-align:center;margin-top:18px;}
 /* Petit panneau d'explication affiche au-dessus de la machine quand une capacite (HOLD/NUDGE/REPULL) est armee */
 /* Panneau d'explication en overlay : ne decale pas la mise en page, flotte au-dessus de la machine */
 .lc-ability-expl{position:fixed;left:50%;top:14%;transform:translateX(-50%);max-width:320px;width:calc(100% - 40px);background:#141414;color:#fafafa;padding:10px 16px;font-size:11px;letter-spacing:.5px;line-height:1.45;text-align:center;animation:expop .22s ease-out;z-index:30;box-shadow:0 4px 16px rgba(20,20,20,.18);pointer-events:none;}
 @keyframes expop{from{opacity:0;transform:translate(-50%,-6px);}to{opacity:1;transform:translate(-50%,0);}}
 .lc-over-reason{font-size:11px;letter-spacing:2px;color:#9a9a9a;text-transform:uppercase;margin-top:-4px;margin-bottom:6px;}
 .lc-mark{font-size:18px;font-weight:500;letter-spacing:9px;padding-left:9px;}
-.lc-sub{font-size:10px;letter-spacing:3px;color:#707070;margin-top:5px;}
+/* punchline ironique sous le titre, hauteur fixe pour eviter les sauts de layout */
+.lc-quip{font-size:11px;letter-spacing:.5px;color:#666;font-style:italic;line-height:1.35;margin:6px auto 0;max-width:300px;min-height:30px;padding:0 12px;}
 .lc-top{display:flex;gap:26px;align-items:flex-end;justify-content:center;flex-wrap:wrap;}
 .lc-stat{display:flex;flex-direction:column;align-items:center;gap:2px;}
 .lc-stat i{font-style:normal;font-size:9px;letter-spacing:2px;color:#787878;text-transform:uppercase;}
