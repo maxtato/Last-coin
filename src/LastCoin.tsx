@@ -1020,7 +1020,7 @@ export default function LastCoin() {
       )}
 
       <div className={"lc-stage" + (pressed || blockedSpin ? " shake" : "")}>
-      <img src={TABLES[Math.min(classIdx, TABLES.length - 1)]} className="lc-table" alt="" draggable={false} />
+      <img src={TABLES[Math.min(classIdx, TABLES.length - 1)]} className={"lc-table t" + Math.min(classIdx, TABLES.length - 1)} alt="" draggable={false} />
       <div className="lc-machine" ref={machineRef} style={{ aspectRatio: "870 / 950" }}>
         <img src={IMG} alt="machine" className="lc-img" draggable={false} />
         <img src={UP_SPR} alt="" className="lc-sp" draggable={false} style={{ left: LEV_UP.left + "%", top: LEV_UP.top + "%", width: LEV_UP.w + "%", height: LEV_UP.h + "%", opacity: pressed ? 0 : 1 }} />
@@ -1582,11 +1582,13 @@ const CSS = `
 .lc-stage{width:100%;max-width:300px;position:relative;}
 /* Table/socle sur lequel repose la machine, change avec la classe sociale */
 /* Fond degrade qui rogne le bas (pieds) et les cotes des tables larges, on garde le plateau central */
-.lc-table{position:absolute;left:50%;bottom:-10%;transform:translateX(-50%);width:120%;height:auto;pointer-events:none;z-index:0;user-select:none;
-  -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,#000 0,#000 75%,transparent 98%);
+.lc-table{position:absolute;left:50%;bottom:-22%;transform:translateX(-50%);width:140%;height:auto;pointer-events:none;z-index:0;user-select:none;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,#000 0,#000 80%,transparent 100%);
   -webkit-mask-composite:source-in;
-  mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,#000 0,#000 75%,transparent 98%);
+  mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,#000 0,#000 80%,transparent 100%);
   mask-composite:intersect;}
+/* Stage 1 (carton garage) : reste a sa position et taille d'origine */
+.lc-table.t0{bottom:-10%;width:120%;}
 /* Bascule seche gauche-droite quand le levier est tire */
 .lc-stage.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
 @keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
