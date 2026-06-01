@@ -1594,7 +1594,7 @@ const CSS = `
 /* Classe moyenne : descend + plus grande */
 .lc-table.t3{bottom:-54%;width:174%;}
 /* Aise : encore plus grande */
-.lc-table.t4{bottom:-46%;width:190%;}
+.lc-table.t4{bottom:-54%;width:190%;}
 /* Riche : descend encore */
 .lc-table.t5{bottom:-64%;width:174%;}
 /* Grande fortune : plus grande + remonte un peu */
