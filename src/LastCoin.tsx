@@ -87,10 +87,10 @@ const SYM_INFO = {
 };
 
 // ===== Table de gains (multiplicateurs de mise) =====
-// 3 identiques (le joker complète) :
-const PAY3 = { coin: 11, star: 16, house: 23, diamond: 35, crown: 120, bolt: 16, eye: 20, joker: 156 };
+// 3 identiques (le joker complète) :  +~6% sur les valeurs pour viser RTP ~160%
+const PAY3 = { coin: 12, star: 17, house: 24, diamond: 37, crown: 127, bolt: 17, eye: 21, joker: 165 };
 // 2 identiques sans joker (petit gain) :
-const PAY2 = { coin: 2, star: 3, house: 4, diamond: 5, crown: 13, bolt: 3, eye: 3 };
+const PAY2 = { coin: 2, star: 3, house: 4, diamond: 5, crown: 14, bolt: 3, eye: 3 };
 const NEG = { skull: true, crack: true };           // symboles "danger"
 const PAY_ROW = ["coin", "star", "house", "diamond", "crown"]; // affichés dans la mini-table
 
@@ -1601,7 +1601,7 @@ const CSS = `
 /* Grande fortune : utilise l'ancienne image riche, garde son ancienne position */
 .lc-table.t6{bottom:-49%;width:230%;}
 /* Empire : plus grande + descend */
-.lc-table.t7{bottom:-44%;width:210%;}
+.lc-table.t7{bottom:-40%;width:220%;}
 /* Bascule seche gauche-droite quand le levier est tire */
 .lc-machine.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
 @keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
