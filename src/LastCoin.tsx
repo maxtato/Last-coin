@@ -1581,12 +1581,10 @@ const CSS = `
 .lc-stat.big b{font-size:24px;font-weight:500;}
 .lc-stage{width:100%;max-width:300px;position:relative;}
 /* Table/socle sur lequel repose la machine, change avec la classe sociale */
-/* Fond degrade qui rogne le bas (pieds) et les cotes des tables larges, on garde le plateau central */
-.lc-table{position:absolute;left:50%;bottom:-22%;transform:translateX(-50%);width:140%;height:auto;pointer-events:none;z-index:0;user-select:none;
-  -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,#000 0,#000 80%,transparent 100%);
-  -webkit-mask-composite:source-in;
-  mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,#000 0,#000 80%,transparent 100%);
-  mask-composite:intersect;}
+/* Fade vertical court uniquement sur les pieds, pas sur les cotes */
+.lc-table{position:absolute;left:50%;bottom:-35%;transform:translateX(-50%);width:140%;height:auto;pointer-events:none;z-index:0;user-select:none;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 90%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 0,#000 90%,transparent 100%);}
 /* Stage 1 (carton garage) : reste a sa position et taille d'origine */
 .lc-table.t0{bottom:-10%;width:120%;}
 /* Bascule seche gauche-droite quand le levier est tire */
