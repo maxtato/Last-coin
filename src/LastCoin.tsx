@@ -1595,10 +1595,10 @@ const CSS = `
 .lc-table.t3{bottom:-54%;width:174%;}
 /* Aise : encore plus grande */
 .lc-table.t4{bottom:-50%;width:190%;}
-/* Riche : descend encore */
-.lc-table.t5{bottom:-50%;width:174%;}
-/* Grande fortune : plus grande + remonte un peu */
-.lc-table.t6{bottom:-33%;width:174%;}
+/* Riche : utilise l'ancienne image grande fortune, garde son ancienne position */
+.lc-table.t5{bottom:-33%;width:174%;}
+/* Grande fortune : utilise l'ancienne image riche, garde son ancienne position */
+.lc-table.t6{bottom:-50%;width:174%;}
 /* Empire : plus grande + descend */
 .lc-table.t7{bottom:-54%;width:178%;}
 /* Bascule seche gauche-droite quand le levier est tire */
