@@ -1580,7 +1580,10 @@ const CSS = `
 .lc-stat.big b{font-size:24px;font-weight:500;}
 .lc-stage{width:100%;max-width:300px;position:relative;}
 /* Table/socle sur lequel repose la machine, change avec la classe sociale */
-.lc-table{position:absolute;left:50%;bottom:-5%;transform:translateX(-50%);width:135%;height:auto;pointer-events:none;z-index:0;user-select:none;}
+/* Fond degrade qui efface le bas (pieds de table) en fondu vers le blanc de la page */
+.lc-table{position:absolute;left:50%;bottom:-5%;transform:translateX(-50%);width:135%;height:auto;pointer-events:none;z-index:0;user-select:none;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 55%,transparent 90%);
+  mask-image:linear-gradient(to bottom,#000 0,#000 55%,transparent 90%);}
 /* Bascule seche gauche-droite quand le levier est tire */
 .lc-stage.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
 @keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
