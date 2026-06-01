@@ -12,7 +12,8 @@ import table3 from "./img/tables/level_3.png";
 import table4 from "./img/tables/level_4.png";
 import table5 from "./img/tables/level_5.png";
 import table6 from "./img/tables/level_6.png";
-const TABLES = [table0, table1, table2, table3, table4, table5, table6];
+import table7 from "./img/tables/level_7.png";
+const TABLES = [table0, table1, table2, table3, table4, table5, table6, table7];
 
 /* ============================================================
    LAST COIN — machine à sous narrative. Une pièce → un empire.
@@ -1580,10 +1581,12 @@ const CSS = `
 .lc-stat.big b{font-size:24px;font-weight:500;}
 .lc-stage{width:100%;max-width:300px;position:relative;}
 /* Table/socle sur lequel repose la machine, change avec la classe sociale */
-/* Fond degrade qui efface le bas (pieds de table) en fondu vers le blanc de la page */
-.lc-table{position:absolute;left:50%;bottom:-5%;transform:translateX(-50%);width:135%;height:auto;pointer-events:none;z-index:0;user-select:none;
-  -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 55%,transparent 90%);
-  mask-image:linear-gradient(to bottom,#000 0,#000 55%,transparent 90%);}
+/* Fond degrade qui rogne le bas (pieds) et les cotes des tables larges, on garde le plateau central */
+.lc-table{position:absolute;left:50%;bottom:-5%;transform:translateX(-50%);width:120%;height:auto;pointer-events:none;z-index:0;user-select:none;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,#000 0,#000 55%,transparent 92%);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,#000 0,#000 55%,transparent 92%);
+  mask-composite:intersect;}
 /* Bascule seche gauche-droite quand le levier est tire */
 .lc-stage.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
 @keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
