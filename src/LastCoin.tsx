@@ -1582,7 +1582,7 @@ const CSS = `
 .lc-stage{width:100%;max-width:300px;position:relative;}
 /* Table/socle sur lequel repose la machine, change avec la classe sociale */
 /* Fond degrade qui rogne le bas (pieds) et les cotes des tables larges, on garde le plateau central */
-.lc-table{position:absolute;left:50%;bottom:-22%;transform:translateX(-50%);width:140%;height:auto;pointer-events:none;z-index:0;user-select:none;
+.lc-table{position:absolute;left:50%;bottom:-35%;transform:translateX(-50%);width:140%;height:auto;pointer-events:none;z-index:0;user-select:none;
   -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,#000 0,#000 80%,transparent 100%);
   -webkit-mask-composite:source-in;
   mask-image:linear-gradient(to right,transparent 0%,#000 12%,#000 88%,transparent 100%),linear-gradient(to bottom,#000 0,#000 80%,transparent 100%);
