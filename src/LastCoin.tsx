@@ -1582,23 +1582,23 @@ const CSS = `
 .lc-stage{width:100%;max-width:300px;position:relative;}
 /* Table/socle sur lequel repose la machine, change avec la classe sociale */
 /* Fade vertical court uniquement sur les pieds, pas sur les cotes */
-.lc-table{position:absolute;left:50%;bottom:-35%;transform:translateX(-50%);width:162%;height:auto;pointer-events:none;z-index:0;user-select:none;
+.lc-table{position:absolute;left:50%;bottom:-40%;transform:translateX(-50%);width:162%;height:auto;pointer-events:none;z-index:0;user-select:none;
   -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 72%,transparent 84%);
   mask-image:linear-gradient(to bottom,#000 0,#000 72%,transparent 84%);}
 /* A la rue (carton garage) : un poil plus grande */
 .lc-table.t0{bottom:-3%;width:148%;}
 /* Precaire : remonte un poil */
-.lc-table.t2{bottom:-30%;}
+.lc-table.t2{bottom:-35%;}
 /* Classe moyenne : descend + plus grande */
-.lc-table.t3{bottom:-45%;width:174%;}
+.lc-table.t3{bottom:-50%;width:174%;}
 /* Aise : encore plus grande */
 .lc-table.t4{bottom:-42%;width:180%;}
 /* Riche : descend encore */
-.lc-table.t5{bottom:-55%;width:174%;}
+.lc-table.t5{bottom:-60%;width:174%;}
 /* Grande fortune : plus grande + remonte un peu */
-.lc-table.t6{bottom:-28%;width:174%;}
+.lc-table.t6{bottom:-33%;width:174%;}
 /* Empire : plus grande + descend */
-.lc-table.t7{bottom:-45%;width:178%;}
+.lc-table.t7{bottom:-50%;width:178%;}
 /* Bascule seche gauche-droite quand le levier est tire */
 .lc-stage.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
 @keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
