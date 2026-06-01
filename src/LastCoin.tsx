@@ -1583,8 +1583,8 @@ const CSS = `
 /* Table/socle sur lequel repose la machine, change avec la classe sociale */
 /* Fade vertical court uniquement sur les pieds, pas sur les cotes */
 .lc-table{position:absolute;left:50%;bottom:-35%;transform:translateX(-50%);width:152%;height:auto;pointer-events:none;z-index:0;user-select:none;
-  -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 90%,transparent 100%);
-  mask-image:linear-gradient(to bottom,#000 0,#000 90%,transparent 100%);}
+  -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 72%,transparent 84%);
+  mask-image:linear-gradient(to bottom,#000 0,#000 72%,transparent 84%);}
 /* A la rue (carton garage) : un poil plus grande */
 .lc-table.t0{bottom:-10%;width:138%;}
 /* Precaire : remonte un poil */
