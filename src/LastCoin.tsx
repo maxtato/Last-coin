@@ -1732,7 +1732,7 @@ const CSS = `
 /* Aise : encore plus grande */
 .lc-table.t4{bottom:-72%;width:195%;}
 /* Riche : table marbre simple */
-.lc-table.t5{bottom:-38%;width:200%;}
+.lc-table.t5{bottom:-34%;width:190%;}
 /* Grande fortune : utilise l'ancienne image riche, garde son ancienne position */
 .lc-table.t6{bottom:-49%;width:230%;}
 /* Empire : plus grande + descend */
