@@ -58,6 +58,12 @@ KEYS.forEach((k) => { URI[k] = symSVG(k, "#141414"); URI_F[k] = symSVG(k, "#7070
 function Ink({ k, size, faint }) {
   return <img src={(faint ? URI_F : URI)[k]} width={size} height={size} alt="" draggable={false} style={{ display: "block" }} />;
 }
+// Decoupe une string sur les marqueurs **gras** et rend les segments alternes en bold
+function boldMarks(s) {
+  if (!s || typeof s !== "string") return s;
+  const parts = s.split("**");
+  return parts.map((p, i) => (i % 2 === 1 ? <b key={i} className="lc-bold">{p}</b> : <React.Fragment key={i}>{p}</React.Fragment>));
+}
 const SYM_NAME = { coin: "Coin", star: "Star", house: "House", diamond: "Diamond", crown: "Crown", bolt: "Bolt", eye: "Eye", joker: "Joker", skull: "Skull", crack: "Crack" };
 const SYM_INFO = {
   fr: [
@@ -65,24 +71,24 @@ const SYM_INFO = {
     ["star",  "chance — gain supérieur"],
     ["house", "patrimoine"],
     ["diamond", "luxe — pierre précieuse"],
-    ["crown", "revanche — gros gain · paire = 1 carte REPULL (rare, max 3)"],
-    ["bolt",  "machine — paire = 1 carte HOLD · triple = 2 cartes (max 9)"],
-    ["eye",   "prédiction — paire = 1 carte NUDGE · triple = 2 cartes (max 9)"],
-    ["joker", "WILD — remplace n'importe quel symbole · 3 = jackpot"],
-    ["skull", "DANGER — 2 alignés = -50% cash · 3 alignés = ruine totale"],
-    ["crack", "DANGER — 2 alignés = -25% cash · 3 alignés = fin de partie"],
+    ["crown", "revanche — **gros gain** · paire = **1 carte REPULL** (rare, max 3)"],
+    ["bolt",  "machine — paire = **1 carte HOLD** · triple = **2 cartes** (max 9)"],
+    ["eye",   "prédiction — paire = **1 carte NUDGE** · triple = **2 cartes** (max 9)"],
+    ["joker", "WILD — remplace n'importe quel symbole · 3 = **jackpot**"],
+    ["skull", "DANGER — 2 alignés = **-50% cash** · 3 alignés = **ruine totale**"],
+    ["crack", "DANGER — 2 alignés = **-25% cash** · 3 alignés = **fin de partie**"],
   ],
   en: [
     ["coin",  "base payout"],
     ["star",  "luck — higher payout"],
     ["house", "wealth"],
     ["diamond", "luxury — precious stone"],
-    ["crown", "revenge — big win · pair = 1 REPULL card (rare, max 3)"],
-    ["bolt",  "machine — pair = 1 HOLD card · triple = 2 cards (max 9)"],
-    ["eye",   "prediction — pair = 1 NUDGE card · triple = 2 cards (max 9)"],
-    ["joker", "WILD — replaces any symbol · 3 = jackpot"],
-    ["skull", "DANGER — 2 aligned = -50% cash · 3 aligned = total ruin"],
-    ["crack", "DANGER — 2 aligned = -25% cash · 3 aligned = game over"],
+    ["crown", "revenge — **big win** · pair = **1 REPULL card** (rare, max 3)"],
+    ["bolt",  "machine — pair = **1 HOLD card** · triple = **2 cards** (max 9)"],
+    ["eye",   "prediction — pair = **1 NUDGE card** · triple = **2 cards** (max 9)"],
+    ["joker", "WILD — replaces any symbol · 3 = **jackpot**"],
+    ["skull", "DANGER — 2 aligned = **-50% cash** · 3 aligned = **total ruin**"],
+    ["crack", "DANGER — 2 aligned = **-25% cash** · 3 aligned = **game over**"],
   ],
 };
 
@@ -1548,8 +1554,13 @@ export default function LastCoin() {
               <div key={k} className="lc-rule">
                 <Ink k={k} size={26} />
                 <div className="lc-rule-txt">
-                  <b>{SYM_NAME[k]}{PAY3[k] && !NEG[k] && k !== "joker" ? <em className="lc-mult"> · 3× = ×{PAY3[k]}{PAY2[k] ? " · 2× = ×" + PAY2[k] : ""}</em> : null}</b>
-                  <i>{desc}</i>
+                  <b>{SYM_NAME[k]}{PAY3[k] && !NEG[k] && k !== "joker" ? (
+                    <em className="lc-mult">
+                      {" · 3× = "}<b className="lc-mv">×{PAY3[k]}</b>
+                      {PAY2[k] ? <>{" · 2× = "}<b className="lc-mv">×{PAY2[k]}</b></> : null}
+                    </em>
+                  ) : null}</b>
+                  <i>{boldMarks(desc)}</i>
                 </div>
               </div>
             ))}
@@ -1968,6 +1979,8 @@ const CSS = `
 .lc-rule-txt{display:flex;flex-direction:column;gap:2px;}
 .lc-rule-txt b{font-size:13px;font-weight:500;letter-spacing:.3px;}
 .lc-mult{font-style:normal;font-weight:400;font-size:11px;color:#141414;letter-spacing:.3px;}
+.lc-mv{font-weight:700;}
+.lc-bold{font-weight:700;color:#141414;font-style:normal;}
 .lc-rule-txt i{font-style:normal;font-size:10.5px;color:#505050;line-height:1.3;}
 .lc-combo{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #f7f7f7;font-size:12px;}
 .lc-combo b{font-weight:500;}
