@@ -93,10 +93,10 @@ const SYM_INFO = {
 };
 
 // ===== Table de gains (multiplicateurs de mise) =====
-// 3 identiques (le joker complète) :  +~6% sur les valeurs pour viser RTP ~160%
-const PAY3 = { coin: 12, star: 17, house: 24, diamond: 37, crown: 127, bolt: 17, eye: 21, joker: 165 };
+// 3 identiques (le joker complète) :  +~6% supplementaire pour viser RTP ~170%
+const PAY3 = { coin: 13, star: 18, house: 26, diamond: 40, crown: 135, bolt: 18, eye: 22, joker: 175 };
 // 2 identiques sans joker (petit gain) :
-const PAY2 = { coin: 2, star: 3, house: 4, diamond: 5, crown: 14, bolt: 3, eye: 3 };
+const PAY2 = { coin: 2, star: 3, house: 4, diamond: 6, crown: 15, bolt: 3, eye: 3 };
 const NEG = { skull: true, crack: true };           // symboles "danger"
 const PAY_ROW = ["coin", "star", "house", "diamond", "crown", "bolt", "eye"]; // affichés dans la mini-table
 
