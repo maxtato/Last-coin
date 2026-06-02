@@ -1859,6 +1859,7 @@ const CSS = `
    Click pour activer -> les contreoles (tap rouleau / fleches / cercle) apparaissent dans la machine. */
 .lc-abilities{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:-14px;position:relative;z-index:2;}
 .lc-spacer{height:38px;}
+.lc-spacer + .lc-ctrl{margin-top:-14px;}
 .lc-abil{display:flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;background:#fff;border:1px solid #141414;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;color:#141414;transition:background .12s,color .12s;}
 .lc-abil b{font-weight:600;letter-spacing:1.5px;}
 .lc-abil:hover:not(:disabled){background:#ffffff;}
