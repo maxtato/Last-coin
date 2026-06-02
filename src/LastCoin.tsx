@@ -1730,13 +1730,13 @@ const CSS = `
 /* Classe moyenne : descend + plus grande */
 .lc-table.t3{bottom:-54%;width:174%;}
 /* Aise : encore plus grande */
-.lc-table.t4{bottom:-76%;width:195%;}
+.lc-table.t4{bottom:-72%;width:195%;}
 /* Riche : table marbre simple */
-.lc-table.t5{bottom:-38%;width:200%;}
+.lc-table.t5{bottom:-34%;width:190%;}
 /* Grande fortune : utilise l'ancienne image riche, garde son ancienne position */
 .lc-table.t6{bottom:-49%;width:230%;}
 /* Empire : plus grande + descend */
-.lc-table.t7{bottom:-46%;width:220%;left:44%;}
+.lc-table.t7{bottom:-46%;width:220%;left:46%;}
 /* Bascule seche gauche-droite quand le levier est tire */
 .lc-machine.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
 @keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
