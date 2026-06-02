@@ -1730,7 +1730,7 @@ const CSS = `
 /* Classe moyenne : descend + plus grande */
 .lc-table.t3{bottom:-54%;width:174%;}
 /* Aise : encore plus grande */
-.lc-table.t4{bottom:-76%;width:210%;}
+.lc-table.t4{bottom:-76%;width:195%;}
 /* Riche : table marbre simple */
 .lc-table.t5{bottom:-38%;width:200%;}
 /* Grande fortune : utilise l'ancienne image riche, garde son ancienne position */
