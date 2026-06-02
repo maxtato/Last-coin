@@ -184,8 +184,8 @@ const CHARMS_0 = { clover: false, horseshoe: false, rabbit: false };
 const ownedTier = (f, lvl) => (lvl[f.id] > 0 ? f.tiers[lvl[f.id] - 1] : null);
 // classe sociale issue des familles "de vie" (somme des paliers)
 const CLASSES = {
-  fr: ["à la rue", "survie", "précaire", "classe moyenne", "aisé", "riche", "grande fortune", "empire"],
-  en: ["on the street", "survival", "precarious", "middle class", "well-off", "rich", "great fortune", "empire"],
+  fr: ["À la rue", "Survie", "Précaire", "Classe moyenne", "Aisé", "Riche", "Grande fortune", "Empire"],
+  en: ["On the street", "Survival", "Precarious", "Middle class", "Well-off", "Rich", "Great fortune", "Empire"],
 };
 // chaque classe sociale débloque un LIEU de jeu de plus en plus prestigieux
 const VENUES = {
@@ -482,13 +482,13 @@ const T = {
   wild:          { fr: "wild",           en: "wild" },
   danger:        { fr: "danger",         en: "danger" },
   // pause menu
-  pause:         { fr: "pause",          en: "pause" },
+  pause:         { fr: "Pause",          en: "Pause" },
   reprendre:     { fr: "reprendre",      en: "resume" },
-  regles:        { fr: "règles",         en: "rules" },
+  regles:        { fr: "Règles",         en: "Rules" },
   son:           { fr: "son",            en: "sound" },
   mode_sombre:   { fr: "mode sombre",    en: "dark mode" },
   langue:        { fr: "langue",         en: "language" },
-  recommencer:   { fr: "recommencer",    en: "restart" },
+  recommencer:   { fr: "Recommencer",    en: "Restart" },
   on:            { fr: "on",             en: "on" },
   off:           { fr: "off",            en: "off" },
   oui:           { fr: "oui",            en: "yes" },
@@ -519,12 +519,12 @@ const T = {
   une_piece:     { fr: "1 pièce",        en: "1 coin" },
   intro_tag:     { fr: "une pièce a tout commencé · un tour peut tout finir",
                    en: "one coin started it · one pull can end it" },
-  inserer_piece: { fr: "insérer la pièce", en: "insert the coin" },
+  inserer_piece: { fr: "Insérer la pièce", en: "Insert the coin" },
   disclaimer:    { fr: "argent fictif · aucun paiement réel",
                    en: "fake money · no real wagering" },
   // buy modal
-  ma_vie_improve:{ fr: "ma vie · améliorer",       en: "my life · upgrade" },
-  monte_classe:  { fr: "monte de classe sociale",  en: "climb a social class" },
+  ma_vie_improve:{ fr: "Ma vie · améliorer",       en: "My life · upgrade" },
+  monte_classe:  { fr: "Monte de classe sociale",  en: "Climb a social class" },
   cash:          { fr: "Cash",                     en: "Cash" },
   buy_explain:   { fr: "un nouveau palier remplace l'ancien",
                    en: "a new tier replaces the old one" },
@@ -542,9 +542,9 @@ const T = {
   sell_warn:     { fr: "la revente fait mal — tu repars de zéro dans la famille",
                    en: "selling hurts — you start from zero in this family" },
   // rules
-  comment:       { fr: "comment ça marche", en: "how it works" },
-  rules_short:   { fr: "mise · tire le levier · encaisse ou re-risque",
-                   en: "bet · pull the lever · cash in or re-risk" },
+  comment:       { fr: "Comment ça marche", en: "How it works" },
+  rules_short:   { fr: "Mise. Tire. Encaisse. Ou recommence.",
+                   en: "Bet. Pull. Cash in. Or restart." },
   symboles:      { fr: "symboles",          en: "symbols" },
   combinaisons:  { fr: "combinaisons",      en: "combinations" },
   c_3:           { fr: "3 identiques",      en: "3 of a kind" },
@@ -600,14 +600,14 @@ const T = {
   expl_broke:    { fr: "Plus une pièce. Si tu veux continuer, va dans MA VIE et vends un de tes biens.",
                    en: "Out of coins. If you want to keep going, open MA VIE and sell one of your assets." },
   // empire / game over
-  empire:        { fr: "EMPIRE",                                  en: "EMPIRE" },
+  empire:        { fr: "Empire",                                  en: "Empire" },
   empire_sub:    { fr: "la ville a ton nom",                      en: "the city bears your name" },
   empire_lead:   { fr: "Parti d'une pièce. Regarde-toi.",         en: "Started with one coin. Look at you now." },
   empire_tag:    { fr: "Ton nom est sur les murs.|La machine, elle, ne lit pas.",
                    en: "Your name is on the walls.|The machine, it doesn't read." },
   encore_tour:   { fr: "encore un tour",                          en: "one more pull" },
-  over:          { fr: "À SEC",                                   en: "BROKE" },
-  over_sub:      { fr: "tout est parti",                          en: "all gone" },
+  over:          { fr: "À sec",                                   en: "Broke" },
+  over_sub:      { fr: "Tout est parti",                          en: "All gone" },
   over_tag:      { fr: "Le bac est silencieux.|La machine, elle, est patiente.",
                    en: "The tray is silent.|The machine, it's patient." },
   // levelup
@@ -1429,7 +1429,7 @@ export default function LastCoin() {
 
       {screen === "pause" && (
         <Ovl><div className="lc-modal">
-          <div className="lc-mh">{t("pause").toUpperCase()}</div>
+          <div className="lc-mh">{t("pause")}</div>
           <p className="lc-ms">{t("niveau")} {level} · {socialClass} · {fmt(netWorth)}</p>
           {!confirmReset ? (
             <>
@@ -1587,7 +1587,7 @@ export default function LastCoin() {
       {overlay === "dev" && (
         <Ovl><div className="lc-modal wide">
           <p className="lc-el">{t("dev")}</p>
-          <div className="lc-en">DEV</div>
+          <div className="lc-en">Dev</div>
           <p className="lc-ms">{t("dev_lead")}</p>
           <div className="lc-devlist">
             <div className="lc-devgroup">
@@ -1778,7 +1778,7 @@ const CSS = `
 @keyframes burst{0%{opacity:0;transform:translate(-50%,0) scale(.4) rotate(0);}15%{opacity:1;}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),var(--dy)) scale(1) rotate(var(--rot));}}
 .lc-levelup{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:none;text-align:center;background:radial-gradient(circle at 50% 45%,rgba(250,250,250,.92),rgba(250,250,250,.55) 45%,rgba(255,255,255,0) 72%);animation:luwrap 2.1s ease forwards;}
 .lc-lu-l{font-size:11px;letter-spacing:6px;text-transform:uppercase;color:#505050;}
-.lc-lu-n{font-size:42px;font-weight:600;line-height:1.02;letter-spacing:2px;text-transform:uppercase;max-width:88vw;padding:0 16px;}
+.lc-lu-n{font-size:42px;font-weight:700;line-height:1.02;letter-spacing:2px;max-width:88vw;padding:0 16px;color:#141414;}
 .lc-lu-c{font-size:15px;letter-spacing:4px;text-transform:uppercase;margin-top:6px;}
 .lc-lu-p{font-size:11px;letter-spacing:1px;color:#555;margin-top:10px;}
 @keyframes luwrap{0%{opacity:0;transform:scale(.8);}12%{opacity:1;transform:scale(1.04);}24%{transform:scale(1);}74%{opacity:1;}100%{opacity:0;transform:scale(1.02);}}
