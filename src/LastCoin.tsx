@@ -880,14 +880,21 @@ export default function LastCoin() {
     }
 
     // narratif : punchline aleatoire selon la categorie du tirage (de temps en temps)
-    const cat = classifyForQuip(res, targets);
-    const proba = QUIP_P[cat] || 0.30;
-    if (cat && Math.random() < proba) {
-      const bag = N[lang][cat] || [];
-      if (bag.length) say(pick(bag));
-      else say("");
+    // 1er tirage de la partie : message fixe d'ouverture, peu importe le resultat
+    if (pulls === 0) {
+      say(lang === "fr"
+        ? "On dirait que le ciel t'a pas complètement abandonné."
+        : "Looks like the sky hasn't entirely abandoned you.");
     } else {
-      say("");
+      const cat = classifyForQuip(res, targets);
+      const proba = QUIP_P[cat] || 0.30;
+      if (cat && Math.random() < proba) {
+        const bag = N[lang][cat] || [];
+        if (bag.length) say(pick(bag));
+        else say("");
+      } else {
+        say("");
+      }
     }
   }, [income, pulls]);
 
