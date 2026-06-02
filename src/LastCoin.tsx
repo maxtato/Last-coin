@@ -1892,7 +1892,7 @@ const CSS = `
 .lc-modal.wide{max-width:460px;}
 @keyframes rs{from{transform:translateY(14px);opacity:0;}to{transform:none;opacity:1;}}
 .lc-mt{font-size:16px;font-weight:500;letter-spacing:9px;padding-left:9px;}
-.lc-mh{font-size:16px;font-weight:500;letter-spacing:6px;}
+.lc-mh{font-size:22px;font-weight:700;letter-spacing:6px;color:#141414;}
 .lc-ms{font-size:11px;letter-spacing:2px;color:#505050;margin:7px 0 18px;}
 .lc-mb{font-size:12px;letter-spacing:1px;color:#555;margin:8px 0 4px;}
 /* INTRO monumental */
