@@ -112,6 +112,8 @@ function evaluate(t) {
 
 // ===== Économie =====
 const SAVE_KEY = "lastcoin.v2";
+const BEST_KEY = "lastcoin.best";   // record persiste entre les runs (survit a newGame)
+function loadBest() { try { const r = localStorage.getItem(BEST_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
 const BET_STEPS = (() => { const out = []; for (let e = 0; e <= 12; e++) for (const u of [1, 2, 5]) out.push(u * 10 ** e); return out; })();
 function fmt(n) {
   n = Math.round(n);
@@ -497,6 +499,9 @@ const T = {
   tours_joues:   { fr: "tours joués",         en: "spins played" },
   plus_gros_gain:{ fr: "plus gros gain",      en: "biggest win" },
   peak_patrim:   { fr: "patrimoine peak",     en: "peak wealth" },
+  record:        { fr: "record (toutes parties)", en: "record (all runs)" },
+  record_patrim: { fr: "patrimoine peak",     en: "peak wealth" },
+  record_gain:   { fr: "plus gros gain",      en: "biggest win" },
   cartes_obt:    { fr: "cartes obtenues",     en: "cards earned" },
   net:           { fr: "net",                 en: "net" },
   // intro
@@ -680,6 +685,7 @@ export default function LastCoin() {
   const [repullAvail, setRepullAvail] = useState(false);                   // fenêtre de REPULL ouverte après le tour
   const [activeAbility, setActiveAbility] = useState(null);                // "hold" | "nudge" | "repull" | null — capacite armee depuis les boutons sous la machine
   const [stats, setStats] = useState(() => ({ ...STATS0, ...(init.stats || {}) }));
+  const [best, setBest] = useState(() => loadBest() || { peakWorth: 0, biggestWin: 0 });
   const [soundOn, setSoundOn] = useState(() => init.soundOn !== false);    // son ON par defaut
   const [lang, setLang] = useState(() => init.lang || "fr");                // "fr" | "en"
   const t = (k) => (T[k] && T[k][lang]) || k;                              // helper i18n
@@ -760,6 +766,19 @@ export default function LastCoin() {
   useEffect(() => {
     setStats((s) => (netWorth > s.peakWorth ? { ...s, peakWorth: netWorth } : s));
   }, [netWorth]);
+
+  // record persistant : met a jour le meilleur score si on bat le precedent
+  useEffect(() => {
+    setBest((b) => {
+      const next = {
+        peakWorth: Math.max(b.peakWorth, stats.peakWorth),
+        biggestWin: Math.max(b.biggestWin, stats.biggestWin),
+      };
+      if (next.peakWorth === b.peakWorth && next.biggestWin === b.biggestWin) return b;
+      try { localStorage.setItem(BEST_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, [stats.peakWorth, stats.biggestWin]);
 
   // fin de partie : à sec et plus rien à vendre
   useEffect(() => {
@@ -1420,6 +1439,11 @@ export default function LastCoin() {
                 <div className="lc-stat-row"><span>{t("peak_patrim")}</span><b>{fmt(stats.peakWorth)}</b></div>
                 <div className="lc-stat-row"><span>{t("cartes_obt")}</span><b>{stats.cardsEarned}</b></div>
               </div>
+              <div className="lc-statbox lc-record">
+                <div className="lc-recordhead">{t("record")}</div>
+                <div className="lc-stat-row"><span>{t("record_patrim")}</span><b>{fmt(best.peakWorth)}</b></div>
+                <div className="lc-stat-row"><span>{t("record_gain")}</span><b>{fmt(best.biggestWin)}</b></div>
+              </div>
               <div className="lc-menucol">
                 <button className="lc-btn" onClick={() => { setCheatSeq([]); setScreen("play"); }}>{t("reprendre")}</button>
                 <button className="lc-btn ghost" onClick={() => {
@@ -1524,7 +1548,7 @@ export default function LastCoin() {
               <div key={k} className="lc-rule">
                 <Ink k={k} size={26} />
                 <div className="lc-rule-txt">
-                  <b>{SYM_NAME[k]}{PAY3[k] && !NEG[k] && k !== "joker" ? " · 3× = ×" + PAY3[k] + (PAY2[k] ? " · 2× = ×" + PAY2[k] : "") : ""}</b>
+                  <b>{SYM_NAME[k]}{PAY3[k] && !NEG[k] && k !== "joker" ? <em className="lc-mult"> · 3× = ×{PAY3[k]}{PAY2[k] ? " · 2× = ×" + PAY2[k] : ""}</em> : null}</b>
                   <i>{desc}</i>
                 </div>
               </div>
@@ -1892,7 +1916,7 @@ const CSS = `
 .lc-modal.wide{max-width:460px;}
 @keyframes rs{from{transform:translateY(14px);opacity:0;}to{transform:none;opacity:1;}}
 .lc-mt{font-size:16px;font-weight:500;letter-spacing:9px;padding-left:9px;}
-.lc-mh{font-size:16px;font-weight:500;letter-spacing:6px;}
+.lc-mh{font-size:22px;font-weight:700;letter-spacing:6px;color:#141414;}
 .lc-ms{font-size:11px;letter-spacing:2px;color:#505050;margin:7px 0 18px;}
 .lc-mb{font-size:12px;letter-spacing:1px;color:#555;margin:8px 0 4px;}
 /* INTRO monumental */
@@ -1908,6 +1932,8 @@ const CSS = `
 .lc-confirm{font-size:14px;line-height:1.55;color:#141414;letter-spacing:.5px;text-align:center;margin:8px 0 26px;}
 .lc-finaltag{color:#141414;font-style:italic;letter-spacing:.4px;text-align:center;font-size:13px;line-height:1.55;margin:18px 0 28px;}
 .lc-statbox{display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid #ededed;padding:12px 14px;margin:14px 0 16px;background:#ffffff;}
+.lc-statbox.lc-record{border:1px solid #141414;margin-top:-4px;}
+.lc-recordhead{font-size:9px;letter-spacing:3px;color:#141414;text-transform:uppercase;font-weight:700;padding-bottom:4px;border-bottom:1px solid #ededed;margin-bottom:2px;}
 .lc-stat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:11px;letter-spacing:.5px;color:#444;}
 .lc-stat-row span{color:#5a5a5a;text-transform:uppercase;letter-spacing:1.5px;font-size:9px;}
 .lc-stat-row b{font-weight:600;font-size:13px;letter-spacing:.5px;color:#141414;}
@@ -1941,6 +1967,7 @@ const CSS = `
 .lc-rule{display:flex;align-items:center;gap:12px;padding:7px 2px;border-bottom:1px solid #f4f4f4;}
 .lc-rule-txt{display:flex;flex-direction:column;gap:2px;}
 .lc-rule-txt b{font-size:13px;font-weight:500;letter-spacing:.3px;}
+.lc-mult{font-style:normal;font-weight:400;font-size:11px;color:#7a7a7a;letter-spacing:.3px;}
 .lc-rule-txt i{font-style:normal;font-size:10.5px;color:#505050;line-height:1.3;}
 .lc-combo{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #f7f7f7;font-size:12px;}
 .lc-combo b{font-weight:500;}
