@@ -93,10 +93,10 @@ const SYM_INFO = {
 };
 
 // ===== Table de gains (multiplicateurs de mise) =====
-// 3 identiques (le joker complète) :  +~6% supplementaire pour viser RTP ~170%
-const PAY3 = { coin: 13, star: 18, house: 26, diamond: 40, crown: 135, bolt: 18, eye: 22, joker: 175 };
+// 3 identiques (le joker complète) :  RTP ~160% sur les valeurs (la frequence des gains est dans BAND_W)
+const PAY3 = { coin: 12, star: 17, house: 24, diamond: 37, crown: 127, bolt: 17, eye: 21, joker: 165 };
 // 2 identiques sans joker (petit gain) :
-const PAY2 = { coin: 2, star: 3, house: 4, diamond: 6, crown: 15, bolt: 3, eye: 3 };
+const PAY2 = { coin: 2, star: 3, house: 4, diamond: 5, crown: 14, bolt: 3, eye: 3 };
 const NEG = { skull: true, crack: true };           // symboles "danger"
 const PAY_ROW = ["coin", "star", "house", "diamond", "crown", "bolt", "eye"]; // affichés dans la mini-table
 
@@ -204,7 +204,9 @@ const classOf = (lvl) => {
 };
 
 // ===== Bandes fixes des rouleaux =====
-const BAND_W = { coin: 7, star: 4, house: 3, diamond: 3, bolt: 3, eye: 2, joker: 2, skull: 3, crack: 3, crown: 1 };
+// Frequences ajustees pour pousser la RTP vers ~170% : moins de symboles punitifs,
+// plus de symboles positifs (au lieu d'augmenter les payouts)
+const BAND_W = { coin: 8, star: 4, house: 3, diamond: 3, bolt: 3, eye: 2, joker: 2, skull: 2, crack: 2, crown: 1 };
 const BAND_ALL = Object.keys(BAND_W);
 const POOL = (() => { const p = []; BAND_ALL.forEach((k) => { for (let i = 0; i < BAND_W[k]; i++) p.push(k); }); return p; })();
 const pick = (p) => p[(Math.random() * p.length) | 0];
