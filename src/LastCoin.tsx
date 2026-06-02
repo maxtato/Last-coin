@@ -1331,17 +1331,6 @@ export default function LastCoin() {
       </div>
       </div>
 
-      <div className="lc-readout">
-        {gameOver
-          ? <span className="lc-neg">{t("broken_msg")}</span>
-          : (bet < 1 && hasAssets && screen === "play")
-          ? <span className="lc-neg">{t("broke_msg")}</span>
-          : (lastWin && lastWin.neg) ? <span className="lc-neg">{
-              lastWin.neg === "skull" ? (lastWin.count === 3 ? t("skull_3_msg") : t("skull_2_msg"))
-                                      : (lastWin.count === 3 ? t("crack_3_msg") : t("crack_2_msg"))
-            }</span>
-          : null}
-      </div>
 
       {(holdCharges > 0 || nudgeCharges > 0 || repullCharges > 0 || held.some(Boolean)) && (
         <div className="lc-abilities">
@@ -1868,7 +1857,6 @@ const CSS = `
 /* Boutons d'armement des capacites HOLD / NUDGE / REPULL sous la machine.
    Click pour activer -> les contreoles (tap rouleau / fleches / cercle) apparaissent dans la machine. */
 .lc-abilities{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:-14px;position:relative;z-index:2;}
-.lc-readout + .lc-ctrl{margin-top:-14px;}
 .lc-abil{display:flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;background:#fff;border:1px solid #141414;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;color:#141414;transition:background .12s,color .12s;}
 .lc-abil b{font-weight:600;letter-spacing:1.5px;}
 .lc-abil:hover:not(:disabled){background:#ffffff;}
@@ -1878,7 +1866,6 @@ const CSS = `
 .lc-crow{display:flex;gap:12px;justify-content:center;}
 .lc-btn.ghost{background:#fff;color:#141414;}
 .lc-btn.ghost:hover{background:#141414;color:#fff;}
-.lc-readout{height:38px;display:flex;align-items:center;justify-content:center;text-align:center;padding:3px 16px;position:relative;z-index:2;}
 .lc-win{font-size:25px;font-weight:300;letter-spacing:1px;}
 .lc-win.big{font-weight:500;}
 .lc-lose{font-size:22px;color:#909090;}
