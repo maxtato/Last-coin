@@ -1967,7 +1967,7 @@ const CSS = `
 .lc-rule{display:flex;align-items:center;gap:12px;padding:7px 2px;border-bottom:1px solid #f4f4f4;}
 .lc-rule-txt{display:flex;flex-direction:column;gap:2px;}
 .lc-rule-txt b{font-size:13px;font-weight:500;letter-spacing:.3px;}
-.lc-mult{font-style:normal;font-weight:400;font-size:11px;color:#7a7a7a;letter-spacing:.3px;}
+.lc-mult{font-style:normal;font-weight:400;font-size:11px;color:#141414;letter-spacing:.3px;}
 .lc-rule-txt i{font-style:normal;font-size:10.5px;color:#505050;line-height:1.3;}
 .lc-combo{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #f7f7f7;font-size:12px;}
 .lc-combo b{font-weight:500;}
