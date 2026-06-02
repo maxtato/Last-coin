@@ -498,9 +498,9 @@ const T = {
   // stats labels
   tours_joues:   { fr: "tours joués",         en: "spins played" },
   plus_gros_gain:{ fr: "plus gros gain",      en: "biggest win" },
-  peak_patrim:   { fr: "patrimoine peak",     en: "peak wealth" },
+  peak_patrim:   { fr: "record de patrimoine",     en: "wealth record" },
   record:        { fr: "record (toutes parties)", en: "record (all runs)" },
-  record_patrim: { fr: "patrimoine peak",     en: "peak wealth" },
+  record_patrim: { fr: "record de patrimoine",     en: "wealth record" },
   record_gain:   { fr: "plus gros gain",      en: "biggest win" },
   cartes_obt:    { fr: "cartes obtenues",     en: "cards earned" },
   net:           { fr: "net",                 en: "net" },
