@@ -1979,8 +1979,8 @@ const CSS = `
 .lc-rule-txt{display:flex;flex-direction:column;gap:2px;}
 .lc-rule-txt b{font-size:13px;font-weight:500;letter-spacing:.3px;}
 .lc-mult{font-style:normal;font-weight:400;font-size:11px;color:#909090;letter-spacing:.3px;}
-.lc-mv{font-weight:400;font-size:inherit;letter-spacing:inherit;color:#141414;}
-.lc-bold{font-weight:400;color:#141414;font-style:normal;font-size:inherit;letter-spacing:inherit;}
+.lc-rule-txt .lc-mv{font-weight:400;font-size:inherit;letter-spacing:inherit;color:#141414;}
+.lc-rule-txt .lc-bold{font-weight:400;color:#141414;font-style:normal;font-size:inherit;letter-spacing:inherit;}
 .lc-rule-txt i{font-style:normal;font-size:10.5px;color:#909090;line-height:1.3;}
 .lc-combo{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #f7f7f7;font-size:12px;}
 .lc-combo b{font-weight:500;}
