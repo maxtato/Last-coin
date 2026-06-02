@@ -1333,8 +1333,8 @@ export default function LastCoin() {
 
       <div className="lc-spacer" aria-hidden="true" />
 
-      {(holdCharges > 0 || nudgeCharges > 0 || repullCharges > 0 || held.some(Boolean)) && (
-        <div className="lc-abilities">
+      <div className="lc-abilities">
+        {(holdCharges > 0 || nudgeCharges > 0 || repullCharges > 0 || held.some(Boolean)) && (<>
           {holdCharges > 0 && (
             <button
               className={"lc-abil" + (activeAbility === "hold" ? " on" : "")}
@@ -1368,8 +1368,8 @@ export default function LastCoin() {
               <span><b>REPULL</b> ×{repullCharges}</span>
             </button>
           )}
-        </div>
-      )}
+        </>)}
+      </div>
       <div className="lc-ctrl">
         {!gameOver && (
           <div className="lc-betwrap">
@@ -1857,7 +1857,7 @@ const CSS = `
 @keyframes pullbob{0%,100%{transform:translateY(-6%);opacity:.55;}50%{transform:translateY(15%);opacity:.95;}}
 /* Boutons d'armement des capacites HOLD / NUDGE / REPULL sous la machine.
    Click pour activer -> les contreoles (tap rouleau / fleches / cercle) apparaissent dans la machine. */
-.lc-abilities{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:-14px;position:relative;z-index:2;}
+.lc-abilities{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:-14px;min-height:30px;position:relative;z-index:2;}
 .lc-spacer{height:38px;}
 .lc-spacer + .lc-ctrl{margin-top:-14px;}
 .lc-abil{display:flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;background:#fff;border:1px solid #141414;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;color:#141414;transition:background .12s,color .12s;}
