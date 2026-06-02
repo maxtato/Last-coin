@@ -399,6 +399,117 @@ const QUIPS_FR = {
     "Fin de run. Elle aura tenu plus longtemps que toi.",
   ],
 };
+const QUIPS_EN = {
+  perte: [
+    "Nice. You just funded the machine.",
+    "Bet vanishes. Surprising.",
+    "Nothing. Not even a tiny effort.",
+    "The machine keeps it all, as planned.",
+    "You pay to watch reels spin.",
+    "Zero gain. Beautiful optimization.",
+    "Your bet moved out.",
+    "Nothing drops. Except your balance.",
+    "Another brilliant decision.",
+    "The machine thanks you for the donation.",
+  ],
+  petit: [
+    "You almost won something.",
+    "Incredible. A few coins.",
+    "Barely covers the mistake.",
+    "Small win, big illusion.",
+    "You can replay and lose again.",
+    "The machine took pity. A little.",
+    "Not rich, just less ridiculous.",
+    "The bare minimum.",
+    "It pays for the lever's noise.",
+    "You move forward half a millimeter.",
+  ],
+  moyen: [
+    "Ah, finally something that pays.",
+    "Not bad. The machine made a mistake.",
+    "You recover a little dignity.",
+    "There. That looks like a win.",
+    "Your bet comes back with friends.",
+    "Decent. Don't get cocky.",
+    "You just earned the right to try worse.",
+    "Balance up, ego too. Bad idea.",
+    "It pays. For once.",
+    "The machine drops cash under duress.",
+  ],
+  gros: [
+    "Now it's less embarrassing.",
+    "Nice shot. Try not to give it all back.",
+    "The machine just missed.",
+    "Your balance breathes. Briefly.",
+    "Big win. Bad news for your caution.",
+    "You just won enough to get dangerous.",
+    "The drawer finally spits something useful.",
+    "Good. Now you'll think you've got it.",
+    "Going up. Stay calm — impossible, then.",
+    "Cash comes back, wisdom doesn't.",
+  ],
+  tres_gros: [
+    "Big hit. The machine must be sick.",
+    "Even your banker blinks now.",
+    "You turned a bad idea into money.",
+    "Lovely statistical miracle.",
+    "You won way too much to stay careful.",
+    "The game just told you to do anything.",
+    "Climbing fast. The fall will have style.",
+    "The machine pays. Enjoy — it'll remember.",
+    "Smells like overconfidence.",
+    "Very big win. Very bad influence.",
+  ],
+  jackpot: [
+    "Jackpot. You'll become unbearable.",
+    "There. Now you think you're a genius.",
+    "The machine just lost patience.",
+    "Big jackpot. Bad lesson learned.",
+    "You beat the odds and common sense.",
+    "Drawer overflows, so does your calm.",
+    "Jackpot. Don't pretend you planned it.",
+    "Huge win. Caution leaves the room.",
+    "Congrats. You're officially dangerous.",
+    "Machine releases everything. Industrial accident.",
+  ],
+  skull1: [
+    "Bad sign. Keep going, obviously.",
+    "A skull. Wholesome vibe.",
+    "Small reminder that all can end badly.",
+    "Nothing blows up. Not yet.",
+  ],
+  skull2: [
+    "Half your cash vanishes. Clean.",
+    "50% cash lost. Exemplary management.",
+    "Your balance just got cut in half.",
+    "Half ruin. Progress.",
+  ],
+  skull3: [
+    "All your cash and wealth blown.",
+    "Total ruin. Beautiful performance.",
+    "Nothing left. Even the machine finds it harsh.",
+    "Cash gone, wealth gone, ego bruised.",
+  ],
+  crack1: [
+    "A crack. The machine judges your choice.",
+    "It cracks. Like your strategy.",
+    "First warning, free. Rare.",
+    "The machine takes it. For now.",
+  ],
+  crack2: [
+    "25% cash lost. Stings.",
+    "A quarter vanishes. Profitable choice.",
+    "25% less cash. Thanks, fissure.",
+    "Machine cracks, so does your balance.",
+    "Quarter cash lost. Simple, clean, humiliating.",
+  ],
+  crack3: [
+    "Machine broken. Game over.",
+    "Three cracks. Curtain.",
+    "The machine gives up. Score saved.",
+    "End of run. It lasted longer than you.",
+  ],
+};
 const N = {
   fr: {
     ...QUIPS_FR,
@@ -414,10 +525,8 @@ const N = {
       7: "La ville murmure ton nom. La machine veut encore une pièce.",
     },
   },
-  // Pour l'instant les punchlines de tirage sont en FR meme en mode EN
-  // (le commentaire dit "interface en francais, repliques en anglais" mais les nouvelles repliques sont en FR uniquement)
   en: {
-    ...QUIPS_FR,
+    ...QUIPS_EN,
     buy:     ["You buy a piece of a life.", "It changes nothing. It changes everything.", "One more object to feel alive."],
     sell:    ["You sell what you bought to feel alive.", "Walking it back. It hurts where it should."],
     classUp: {
@@ -470,6 +579,10 @@ const QUIP_P = {
 const T = {
   // header
   argent:        { fr: "argent",         en: "money" },
+  pull_lever:    { fr: "tire le levier",  en: "pull the lever" },
+  nudge_up:      { fr: "nudge haut",      en: "nudge up" },
+  nudge_down:    { fr: "nudge bas",       en: "nudge down" },
+  repull_aria:   { fr: "rejouer ce rouleau", en: "re-spin this reel" },
   niveau:        { fr: "niveau",         en: "level" },
   par_tour:      { fr: "/tour",          en: "/spin" },
   // status readouts
@@ -1249,7 +1362,7 @@ export default function LastCoin() {
               <button
                 className="lc-nudgebtn up"
                 onClick={() => nudge(r, +1)}
-                aria-label="nudge haut"
+                aria-label={t("nudge_up")}
                 style={{ left: R.l + "%", top: (WIN_TOP - 9) + "%", width: R.w + "%" }}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15 L12 8 L19 15" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" strokeLinejoin="miter" /></svg>
@@ -1257,7 +1370,7 @@ export default function LastCoin() {
               <button
                 className="lc-nudgebtn dn"
                 onClick={() => nudge(r, -1)}
-                aria-label="nudge bas"
+                aria-label={t("nudge_down")}
                 style={{ left: R.l + "%", top: (WIN_TOP + WIN_H + 2) + "%", width: R.w + "%" }}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9 L12 16 L19 9" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="square" strokeLinejoin="miter" /></svg>
@@ -1275,7 +1388,7 @@ export default function LastCoin() {
               key={"rb" + r}
               className="lc-repullbtn"
               onClick={(e) => { e.stopPropagation(); repull(r); }}
-              aria-label="rejouer ce rouleau"
+              aria-label={t("repull_aria")}
               style={{ left: (R.l + R.w / 2) + "%", top: (WIN_TOP - 1) + "%" }}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1327,7 +1440,7 @@ export default function LastCoin() {
             </svg>
           </div>
         )}
-        <button className="lc-lever" onClick={spin} disabled={spinning || gameOver} title="tire le levier" aria-label="pull" />
+        <button className="lc-lever" onClick={spin} disabled={spinning || gameOver} title={t("pull_lever")} aria-label="pull" />
       </div>
       </div>
 
