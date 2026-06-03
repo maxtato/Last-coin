@@ -1522,7 +1522,7 @@ export default function LastCoin() {
       </div>
 
       {screen === "intro" && (
-        <Ovl><div className="lc-modal intro">
+        <Ovl kind="intro"><div className="lc-modal intro">
           <div className="lc-mt-big">ONE MORE<br/>PULL</div>
           <p className="lc-ms-big">{t("derniere_piece")}</p>
           <div className="lc-intro-body">
@@ -1811,5 +1811,5 @@ export default function LastCoin() {
     </div>
   );
 }
-function Ovl({ children }) { return <div className="lc-ovl">{children}</div>; }
+function Ovl({ children, kind }) { return <div className={"lc-ovl" + (kind ? " lc-ovl-" + kind : "")}>{children}</div>; }
 
