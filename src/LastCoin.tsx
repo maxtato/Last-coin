@@ -624,6 +624,7 @@ const T = {
   record_patrim: { fr: "record de patrimoine",     en: "wealth record" },
   record_gain:   { fr: "plus gros gain",      en: "biggest win" },
   cartes_obt:    { fr: "cartes obtenues",     en: "cards earned" },
+  statut_social: { fr: "statut social",       en: "social status" },
   net:           { fr: "net",                 en: "net" },
   // intro
   last_coin:     { fr: "ONE MORE PULL", en: "ONE MORE PULL" },
@@ -750,7 +751,7 @@ const T = {
 };
 
 // stats agregees sur la partie : alimentees par les hooks de gameplay, persistees, affichees pause/over/empire
-const STATS0 = { biggestWin: 0, peakWorth: 0, cardsEarned: 0, totalBet: 0, totalWon: 0 };
+const STATS0 = { biggestWin: 0, peakWorth: 0, cardsEarned: 0, totalBet: 0, totalWon: 0, peakClass: 0 };
 
 export default function LastCoin() {
   const initRef = useRef(null);
@@ -809,7 +810,7 @@ export default function LastCoin() {
   const [repullAvail, setRepullAvail] = useState(false);                   // fenêtre de REPULL ouverte après le tour
   const [activeAbility, setActiveAbility] = useState(null);                // "hold" | "nudge" | "repull" | null — capacite armee depuis les boutons sous la machine
   const [stats, setStats] = useState(() => ({ ...STATS0, ...(init.stats || {}) }));
-  const [best, setBest] = useState(() => loadBest() || { peakWorth: 0, biggestWin: 0 });
+  const [best, setBest] = useState(() => loadBest() || { peakWorth: 0, biggestWin: 0, peakClass: 0 });
   const [soundOn, setSoundOn] = useState(() => init.soundOn !== false);    // son ON par defaut
   const [lang, setLang] = useState(() => init.lang || "fr");                // "fr" | "en"
   const t = (k) => (T[k] && T[k][lang]) || k;                              // helper i18n
@@ -886,10 +887,15 @@ export default function LastCoin() {
     try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked, started })); } catch {}
   }, [cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked, started]);
 
-  // peak du patrimoine : suivi en permanence des qu'il monte (acceuil cash + achats)
+  // peak du patrimoine + peak de classe sociale : suivi continu
   useEffect(() => {
-    setStats((s) => (netWorth > s.peakWorth ? { ...s, peakWorth: netWorth } : s));
-  }, [netWorth]);
+    setStats((s) => {
+      const nextPeak = Math.max(s.peakWorth, netWorth);
+      const nextClass = Math.max(s.peakClass, classIdx);
+      if (nextPeak === s.peakWorth && nextClass === s.peakClass) return s;
+      return { ...s, peakWorth: nextPeak, peakClass: nextClass };
+    });
+  }, [netWorth, classIdx]);
 
   // record persistant : met a jour le meilleur score si on bat le precedent
   useEffect(() => {
@@ -897,12 +903,13 @@ export default function LastCoin() {
       const next = {
         peakWorth: Math.max(b.peakWorth, stats.peakWorth),
         biggestWin: Math.max(b.biggestWin, stats.biggestWin),
+        peakClass: Math.max(b.peakClass || 0, stats.peakClass),
       };
-      if (next.peakWorth === b.peakWorth && next.biggestWin === b.biggestWin) return b;
+      if (next.peakWorth === b.peakWorth && next.biggestWin === b.biggestWin && next.peakClass === (b.peakClass || 0)) return b;
       try { localStorage.setItem(BEST_KEY, JSON.stringify(next)); } catch {}
       return next;
     });
-  }, [stats.peakWorth, stats.biggestWin]);
+  }, [stats.peakWorth, stats.biggestWin, stats.peakClass]);
 
   // fin de partie : à sec et plus rien à vendre
   useEffect(() => {
@@ -1554,12 +1561,14 @@ export default function LastCoin() {
                 <div className="lc-stat-row"><span>{t("tours_joues")}</span><b>{pulls}</b></div>
                 <div className="lc-stat-row"><span>{t("plus_gros_gain")}</span><b>{fmt(stats.biggestWin)}</b></div>
                 <div className="lc-stat-row"><span>{t("peak_patrim")}</span><b>{fmt(stats.peakWorth)}</b></div>
+                <div className="lc-stat-row"><span>{t("statut_social")}</span><b>{CLASSES[lang][stats.peakClass || 0]}</b></div>
                 <div className="lc-stat-row"><span>{t("cartes_obt")}</span><b>{stats.cardsEarned}</b></div>
               </div>
               <div className="lc-statbox lc-record">
                 <div className="lc-recordhead">{t("record")}</div>
                 <div className="lc-stat-row"><span>{t("record_patrim")}</span><b>{fmt(best.peakWorth)}</b></div>
                 <div className="lc-stat-row"><span>{t("record_gain")}</span><b>{fmt(best.biggestWin)}</b></div>
+                <div className="lc-stat-row"><span>{t("statut_social")}</span><b>{CLASSES[lang][best.peakClass || 0]}</b></div>
               </div>
               <div className="lc-menucol">
                 <button className="lc-btn" onClick={() => { setCheatSeq([]); setScreen("play"); }}>{t("reprendre")}</button>
