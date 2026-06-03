@@ -757,7 +757,10 @@ export default function LastCoin() {
   if (!initRef.current) initRef.current = loadSave() || {};
   const init = initRef.current;
 
-  const [screen, setScreen] = useState(() => (init.cash != null ? "play" : "intro"));
+  // started = a clique sur 'inserer la piece' au moins une fois. Tant que false,
+  // l'intro s'affiche meme si l'auto-save a deja persiste l'etat initial.
+  const [started, setStarted] = useState(() => !!init.started);
+  const [screen, setScreen] = useState(() => (init.started ? "play" : "intro"));
   const [cash, setCash] = useState(() => (init.cash != null ? init.cash : 1));
   const [lvl, setLvl] = useState(() => ({ ...FAM0, ...(init.lvl || {}) }));
   const [charms, setCharms] = useState(() => ({ ...CHARMS_0, ...(init.charms || {}) }));   // porte-bonheur achetes
@@ -880,8 +883,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked })); } catch {}
-  }, [cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked, started })); } catch {}
+  }, [cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked, started]);
 
   // peak du patrimoine : suivi en permanence des qu'il monte (acceuil cash + achats)
   useEffect(() => {
@@ -929,7 +932,7 @@ export default function LastCoin() {
     setActiveAbility(null);
     setStats({ ...STATS0 });
     setCardNotif(null); setLevelUp(null); setBurst(null); setWinFx(null);
-    setOverlay(null); setConfirmReset(false); setScreen("intro");   // repasse par l'intro pour rappeler le contexte
+    setOverlay(null); setConfirmReset(false); setStarted(false); setScreen("intro");   // repasse par l'intro pour rappeler le contexte
   };
 
   const resolveAll = useCallback((targets, spend, lk, snap) => {
@@ -1256,7 +1259,6 @@ export default function LastCoin() {
 
   return (
     <div className="lc">
-      <style>{CSS}</style>
 
       <div className="lc-bar">
         <div className="lc-cash">
@@ -1533,7 +1535,7 @@ export default function LastCoin() {
             <span>{t("il_te_reste")}</span>
             <b>{t("une_piece")}</b>
           </div>
-          <button className="lc-btn big" onClick={() => setScreen("play")}>{t("inserer_piece")}</button>
+          <button className="lc-btn big" onClick={() => { setStarted(true); setScreen("play"); }}>{t("inserer_piece")}</button>
           <p className="lc-disc">{t("disclaimer")}</p>
         </div></Ovl>
       )}
@@ -1811,283 +1813,3 @@ export default function LastCoin() {
 }
 function Ovl({ children }) { return <div className="lc-ovl">{children}</div>; }
 
-const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap');
-*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent;}
-.lc{min-height:100vh;width:100%;background:#ffffff;color:#141414;display:flex;flex-direction:column;
-  align-items:center;justify-content:flex-start;gap:13px;padding:22px 20px 44px;overflow-x:hidden;
-  font-family:'Jost',-apple-system,sans-serif;font-weight:300;}
-.lc-bar{width:100%;max-width:330px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:flex-start;gap:12px;}
-.lc-barleft{display:flex;align-items:flex-start;gap:11px;}
-.lc-bar-actions{display:flex;gap:6px;align-items:center;align-self:center;}
-.lc-menu{display:flex;gap:3px;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;padding:0;flex-shrink:0;transition:.15s;}
-.lc-menu i{width:3px;height:11px;background:#141414;display:block;transition:.15s;}
-.lc-menu:hover{background:#141414;}
-.lc-menu:hover i{background:#fff;}
-.lc-dev{width:28px;height:28px;border:1px dashed #141414;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;color:#141414;font-family:inherit;flex-shrink:0;transition:.15s;}
-.lc-dev svg{width:14px;height:14px;display:block;}
-.lc-dev:hover{background:#141414;color:#fff;}
-.lc-devlist{display:flex;flex-direction:column;gap:14px;text-align:left;margin:14px 0 20px;}
-.lc-devheader{font-size:9px;letter-spacing:3px;color:#5e5e5e;text-transform:uppercase;padding:4px 0 5px;border-bottom:1px solid #f0f0f0;margin-bottom:8px;}
-.lc-devbtns{display:flex;gap:6px;flex-wrap:wrap;}
-.lc-devbtns button{background:none;border:1px solid #d9d9d9;color:#555;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;padding:6px 10px;transition:.15s;}
-.lc-devbtns button:hover{border-color:#141414;color:#141414;background:#ffffff;}
-.lc-menucol{display:flex;flex-direction:column;gap:10px;align-items:center;margin:4px 0 2px;}
-.lc-menucol .lc-btn{width:220px;min-width:0;padding:11px 0;text-align:center;letter-spacing:4px;}
-.lc-cash{display:flex;flex-direction:column;align-items:flex-start;position:relative;}
-.lc-cash>i{font-style:normal;font-size:9px;letter-spacing:2px;color:#585858;text-transform:uppercase;}
-.lc-cash b{font-weight:600;font-size:27px;letter-spacing:1px;line-height:1.02;}
-/* Animation 'evaporation' : montant rouge qui flotte au-dessus du cash et fade out */
-/* Conteneur de la ligne 'argent' : flex en ligne pour ancrer le delta a droite du montant */
-.lc-cashrow{position:relative;display:inline-flex;align-items:flex-end;}
-/* Montant perdu : apparait a droite du cash, monte et fade out */
-.lc-cashloss{position:absolute;left:100%;bottom:0;margin-left:10px;font-weight:600;font-size:15px;letter-spacing:.5px;color:#141414;pointer-events:none;animation:cashrise 1.4s cubic-bezier(.2,.6,.3,1) forwards;white-space:nowrap;}
-@keyframes cashrise{0%{opacity:0;transform:translateY(8px);}15%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-30px);}}
-.lc-cash>em{font-style:normal;font-size:10px;color:#5a5a5a;letter-spacing:.5px;margin-top:2px;}
-.lc-level{display:flex;flex-direction:column;align-items:flex-end;text-align:right;}
-.lc-level>i{font-style:normal;font-size:9px;letter-spacing:2px;color:#585858;text-transform:uppercase;}
-.lc-level>b{font-weight:600;font-size:14.5px;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1;margin-top:1px;}
-.lc-pips{display:flex;gap:4px;margin-top:7px;}
-.lc-pip{width:8px;height:8px;transform:rotate(45deg);border:1px solid #d2d2d2;}
-.lc-pip.on{background:#141414;border-color:#141414;}
-.lc-head{text-align:center;margin-top:18px;}
-/* Petit panneau d'explication affiche au-dessus de la machine quand une capacite (HOLD/NUDGE/REPULL) est armee */
-/* Panneau d'explication en overlay : ne decale pas la mise en page, flotte au-dessus de la machine */
-.lc-ability-expl{position:fixed;left:50%;top:14%;transform:translateX(-50%);max-width:320px;width:calc(100% - 40px);background:#141414;color:#ffffff;padding:10px 16px;font-size:11px;letter-spacing:.5px;line-height:1.45;text-align:center;animation:expop .22s ease-out;z-index:30;box-shadow:0 4px 16px rgba(20,20,20,.18);pointer-events:none;}
-@keyframes expop{from{opacity:0;transform:translate(-50%,-6px);}to{opacity:1;transform:translate(-50%,0);}}
-.lc-over-reason{font-size:11px;letter-spacing:2px;color:#5a5a5a;text-transform:uppercase;margin-top:-4px;margin-bottom:6px;}
-.lc-mark{font-size:18px;font-weight:500;letter-spacing:9px;padding-left:9px;}
-/* punchline ironique sous le titre, hauteur fixe pour eviter les sauts de layout */
-.lc-quip{font-size:11px;letter-spacing:.5px;color:#454545;font-style:italic;line-height:1.35;margin:6px auto 0;max-width:300px;min-height:30px;padding:0 12px;}
-.lc-top{display:flex;gap:26px;align-items:flex-end;justify-content:center;flex-wrap:wrap;}
-.lc-stat{display:flex;flex-direction:column;align-items:center;gap:2px;}
-.lc-stat i{font-style:normal;font-size:9px;letter-spacing:2px;color:#585858;text-transform:uppercase;}
-.lc-stat b{font-weight:400;font-size:16px;letter-spacing:1px;}
-.lc-stat.big b{font-size:24px;font-weight:500;}
-.lc-stage{width:100%;max-width:300px;position:relative;}
-/* Table/socle sur lequel repose la machine, change avec la classe sociale */
-.lc-table{position:absolute;left:50%;bottom:-40%;transform:translateX(-50%);width:162%;height:auto;pointer-events:none;z-index:0;user-select:none;}
-/* Degrade : court, au-dessus de la table. La partie blanche ne va pas plus bas que les boutons Acheter/Ma vie. */
-.lc-table-fade{position:absolute;left:-70%;right:-70%;width:240%;bottom:-78%;height:75%;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,#ffffff 18%,#ffffff 100%);pointer-events:none;}
-/* A la rue (carton garage) : un poil plus grande */
-.lc-table.t0{bottom:-8%;width:148%;}
-/* Survie : palette neuve centree */
-.lc-table.t1{bottom:-26%;}
-/* Precaire : remonte un poil */
-.lc-table.t2{bottom:-35%;width:148%;}
-/* Classe moyenne : descend + plus grande */
-.lc-table.t3{bottom:-54%;width:174%;}
-/* Aise : encore plus grande */
-.lc-table.t4{bottom:-72%;width:195%;}
-/* Riche : table marbre simple */
-.lc-table.t5{bottom:-34%;width:190%;}
-/* Grande fortune : utilise l'ancienne image riche, garde son ancienne position */
-.lc-table.t6{bottom:-49%;width:230%;}
-/* Empire : plus grande + descend */
-.lc-table.t7{bottom:-46%;width:220%;left:46%;}
-/* Bascule seche gauche-droite quand le levier est tire */
-.lc-machine.shake{animation:rocker .26s cubic-bezier(.3,.7,.4,1);transform-origin:50% 100%;}
-@keyframes rocker{0%{transform:rotate(0);}22%{transform:rotate(-.55deg);}50%{transform:rotate(.45deg);}78%{transform:rotate(-.15deg);}100%{transform:rotate(0);}}
-.lc-machine{position:relative;width:100%;user-select:none;}
-.lc-burst{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:5;}
-.lc-cn{position:absolute;left:50%;top:74%;font-weight:700;color:#141414;text-shadow:0 0 3px #fff,0 0 2px #fff;transform:translate(-50%,0) scale(.4);opacity:0;animation:burst 1.2s ease-out forwards;will-change:transform,opacity;}
-@keyframes burst{0%{opacity:0;transform:translate(-50%,0) scale(.4) rotate(0);}15%{opacity:1;}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),var(--dy)) scale(1) rotate(var(--rot));}}
-.lc-levelup{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:none;text-align:center;background:radial-gradient(circle at 50% 45%,rgba(250,250,250,.92),rgba(250,250,250,.55) 45%,rgba(255,255,255,0) 72%);animation:luwrap 2.1s ease forwards;}
-.lc-lu-l{font-size:11px;letter-spacing:6px;text-transform:uppercase;color:#505050;}
-.lc-lu-n{font-size:42px;font-weight:700;line-height:1.02;letter-spacing:2px;text-transform:uppercase;max-width:88vw;padding:0 16px;color:#141414;}
-.lc-lu-c{font-size:15px;letter-spacing:4px;text-transform:uppercase;margin-top:6px;}
-.lc-lu-p{font-size:11px;letter-spacing:1px;color:#555;margin-top:10px;}
-@keyframes luwrap{0%{opacity:0;transform:scale(.8);}12%{opacity:1;transform:scale(1.04);}24%{transform:scale(1);}74%{opacity:1;}100%{opacity:0;transform:scale(1.02);}}
-.lc-cardnotif{position:fixed;left:50%;top:28%;transform:translateX(-50%);z-index:38;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #141414;padding:12px 20px 12px 18px;pointer-events:none;animation:cardpop 2.4s cubic-bezier(.2,.9,.2,1) forwards;box-shadow:0 4px 20px rgba(20,20,20,.15);}
-.lc-cn-body{display:flex;flex-direction:column;align-items:flex-start;gap:2px;}
-.lc-cn-l{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#505050;}
-.lc-cn-n{font-size:22px;font-weight:600;letter-spacing:1px;line-height:1;}
-@keyframes cardpop{0%{opacity:0;transform:translate(-50%,18px) scale(.9);}10%{opacity:1;transform:translate(-50%,0) scale(1.06);}22%{transform:translate(-50%,0) scale(1);}82%{opacity:1;transform:translate(-50%,0) scale(1);}100%{opacity:0;transform:translate(-50%,-8px) scale(1);}}
-.lc-img{width:100%;height:100%;display:block;pointer-events:none;}
-.lc-sp{position:absolute;pointer-events:none;transition:opacity .12s ease;}
-.lc-dome{position:absolute;left:35%;top:0;width:30%;height:18%;border-radius:50%;opacity:0;pointer-events:none;z-index:4;
-  background:radial-gradient(circle,rgba(120,120,120,.35),rgba(120,120,120,0) 68%);}
-.lc-dome.on{animation:domeglow 1.1s ease-in-out infinite;}
-@keyframes domeglow{0%,100%{opacity:0;}50%{opacity:1;}}
-.lc-gyrocoin{position:absolute;left:50.1%;top:6.9%;transform:translate(-50%,-50%);z-index:4;pointer-events:none;}
-/* Porte-bonheur achetes : illustrations gravees PNG, aspect-ratio conserve via width seul */
-.lc-charm{position:absolute;pointer-events:none;z-index:4;display:block;}
-.lc-charm.horseshoe{top:12%;left:61%;width:21%;height:auto;}
-.lc-charm.rabbit{top:36%;left:0%;width:14%;height:auto;}
-.lc-charm.clover{top:66%;left:55%;width:14%;height:auto;transform:rotate(-6deg);}
-/* Au repos : globe en verre vide (opacity 0). Sur gain : fondu in, pulse, fondu out. */
-.lc-gc{position:absolute;left:0;top:0;width:100%;height:88%;border-radius:50% 50% 6% 6%;filter:blur(1px);transform:scale(.85);transform-origin:50% 100%;opacity:0;
-  background:radial-gradient(60% 50% at 50% 70%,rgba(20,20,20,.85),rgba(20,20,20,.5) 60%,rgba(20,20,20,0) 100%);}
-.lc-gyrocoin.on .lc-gc{animation:gyrofade 5s ease-out, domepulse .55s ease-in-out infinite;}
-@keyframes gyrofade{0%{opacity:0;}10%{opacity:1;}86%{opacity:1;}100%{opacity:0;}}
-@keyframes domepulse{0%,100%{transform:scale(.85);}50%{transform:scale(1.08);}}
-.lc-rays{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;z-index:4;}
-.lc-rays.on{animation:raysflash .5s ease-in-out infinite;}
-.lc-raygrp{transform-origin:361px 50px;transform-box:view-box;}
-.lc-rays.on .lc-raygrp{animation:raysstretch .5s ease-in-out infinite;}
-@keyframes raysflash{0%,100%{opacity:.18;}50%{opacity:1;}}
-@keyframes raysstretch{0%,100%{transform:scale(1);}50%{transform:scale(1.22);}}
-.lc-payout{position:absolute;left:50%;top:85%;transform:translateX(-50%);z-index:5;pointer-events:none;display:flex;align-items:center;justify-content:center;}
-.lc-pamt{position:relative;font-weight:600;letter-spacing:.5px;color:#fff;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 2px rgba(0,0,0,.75);animation:pamt 2.4s ease-out forwards;}
-@keyframes pamt{0%{opacity:0;transform:translateY(8px) scale(.8);}8%{opacity:1;transform:translateY(0) scale(1.14);}16%{transform:translateY(0) scale(1);}68%{opacity:1;transform:translateY(-3px) scale(1);}100%{opacity:0;transform:translateY(-42px) scale(1);}}
-.lc-ring{position:absolute;width:2.4em;height:2.4em;border:1px solid rgba(255,255,255,.7);border-radius:50%;animation:pring 1s ease-out forwards;}
-@keyframes pring{0%{opacity:.5;transform:scale(.3);}100%{opacity:0;transform:scale(1.3);}}
-.lc-reel{position:absolute;overflow:hidden;background:#fff;transition:outline-color .15s;}
-/* Secousse "thunk" a l'arret : appliquee uniquement sur les symboles internes, le cadre blanc ne bouge pas */
-/* Thump retire : pas de coup additionnel a l'arret du rouleau */
-.lc-cellwrap.landed{}
-.lc-reel.holdable{cursor:pointer;}
-/* HOLD arme, non bloque : tag minimal "HOLD" en haut du rouleau, gravure inversee blanche sur noir */
-.lc-reel.holdable:not(.held)::after{content:"HOLD";position:absolute;left:50%;top:4px;transform:translateX(-50%);font-size:7px;letter-spacing:3px;font-weight:400;color:#ffffff;background:#141414;padding:2px 7px 1px;pointer-events:none;z-index:4;animation:tagfade .2s ease;}
-/* Rouleau bloque : outline 2px + cadenas filaire blanc sur pastille noire, plus visible */
-.lc-reel.held{outline:2px solid #141414;outline-offset:-2px;}
-.lc-lock{position:absolute;left:50%;top:4px;transform:translateX(-50%);width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#141414;border:1px solid #141414;pointer-events:none;z-index:5;color:#ffffff;animation:tagfade .2s ease;}
-.lc-lock svg{width:22px;height:22px;display:block;}
-@keyframes tagfade{from{opacity:0;transform:translate(-50%,-2px);}to{opacity:1;transform:translateX(-50%);}}
-/* NUDGE arme : outline pointille 1px discret sur les rouleaux */
-.lc-reel.nudgable{outline:1px dashed #141414;outline-offset:-1px;}
-/* Boutons NUDGE : chevrons SVG blancs sur fond noir au-dessus/en-dessous du rouleau */
-.lc-nudgebtn{position:absolute;height:5.4%;min-height:22px;background:#141414;border:1px solid #141414;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:6;padding:0;color:#ffffff;font-family:inherit;transition:background .12s,color .12s;}
-.lc-nudgebtn svg{width:78%;height:78%;display:block;}
-.lc-nudgebtn:hover{background:#ffffff;color:#141414;}
-.lc-nudgebtn:active{transform:scale(.94);}
-/* Bouton REPULL : flche courte blanche sur disque noir au centre du rouleau */
-.lc-repullbtn{position:absolute;transform:translate(-50%,-50%);width:34px;height:34px;background:#141414;border:1px solid #141414;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:9;padding:0;color:#ffffff;font-family:inherit;transition:.12s;}
-.lc-repullbtn svg{width:20px;height:20px;display:block;}
-.lc-repullbtn:hover{background:#ffffff;color:#141414;}
-.lc-repullbtn:active{transform:translate(-50%,-50%) scale(.9);}
-.lc-shadow{position:absolute;pointer-events:none;z-index:2;
-  background:linear-gradient(to bottom,rgba(70,70,70,.55) 0%,rgba(70,70,70,.24) 50%,rgba(255,255,255,0) 100%);}
-.lc-strip{position:absolute;left:0;top:0;width:100%;}
-.lc-cell{display:flex;align-items:center;justify-content:center;width:100%;}
-.lc-winline{position:absolute;transform:translateY(-50%);height:0;border-top:1px solid #141414;
-  pointer-events:none;animation:wl .6s ease infinite alternate;}
-@keyframes wl{from{opacity:.2;}to{opacity:.9;}}
-.lc-lever{position:absolute;right:1%;top:24%;width:22%;height:40%;background:transparent;border:none;cursor:pointer;border-radius:40%;z-index:3;}
-.lc-lever:disabled{cursor:default;}
-.lc-pullhint{position:absolute;left:84%;top:-3%;width:22%;height:16%;z-index:5;pointer-events:none;animation:pullbob 1.15s ease-in-out infinite;}
-.lc-pullhint svg{width:100%;height:100%;display:block;overflow:visible;}
-@keyframes pullbob{0%,100%{transform:translateY(-6%);opacity:.55;}50%{transform:translateY(15%);opacity:.95;}}
-/* Boutons d'armement des capacites HOLD / NUDGE / REPULL sous la machine.
-   Click pour activer -> les contreoles (tap rouleau / fleches / cercle) apparaissent dans la machine. */
-.lc-abilities{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:-14px;min-height:30px;position:relative;z-index:2;}
-.lc-spacer{height:38px;}
-.lc-spacer + .lc-ctrl{margin-top:-14px;}
-.lc-abil{display:flex;align-items:center;gap:6px;padding:7px 12px 7px 10px;background:#fff;border:1px solid #141414;cursor:pointer;font-family:inherit;font-size:11px;letter-spacing:1px;color:#141414;transition:background .12s,color .12s;}
-.lc-abil b{font-weight:600;letter-spacing:1.5px;}
-.lc-abil:hover:not(:disabled){background:#ffffff;}
-.lc-abil.on,.lc-abil.on:hover:not(:disabled){background:#141414;color:#fff;}
-.lc-abil.on img{filter:invert(1);}
-.lc-abil:disabled{opacity:.4;cursor:not-allowed;}
-.lc-crow{display:flex;gap:12px;justify-content:center;}
-.lc-btn.ghost{background:#fff;color:#141414;}
-.lc-btn.ghost:hover{background:#141414;color:#fff;}
-.lc-win{font-size:25px;font-weight:300;letter-spacing:1px;}
-.lc-win.big{font-weight:500;}
-.lc-lose{font-size:22px;color:#909090;}
-.lc-neg{font-size:12px;letter-spacing:3px;color:#5a5a5a;text-transform:uppercase;}
-.lc-idle{font-size:10px;letter-spacing:2px;color:#5e5e5e;}
-.lc-flash{font-size:11px;letter-spacing:.5px;color:#454545;font-style:italic;line-height:1.35;max-width:380px;}
-.lc-ctrl{display:flex;align-items:center;gap:20px;margin-top:2px;flex-wrap:wrap;justify-content:center;position:relative;z-index:2;}
-.lc-betwrap{display:flex;flex-direction:column;align-items:center;gap:8px;}
-.lc-betbar{display:flex;align-items:center;gap:18px;}
-.lc-betcoin{position:relative;width:66px;height:66px;flex:0 0 66px;contain:layout style paint;}
-.lc-coinart{position:absolute;inset:0;width:100%;height:100%;display:block;will-change:auto;transform:translateZ(0);}
-.lc-betnum{position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;letter-spacing:.3px;line-height:1;font-variant-numeric:tabular-nums;}
-.lc-bb{width:28px;height:28px;border:1px solid #141414;background:none;cursor:pointer;font-family:inherit;font-size:17px;font-weight:700;color:#141414;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;}
-.lc-bb:disabled{border-color:#dcdcdc;color:#dcdcdc;cursor:default;}
-.lc-betval{display:flex;flex-direction:column;align-items:center;min-width:62px;}
-.lc-betval i{font-style:normal;font-size:9px;letter-spacing:2px;color:#585858;text-transform:uppercase;}
-.lc-betval b{font-weight:500;font-size:16px;letter-spacing:1px;}
-.lc-bmax{background:none;border:none;cursor:pointer;font-family:inherit;font-size:10px;letter-spacing:2px;color:#999999;text-transform:uppercase;padding:4px;}
-.lc-bmax:disabled{color:#e0e0e0;cursor:default;}
-.lc-pull{background:#141414;color:#fff;border:1px solid #141414;cursor:pointer;font-family:inherit;
-  font-size:13px;letter-spacing:6px;padding:11px 30px 11px 36px;transition:.15s;}
-.lc-pull:hover:not(:disabled){background:#fff;color:#141414;}
-.lc-pull:disabled{border-color:#dcdcdc;color:#dcdcdc;background:#fff;cursor:default;}
-.lc-shopbtns{display:flex;gap:14px;position:relative;z-index:2;}
-.lc-sb{background:none;border:1px solid #141414;color:#141414;cursor:pointer;font-family:inherit;
-  font-size:13px;font-weight:500;letter-spacing:3px;padding:11px 26px;transition:.15s;text-transform:uppercase;}
-.lc-sb:hover:not(:disabled){border-color:#141414;color:#141414;}
-.lc-sb:disabled{color:#dcdcdc;border-color:#ededed;cursor:default;}
-.lc-pay{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center;
-  font-size:11px;color:#4a4a4a;letter-spacing:1px;margin-top:2px;position:relative;z-index:2;}
-.lc-pr{display:flex;align-items:center;gap:5px;}
-.lc-pr.danger{color:#909090;}
-.lc-fam{margin-bottom:13px;}
-.lc-famh{display:flex;justify-content:space-between;align-items:baseline;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#141414;border-bottom:1px solid #ededed;padding:6px 2px 5px;}
-.lc-famh span{font-size:10px;letter-spacing:.3px;text-transform:none;color:#4a4a4a;}
-.lc-up{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:none;border-bottom:1px solid #f4f4f4;cursor:pointer;font-family:inherit;padding:9px 2px;color:#141414;text-align:left;transition:.12s;}
-.lc-up:hover:not(:disabled){background:#ffffff;}
-.lc-up.off{opacity:.4;cursor:default;}
-.lc-upn{display:flex;flex-direction:column;gap:2px;font-size:13px;}
-.lc-upn i{font-style:normal;font-size:10px;color:#505050;}
-.lc-upp{font-size:13px;letter-spacing:1px;white-space:nowrap;}
-.lc-max{font-size:10px;letter-spacing:2px;color:#6c6c6c;text-transform:uppercase;padding:9px 2px;}
-.lc-ovl{position:fixed;inset:0;z-index:30;background:rgba(250,250,250,.9);backdrop-filter:blur(2px);
-  display:flex;align-items:center;justify-content:center;padding:24px;animation:fd .25s ease;}
-@keyframes fd{from{opacity:0;}to{opacity:1;}}
-.lc-modal{width:100%;max-width:360px;background:#fff;border:1px solid #141414;padding:30px 26px;
-  text-align:center;animation:rs .3s cubic-bezier(.2,.9,.2,1);}
-.lc-modal.wide{max-width:460px;}
-@keyframes rs{from{transform:translateY(14px);opacity:0;}to{transform:none;opacity:1;}}
-.lc-mt{font-size:16px;font-weight:500;letter-spacing:9px;padding-left:9px;}
-.lc-mh{font-size:22px;font-weight:700;letter-spacing:6px;color:#141414;}
-.lc-ms{font-size:11px;letter-spacing:2px;color:#505050;margin:7px 0 18px;}
-.lc-mb{font-size:12px;letter-spacing:1px;color:#555;margin:8px 0 4px;}
-/* INTRO monumental */
-.lc-modal.intro{max-width:480px;padding:46px 32px 32px;}
-.lc-mt-big{font-size:46px;font-weight:600;letter-spacing:10px;line-height:.95;padding-left:10px;}
-.lc-ms-big{font-size:11px;letter-spacing:6px;color:#5a5a5a;text-transform:uppercase;margin:18px 0 36px;}
-.lc-intro-body{text-align:left;display:flex;flex-direction:column;gap:14px;font-size:15.5px;line-height:1.6;color:#2a2a2a;margin-bottom:24px;}
-.lc-onecoin{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 0 22px;border-top:1px solid #141414;border-bottom:1px solid #141414;margin:6px 0 22px;}
-.lc-onecoin span{font-size:10px;letter-spacing:4px;color:#5a5a5a;text-transform:uppercase;}
-.lc-onecoin b{font-size:30px;font-weight:600;letter-spacing:6px;color:#141414;line-height:1;}
-.lc-intro-tag{color:#141414;font-style:italic;letter-spacing:1px;text-align:center;margin:0 0 30px;font-size:12px;}
-.lc-btn.big{font-size:14px;letter-spacing:7px;padding:14px 38px 14px 45px;}
-.lc-confirm{font-size:14px;line-height:1.55;color:#141414;letter-spacing:.5px;text-align:center;margin:8px 0 26px;}
-.lc-finaltag{color:#141414;font-style:italic;letter-spacing:.4px;text-align:center;font-size:13px;line-height:1.55;margin:18px 0 28px;}
-.lc-statbox{display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid #ededed;padding:12px 14px;margin:14px 0 16px;background:#ffffff;}
-.lc-statbox.lc-record{border:1px solid #141414;margin-top:-4px;}
-.lc-recordhead{font-size:9px;letter-spacing:3px;color:#141414;text-transform:uppercase;font-weight:700;padding-bottom:4px;border-bottom:1px solid #ededed;margin-bottom:2px;}
-.lc-stat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:11px;letter-spacing:.5px;color:#444;}
-.lc-stat-row span{color:#5a5a5a;text-transform:uppercase;letter-spacing:1.5px;font-size:9px;}
-.lc-stat-row b{font-weight:600;font-size:13px;letter-spacing:.5px;color:#141414;}
-.lc-stat-row i{font-style:normal;font-size:10px;color:#5a5a5a;letter-spacing:1px;margin-left:4px;}
-.lc-rules{text-align:left;display:flex;flex-direction:column;gap:11px;font-size:13px;line-height:1.55;color:#444;margin-bottom:22px;}
-.lc-rules b{color:#141414;font-weight:500;}
-.lc-tag{color:#141414;font-style:italic;letter-spacing:.5px;text-align:center;margin-top:4px;}
-.lc-btn{background:#141414;color:#fff;border:1px solid #141414;cursor:pointer;font-family:inherit;
-  font-size:13px;letter-spacing:5px;padding:11px 30px 11px 35px;transition:.15s;}
-.lc-btn:hover{background:#fff;color:#141414;}
-.lc-disc{font-size:9px;letter-spacing:2px;color:#6e6e6e;margin-top:16px;}
-.lc-el{font-size:10px;letter-spacing:4px;color:#555;text-transform:uppercase;}
-.lc-en{font-size:28px;font-weight:600;letter-spacing:2px;margin:6px 0 4px;color:#141414;}
-.lc-list{margin:14px 0 20px;max-height:48vh;overflow-y:auto;text-align:left;padding-right:10px;}
-.lc-actgrp{margin-bottom:14px;}
-.lc-acth{font-size:9px;letter-spacing:3px;color:#5e5e5e;text-transform:uppercase;padding:6px 2px;border-bottom:1px solid #f0f0f0;margin-bottom:4px;}
-.lc-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
-  background:#fff;border:none;border-bottom:1px solid #f4f4f4;cursor:pointer;font-family:inherit;
-  padding:9px 2px;color:#141414;text-align:left;transition:.12s;}
-.lc-row:hover:not(:disabled){background:#ffffff;}
-.lc-row.owned{color:#a0a0a0;cursor:default;}
-.lc-row.off{opacity:.45;cursor:default;}
-.lc-row.own{cursor:default;}
-.lc-rn{display:flex;flex-direction:column;gap:2px;font-size:13px;}
-.lc-rn i{font-style:normal;font-size:10px;color:#505050;letter-spacing:.3px;}
-.lc-rp{font-size:13px;letter-spacing:1px;white-space:nowrap;}
-.lc-sell{background:none;border:1px solid #d9d9d9;color:#555;cursor:pointer;font-family:inherit;
-  font-size:11px;letter-spacing:1px;padding:6px 12px;white-space:nowrap;transition:.15s;}
-.lc-sell:hover{border-color:#141414;color:#141414;}
-.lc-empty{font-size:12px;color:#585858;letter-spacing:1px;text-align:center;padding:20px 0;}
-.lc-rule{display:flex;align-items:center;gap:12px;padding:7px 2px;border-bottom:1px solid #f4f4f4;}
-.lc-rule-txt{display:flex;flex-direction:column;gap:2px;}
-.lc-rule-txt b{font-size:13px;font-weight:500;letter-spacing:.3px;}
-.lc-mult{font-style:normal;font-weight:400;font-size:11px;color:#6a6a6a;letter-spacing:.3px;}
-.lc-rule-txt .lc-mv{font-weight:400;font-size:inherit;letter-spacing:inherit;color:#141414;}
-.lc-rule-txt .lc-bold{font-weight:400;color:#141414;font-style:normal;font-size:inherit;letter-spacing:inherit;}
-.lc-rule-txt i{font-style:normal;font-size:10.5px;color:#6a6a6a;line-height:1.3;}
-.lc-combo{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 2px;border-bottom:1px solid #f7f7f7;font-size:12px;}
-.lc-combo b{font-weight:500;}
-.lc-combo i{font-style:normal;color:#505050;text-align:right;}
-`;
