@@ -757,7 +757,10 @@ export default function LastCoin() {
   if (!initRef.current) initRef.current = loadSave() || {};
   const init = initRef.current;
 
-  const [screen, setScreen] = useState(() => (init.cash != null ? "play" : "intro"));
+  // started = a clique sur 'inserer la piece' au moins une fois. Tant que false,
+  // l'intro s'affiche meme si l'auto-save a deja persiste l'etat initial.
+  const [started, setStarted] = useState(() => !!init.started);
+  const [screen, setScreen] = useState(() => (init.started ? "play" : "intro"));
   const [cash, setCash] = useState(() => (init.cash != null ? init.cash : 1));
   const [lvl, setLvl] = useState(() => ({ ...FAM0, ...(init.lvl || {}) }));
   const [charms, setCharms] = useState(() => ({ ...CHARMS_0, ...(init.charms || {}) }));   // porte-bonheur achetes
@@ -880,8 +883,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked })); } catch {}
-  }, [cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked, started })); } catch {}
+  }, [cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked, started]);
 
   // peak du patrimoine : suivi en permanence des qu'il monte (acceuil cash + achats)
   useEffect(() => {
@@ -929,7 +932,7 @@ export default function LastCoin() {
     setActiveAbility(null);
     setStats({ ...STATS0 });
     setCardNotif(null); setLevelUp(null); setBurst(null); setWinFx(null);
-    setOverlay(null); setConfirmReset(false); setScreen("intro");   // repasse par l'intro pour rappeler le contexte
+    setOverlay(null); setConfirmReset(false); setStarted(false); setScreen("intro");   // repasse par l'intro pour rappeler le contexte
   };
 
   const resolveAll = useCallback((targets, spend, lk, snap) => {
@@ -1532,7 +1535,7 @@ export default function LastCoin() {
             <span>{t("il_te_reste")}</span>
             <b>{t("une_piece")}</b>
           </div>
-          <button className="lc-btn big" onClick={() => setScreen("play")}>{t("inserer_piece")}</button>
+          <button className="lc-btn big" onClick={() => { setStarted(true); setScreen("play"); }}>{t("inserer_piece")}</button>
           <p className="lc-disc">{t("disclaimer")}</p>
         </div></Ovl>
       )}
