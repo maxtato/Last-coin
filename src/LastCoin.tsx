@@ -1253,8 +1253,12 @@ export default function LastCoin() {
     }, Math.round((reelCruiseDur(r) + REEL_BRAKE_DUR) * 1000) + 100);
   };
 
-  const betDown = () => setBetIdx((i) => Math.max(0, i - 1));
-  const betUp = () => setBetIdx((i) => Math.min(maxBetIdx, i + 1));
+  // Quand betIdx est superieur a maxBetIdx (cash a baisse), la mise affichee
+  // est plafonnee a maxBetIdx. Le clic '-' part de la mise AFFICHEE, pas du
+  // betIdx interne, sinon il faudrait cliquer plusieurs fois sans changement
+  // visible avant que la mise baisse vraiment.
+  const betDown = () => setBetIdx((i) => Math.max(0, Math.min(i, maxBetIdx) - 1));
+  const betUp = () => setBetIdx((i) => Math.min(maxBetIdx, Math.min(i, maxBetIdx) + 1));
   const betMax = () => setBetIdx(maxBetIdx);
 
   return (
