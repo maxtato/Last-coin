@@ -212,7 +212,7 @@ const classOf = (lvl) => {
 // Densite ajustee pour V9 : plus de coin/star/house/eye (paliers small + remboursements
 // frequents), garde les rares (crown, joker) -> distribution alignee sur les cibles
 // realistes (cf. /tmp/sim_omp3.py)
-const BAND_W = { coin: 11, star: 6, house: 4, diamond: 3, bolt: 3, eye: 3, joker: 2, skull: 2, crack: 2, crown: 1 };
+const BAND_W = { coin: 9, star: 6, house: 4, diamond: 3, bolt: 3, eye: 3, joker: 2, skull: 2, crack: 2, crown: 1 };
 const BAND_ALL = Object.keys(BAND_W);
 const POOL = (() => { const p = []; BAND_ALL.forEach((k) => { for (let i = 0; i < BAND_W[k]; i++) p.push(k); }); return p; })();
 const pick = (p) => p[(Math.random() * p.length) | 0];
