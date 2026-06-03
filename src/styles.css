@@ -221,8 +221,9 @@
 .lc-mh{font-size:22px;font-weight:700;letter-spacing:6px;color:#141414;}
 .lc-ms{font-size:11px;letter-spacing:2px;color:#505050;margin:7px 0 18px;}
 .lc-mb{font-size:12px;letter-spacing:1px;color:#555;margin:8px 0 4px;}
-/* INTRO monumental */
-.lc-modal.intro{max-width:480px;padding:46px 32px 32px;}
+/* INTRO monumental — pas d'animation, la page doit etre fixe au 1er affichage */
+.lc-modal.intro{max-width:480px;padding:46px 32px 32px;animation:none;}
+.lc-ovl:has(.lc-modal.intro){animation:none;background:#ffffff;backdrop-filter:none;}
 .lc-mt-big{font-size:46px;font-weight:600;letter-spacing:10px;line-height:.95;padding-left:10px;}
 .lc-ms-big{font-size:11px;letter-spacing:6px;color:#5a5a5a;text-transform:uppercase;margin:18px 0 36px;}
 .lc-intro-body{text-align:left;display:flex;flex-direction:column;gap:14px;font-size:15.5px;line-height:1.6;color:#2a2a2a;margin-bottom:24px;}
