@@ -93,10 +93,12 @@ const SYM_INFO = {
 };
 
 // ===== Table de gains (multiplicateurs de mise) =====
-// 3 identiques (le joker complète) :  RTP ~160% sur les valeurs (la frequence des gains est dans BAND_W)
-const PAY3 = { coin: 12, star: 17, house: 24, diamond: 37, crown: 127, bolt: 17, eye: 21, joker: 165 };
-// 2 identiques sans joker (petit gain) :
-const PAY2 = { coin: 2, star: 3, house: 4, diamond: 5, crown: 14, bolt: 3, eye: 3 };
+// 3 identiques (triple pur, sans joker) :
+const PAY3 = { coin: 13, star: 18, house: 25, diamond: 40, crown: 110, bolt: 18, eye: 22, joker: 140 };
+// 2 identiques sans joker (paire) : ratio bas pour creer un palier 'remboursement' (coin paye 1x = refund pur)
+const PAY2 = { coin: 1, star: 2, house: 3, diamond: 4, crown: 10, bolt: 2, eye: 2 };
+// Paire completee par 1 joker : paye 70% du triple (palier intermediaire entre paire et triple pur)
+const PAY_JC_MULT = 0.7;
 const NEG = { skull: true, crack: true };           // symboles "danger"
 const PAY_ROW = ["coin", "star", "house", "diamond", "crown", "bolt", "eye"]; // affichés dans la mini-table
 
@@ -109,8 +111,11 @@ function evaluate(t) {
   const [topSym, topCnt] = ent[0];
   // Skull / Crack : 2 ou 3 alignes declenchent un effet punitif (le joker ne les complete pas)
   if (NEG[topSym] && topCnt >= 2) return { kind: -1, sym: topSym, count: topCnt };
-  // 3 identiques (avec completion joker)
-  if (topCnt + jokers >= 3 && !NEG[topSym]) return { kind: 3, sym: topSym, mult: PAY3[topSym] };
+  // 3 identiques : triple pur = PAY3 plein, paire+joker = PAY3 * 0.7 (palier intermediaire)
+  if (topCnt + jokers >= 3 && !NEG[topSym]) {
+    const mult = jokers > 0 ? PAY3[topSym] * PAY_JC_MULT : PAY3[topSym];
+    return { kind: 3, sym: topSym, mult };
+  }
   // paire positive
   if (topCnt === 2 && !NEG[topSym]) return { kind: 2, sym: topSym, mult: PAY2[topSym] };
   return { kind: 0 };
@@ -204,9 +209,10 @@ const classOf = (lvl) => {
 };
 
 // ===== Bandes fixes des rouleaux =====
-// Frequences ajustees pour pousser la RTP vers ~170% : moins de symboles punitifs,
-// plus de symboles positifs (au lieu d'augmenter les payouts)
-const BAND_W = { coin: 8, star: 4, house: 3, diamond: 3, bolt: 3, eye: 2, joker: 2, skull: 2, crack: 2, crown: 1 };
+// Densite ajustee pour V9 : plus de coin/star/house/eye (paliers small + remboursements
+// frequents), garde les rares (crown, joker) -> distribution alignee sur les cibles
+// realistes (cf. /tmp/sim_omp3.py)
+const BAND_W = { coin: 11, star: 6, house: 4, diamond: 3, bolt: 3, eye: 3, joker: 2, skull: 2, crack: 2, crown: 1 };
 const BAND_ALL = Object.keys(BAND_W);
 const POOL = (() => { const p = []; BAND_ALL.forEach((k) => { for (let i = 0; i < BAND_W[k]; i++) p.push(k); }); return p; })();
 const pick = (p) => p[(Math.random() * p.length) | 0];
