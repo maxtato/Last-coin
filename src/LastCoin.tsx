@@ -1663,8 +1663,8 @@ export default function LastCoin() {
                 <div className="lc-rule-txt">
                   <b>{SYM_NAME[k]}{PAY3[k] && !NEG[k] && k !== "joker" ? (
                     <em className="lc-mult">
-                      {" · 3× = "}<b className="lc-mv">×{PAY3[k]}</b>
-                      {PAY2[k] ? <>{" · 2× = "}<b className="lc-mv">×{PAY2[k]}</b></> : null}
+                      {" · 3 = "}<b className="lc-mv">×{PAY3[k]}</b>
+                      {PAY2[k] ? <>{" · 2 = "}<b className="lc-mv">×{PAY2[k]}</b></> : null}
                     </em>
                   ) : null}</b>
                   <i>{boldMarks(desc)}</i>
