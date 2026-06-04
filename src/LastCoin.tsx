@@ -631,6 +631,12 @@ const T = {
   record_gain:   { fr: "plus gros gain",      en: "biggest win" },
   cartes_obt:    { fr: "cartes obtenues",     en: "cards earned" },
   statut_social: { fr: "statut social",       en: "social status" },
+  tut_buy:       { fr: "Le but est de monter de classe sociale en achetant des biens.",
+                   en: "The goal is to climb the social ladder by buying assets." },
+  tut_life:      { fr: "Tu peux voir ta classe sociale et revendre ton patrimoine en cas de coup dur.",
+                   en: "Check your social class and sell off your assets if things go south." },
+  tut_pause:     { fr: "Dans le menu pause tu retrouves les règles et tes records.",
+                   en: "In the pause menu you'll find the rules and your records." },
   net:           { fr: "net",                 en: "net" },
   // intro
   last_coin:     { fr: "ONE MORE PULL", en: "ONE MORE PULL" },
@@ -782,6 +788,10 @@ export default function LastCoin() {
   const [burst, setBurst] = useState(null);        // pluie de $ sur un 3-aligné
   const [levelUp, setLevelUp] = useState(null);    // écran "NIVEAU X" à la montée de classe
   const [cardNotif, setCardNotif] = useState(null); // notification "+N HOLD" à l'obtention d'une carte
+  // tutorial : 3 bulles successives (Acheter -> Ma vie -> Pause), apparait apres
+  // le 1er gain d'une partie qui recommence
+  const [tutorial, setTutorial] = useState(0);     // 0=none, 1=buy, 2=life, 3=pause, 99=done
+  const [tutorialSeen, setTutorialSeen] = useState(() => !!init.tutorialSeen);
   const [winLine, setWinLine] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [blockedSpin, setBlockedSpin] = useState(false);   // levier tire sans piece : secousse + message "vends un bien"
@@ -834,6 +844,9 @@ export default function LastCoin() {
     if (SFX[name]) SFX[name]();
   };
   const machineRef = useRef(null);
+  const buyBtnRef = useRef(null);
+  const lifeBtnRef = useRef(null);
+  const pauseBtnRef = useRef(null);
   const lampTimer = useRef(null);                    // gyro : timer de 5 s
 
   // strips : sens TOP-TO-BOTTOM. cells[2] = symbole au repos (bandAt(band, stop)).
@@ -890,8 +903,8 @@ export default function LastCoin() {
 
   // sauvegarde auto
   useEffect(() => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked, started })); } catch {}
-  }, [cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked, started]);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked, started, tutorialSeen })); } catch {}
+  }, [cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked, started, tutorialSeen]);
 
   // peak du patrimoine + peak de classe sociale : suivi continu
   useEffect(() => {
@@ -946,6 +959,7 @@ export default function LastCoin() {
     setStats({ ...STATS0 });
     setCardNotif(null); setLevelUp(null); setBurst(null); setWinFx(null);
     setOverlay(null); setConfirmReset(false); setStarted(false); setScreen("intro");   // repasse par l'intro pour rappeler le contexte
+    setTutorial(0); setTutorialSeen(false);   // tutorial reapparaitra au 1er gain de la nouvelle partie
   };
 
   const resolveAll = useCallback((targets, spend, lk, snap) => {
@@ -1014,6 +1028,10 @@ export default function LastCoin() {
 
     const big = res.kind === 3 && res.mult >= 20;
     setLastWin(payout > 0 ? { amount: payout, big } : res.kind === -1 ? { neg: res.sym, count: res.count } : { amount: 0 });
+    // Tutorial : declenche au 1er gain de la partie (apres le spin garanti)
+    if (payout > 0 && !tutorialSeen && tutorial === 0) {
+      setTimeout(() => setTutorial(1), 1800);
+    }
     if (payout > 0) {
       setLampOn(true); setWinLine(true); setWinFx({ a: payout, k: Date.now() });
       if (lampTimer.current) clearTimeout(lampTimer.current);
@@ -1287,7 +1305,7 @@ export default function LastCoin() {
           {income > 0 && <em>+{fmt(income)}{t("par_tour")}</em>}
         </div>
         <div className="lc-bar-actions">
-          <button className="lc-menu" onClick={() => { setConfirmReset(false); setCheatSeq([]); setScreen("pause"); }} aria-label={t("pause")} title={t("pause")}><i /><i /></button>
+          <button ref={pauseBtnRef} className="lc-menu" onClick={() => { setConfirmReset(false); setCheatSeq([]); setScreen("pause"); }} aria-label={t("pause")} title={t("pause")}><i /><i /></button>
           {devUnlocked && (
             <button className="lc-dev" onClick={() => setOverlay("dev")} aria-label={t("dev")} title={t("dev")}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1526,8 +1544,8 @@ export default function LastCoin() {
       </div>
 
       <div className="lc-shopbtns">
-        <button className="lc-sb" disabled={spinning} onClick={() => setOverlay("buy")}>{t("acheter")}</button>
-        <button className="lc-sb" disabled={spinning} onClick={() => setOverlay("assets")}>{t("ma_vie")}{ownedCount ? " · " + ownedCount : ""}</button>
+        <button ref={buyBtnRef} className="lc-sb" disabled={spinning} onClick={() => setOverlay("buy")}>{t("acheter")}</button>
+        <button ref={lifeBtnRef} className="lc-sb" disabled={spinning} onClick={() => setOverlay("assets")}>{t("ma_vie")}{ownedCount ? " · " + ownedCount : ""}</button>
       </div>
 
       <div className="lc-pay">
@@ -1829,6 +1847,22 @@ export default function LastCoin() {
         </div>
       )}
 
+      {tutorial === 1 && (
+        <TutorialBubble targetRef={buyBtnRef} side="above"
+          text={t("tut_buy")}
+          onDismiss={() => { setTutorial(0); setTimeout(() => setTutorial(2), 1500); }} />
+      )}
+      {tutorial === 2 && (
+        <TutorialBubble targetRef={lifeBtnRef} side="above"
+          text={t("tut_life")}
+          onDismiss={() => { setTutorial(0); setTimeout(() => setTutorial(3), 1500); }} />
+      )}
+      {tutorial === 3 && (
+        <TutorialBubble targetRef={pauseBtnRef} side="below"
+          text={t("tut_pause")}
+          onDismiss={() => { setTutorial(0); setTutorialSeen(true); }} />
+      )}
+
       {cardNotif && (
         <div className="lc-cardnotif" key={cardNotif.k}>
           <Ink k={cardNotif.type === "repull" ? "crown" : cardNotif.type === "nudge" ? "eye" : "bolt"} size={32} />
@@ -1842,4 +1876,43 @@ export default function LastCoin() {
   );
 }
 function Ovl({ children, kind }) { return <div className={"lc-ovl" + (kind ? " lc-ovl-" + kind : "")}>{children}</div>; }
+
+// Bulle minimaliste avec queue pointant vers un bouton (utilise pour le tutorial).
+// side='above' : bulle au-dessus du bouton, queue en bas pointant vers le bas
+// side='below' : bulle en dessous du bouton, queue en haut pointant vers le haut
+function TutorialBubble({ targetRef, side, text, onDismiss }) {
+  const [pos, setPos] = useState(null);
+  const bubbleRef = useRef(null);
+  useLayoutEffect(() => {
+    const update = () => {
+      if (!targetRef.current) return;
+      const r = targetRef.current.getBoundingClientRect();
+      setPos({ cx: r.left + r.width / 2, top: r.top, bottom: r.bottom });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [targetRef]);
+  if (!pos) return null;
+  const BUBBLE_W = 260;
+  const MARGIN = 12;
+  let left = pos.cx - BUBBLE_W / 2;
+  left = Math.max(MARGIN, Math.min(window.innerWidth - BUBBLE_W - MARGIN, left));
+  const arrowX = pos.cx - left;
+  const top = side === "above"
+    ? Math.max(MARGIN, pos.top - 12 - (bubbleRef.current?.offsetHeight || 80))
+    : pos.bottom + 12;
+  return (
+    <div ref={bubbleRef} className={"lc-tut " + side}
+         style={{ left, top, width: BUBBLE_W, "--arrow-x": arrowX + "px" }}
+         onClick={onDismiss}>
+      <div className="lc-tut-text">{text}</div>
+      <div className="lc-tut-ok">OK</div>
+    </div>
+  );
+}
 
