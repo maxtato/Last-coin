@@ -631,12 +631,12 @@ const T = {
   record_gain:   { fr: "plus gros gain",      en: "biggest win" },
   cartes_obt:    { fr: "cartes obtenues",     en: "cards earned" },
   statut_social: { fr: "statut social",       en: "social status" },
-  tut_buy:       { fr: "Le but est de monter de classe sociale en achetant des biens.",
-                   en: "The goal is to climb the social ladder by buying assets." },
-  tut_life:      { fr: "Tu peux voir ta classe sociale et revendre ton patrimoine en cas de coup dur.",
-                   en: "Check your social class and sell off your assets if things go south." },
-  tut_pause:     { fr: "Dans le menu pause tu retrouves les règles et tes records.",
-                   en: "In the pause menu you'll find the rules and your records." },
+  tut_buy:       { fr: "Le but du jeu : monter de classe sociale en achetant des biens (vêtements, logement, véhicule, business). Chaque palier acheté te rapproche du statut suivant et débloque les jeux plus prestigieux.",
+                   en: "The goal: climb the social ladder by buying assets (clothes, housing, vehicle, business). Each tier brings you closer to the next status and unlocks more prestigious venues." },
+  tut_life:      { fr: "Ouvre cette fenêtre pour suivre ton patrimoine en détail et revendre tes biens si tu es à court. La revente est moins chère que l'achat — réfléchis bien avant de céder.",
+                   en: "Open this to track your assets in detail and sell them back if you're broke. Resale value is always lower than buy price — think before letting go." },
+  tut_pause:     { fr: "Dans le menu pause tu retrouves les règles complètes, tes records de patrimoine et de classe sociale, ainsi que les réglages son et langue.",
+                   en: "The pause menu holds the full rules, your wealth and social-class records, plus sound and language settings." },
   net:           { fr: "net",                 en: "net" },
   // intro
   last_coin:     { fr: "ONE MORE PULL", en: "ONE MORE PULL" },
@@ -1305,7 +1305,10 @@ export default function LastCoin() {
           {income > 0 && <em>+{fmt(income)}{t("par_tour")}</em>}
         </div>
         <div className="lc-bar-actions">
-          <button ref={pauseBtnRef} className="lc-menu" onClick={() => { setConfirmReset(false); setCheatSeq([]); setScreen("pause"); }} aria-label={t("pause")} title={t("pause")}><i /><i /></button>
+          <button ref={pauseBtnRef} className="lc-menu" onClick={() => {
+            setConfirmReset(false); setCheatSeq([]); setScreen("pause");
+            if (tutorial === 3) { setTutorial(0); setTutorialSeen(true); }
+          }} aria-label={t("pause")} title={t("pause")}><i /><i /></button>
           {devUnlocked && (
             <button className="lc-dev" onClick={() => setOverlay("dev")} aria-label={t("dev")} title={t("dev")}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1544,8 +1547,14 @@ export default function LastCoin() {
       </div>
 
       <div className="lc-shopbtns">
-        <button ref={buyBtnRef} className="lc-sb" disabled={spinning} onClick={() => setOverlay("buy")}>{t("acheter")}</button>
-        <button ref={lifeBtnRef} className="lc-sb" disabled={spinning} onClick={() => setOverlay("assets")}>{t("ma_vie")}{ownedCount ? " · " + ownedCount : ""}</button>
+        <button ref={buyBtnRef} className="lc-sb" disabled={spinning} onClick={() => {
+          setOverlay("buy");
+          if (tutorial === 1) { setTutorial(0); setTimeout(() => setTutorial(2), 1500); }
+        }}>{t("acheter")}</button>
+        <button ref={lifeBtnRef} className="lc-sb" disabled={spinning} onClick={() => {
+          setOverlay("assets");
+          if (tutorial === 2) { setTutorial(0); setTimeout(() => setTutorial(3), 1500); }
+        }}>{t("ma_vie")}{ownedCount ? " · " + ownedCount : ""}</button>
       </div>
 
       <div className="lc-pay">
@@ -1883,6 +1892,11 @@ function Ovl({ children, kind }) { return <div className={"lc-ovl" + (kind ? " l
 function TutorialBubble({ targetRef, side, text, onDismiss }) {
   const [pos, setPos] = useState(null);
   const bubbleRef = useRef(null);
+  // Auto-dismiss apres 5s si l'utilisateur n'a rien fait
+  useEffect(() => {
+    const id = setTimeout(() => onDismiss && onDismiss(), 5000);
+    return () => clearTimeout(id);
+  }, [onDismiss]);
   useLayoutEffect(() => {
     const update = () => {
       if (!targetRef.current) return;
