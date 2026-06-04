@@ -71,9 +71,9 @@ const SYM_INFO = {
     ["star",  "chance — gain supérieur"],
     ["house", "patrimoine"],
     ["diamond", "luxe — pierre précieuse"],
-    ["crown", "revanche — **gros gain** · paire = **1 carte REPULL** (rare, max 3)"],
-    ["bolt",  "machine — paire = **1 carte HOLD** · triple = **2 cartes** (max 9)"],
-    ["eye",   "prédiction — paire = **1 carte NUDGE** · triple = **2 cartes** (max 9)"],
+    ["crown", "revanche — **gros gain** (cartes REPULL max 3)"],
+    ["bolt",  "machine (cartes HOLD max 9)"],
+    ["eye",   "prédiction (cartes NUDGE max 9)"],
     ["joker", "WILD — remplace n'importe quel symbole · 3 = **jackpot**"],
     ["skull", "DANGER — 2 alignés = **-50% cash** · 3 alignés = **ruine totale**"],
     ["crack", "DANGER — 2 alignés = **-25% cash** · 3 alignés = **fin de partie**"],
@@ -83,9 +83,9 @@ const SYM_INFO = {
     ["star",  "luck — higher payout"],
     ["house", "wealth"],
     ["diamond", "luxury — precious stone"],
-    ["crown", "revenge — **big win** · pair = **1 REPULL card** (rare, max 3)"],
-    ["bolt",  "machine — pair = **1 HOLD card** · triple = **2 cards** (max 9)"],
-    ["eye",   "prediction — pair = **1 NUDGE card** · triple = **2 cards** (max 9)"],
+    ["crown", "revenge — **big win** (REPULL cards max 3)"],
+    ["bolt",  "machine (HOLD cards max 9)"],
+    ["eye",   "prediction (NUDGE cards max 9)"],
     ["joker", "WILD — replaces any symbol · 3 = **jackpot**"],
     ["skull", "DANGER — 2 aligned = **-50% cash** · 3 aligned = **total ruin**"],
     ["crack", "DANGER — 2 aligned = **-25% cash** · 3 aligned = **game over**"],
@@ -1676,20 +1676,31 @@ export default function LastCoin() {
           <p className="lc-ms">{t("rules_short")}</p>
           <div className="lc-list">
             <div className="lc-acth">{t("symboles")}</div>
-            {SYM_INFO[lang].map(([k, desc]) => (
+            {SYM_INFO[lang].map(([k, desc]) => {
+              const cardSym = k === "bolt" ? "HOLD" : k === "eye" ? "NUDGE" : k === "crown" ? "REPULL" : null;
+              const triple = lang === "en" ? "triple" : "triple";
+              const pair = lang === "en" ? "pair" : "paire";
+              const card = lang === "en" ? "card" : "carte";
+              const cards = lang === "en" ? "cards" : "cartes";
+              return (
               <div key={k} className="lc-rule">
                 <Ink k={k} size={26} />
                 <div className="lc-rule-txt">
                   <b>{SYM_NAME[k]}{PAY3[k] && !NEG[k] && k !== "joker" ? (
                     <em className="lc-mult">
-                      {" · 3 = "}<b className="lc-mv">×{PAY3[k]}</b>
-                      {PAY2[k] ? <>{" · 2 = "}<b className="lc-mv">×{PAY2[k]}</b></> : null}
+                      {" · " + triple + " = "}<b className="lc-mv">×{PAY3[k]}</b>
+                      {cardSym ? <b className="lc-mv">{" + 2 " + cards + " " + cardSym}</b> : null}
+                      {PAY2[k] ? <>
+                        {" · " + pair + " = "}<b className="lc-mv">×{PAY2[k]}</b>
+                        {cardSym ? <b className="lc-mv">{" + 1 " + card + " " + cardSym}</b> : null}
+                      </> : null}
                     </em>
                   ) : null}</b>
                   <i>{boldMarks(desc)}</i>
                 </div>
               </div>
-            ))}
+              );
+            })}
             <div className="lc-acth">{t("combinaisons")}</div>
             <div className="lc-combo"><b>{t("c_3")}</b><i>{t("c_3_d")}</i></div>
             <div className="lc-combo"><b>{t("c_2")}</b><i>{t("c_2_d")}</i></div>
