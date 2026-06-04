@@ -1534,8 +1534,8 @@ export default function LastCoin() {
         {PAY_ROW.map((k) => (
           <span key={k} className="lc-pr" title={SYM_NAME[k]}><Ink k={k} size={16} faint /> ×{PAY3[k]}</span>
         ))}
-        <span className="lc-pr" title="Joker"><Ink k="joker" size={16} faint /> {t("wild")}</span>
-        <span className="lc-pr danger" title="Skull / Crack"><Ink k="skull" size={16} faint /> {t("danger")}</span>
+        <span className="lc-pr" title="Joker"><Ink k="joker" size={16} faint /> Joker</span>
+        <span className="lc-pr danger" title="Skull / Crack"><Ink k="skull" size={16} faint /><Ink k="crack" size={16} faint /> {t("danger")}</span>
       </div>
 
       {screen === "intro" && (
