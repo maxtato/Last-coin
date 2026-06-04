@@ -633,6 +633,8 @@ const T = {
   statut_social: { fr: "statut social",       en: "social status" },
   tut_buy:       { fr: "Accumule assez de cash pour arrêter de survivre et commence à acheter ta remontée sociale.",
                    en: "Stack enough cash to stop just surviving — then start buying your way back up." },
+  tut_bet:       { fr: "Suivant ton cash disponible, tu peux augmenter la mise. Attention : plus tu mises gros, plus la chute peut être brutale.",
+                   en: "You can raise your bet as your cash grows. Watch out — the bigger the bet, the harder the fall." },
   tut_life:      { fr: "Ouvre cette fenêtre pour suivre ton patrimoine en détail et revendre tes biens si tu es en difficulté. La revente est moins chère que l'achat, réfléchis bien avant de céder.",
                    en: "Open this to track your assets in detail and sell them back if you're struggling. Resale is cheaper than the buy price — think before letting go." },
   tut_pause:     { fr: "Dans le menu pause tu retrouves les règles complètes, tes records de patrimoine et de classe sociale, ainsi que les réglages son et langue.",
@@ -847,6 +849,7 @@ export default function LastCoin() {
   const buyBtnRef = useRef(null);
   const lifeBtnRef = useRef(null);
   const pauseBtnRef = useRef(null);
+  const betCoinRef = useRef(null);
   const lampTimer = useRef(null);                    // gyro : timer de 5 s
 
   // strips : sens TOP-TO-BOTTOM. cells[2] = symbole au repos (bandAt(band, stop)).
@@ -1528,7 +1531,7 @@ export default function LastCoin() {
           <div className="lc-betwrap">
               <div className="lc-betbar">
                 <button className="lc-bb" disabled={betIdx <= 0} onClick={betDown}>–</button>
-                <div className="lc-betcoin" title={t("mise")}>
+                <div ref={betCoinRef} className="lc-betcoin" title={t("mise")}>
                   <svg className="lc-coinart" viewBox="0 0 100 100" aria-hidden="true">
                     <circle cx="50" cy="52.5" r="47" fill="#141414" />
                     <circle cx="50" cy="50" r="47.5" fill="#fff" stroke="#141414" strokeWidth="2" />
@@ -1869,6 +1872,11 @@ export default function LastCoin() {
       {tutorial === 3 && (
         <TutorialBubble targetRef={pauseBtnRef} side="below"
           text={t("tut_pause")}
+          onDismiss={() => { setTutorial(0); setTimeout(() => setTutorial(4), 1500); }} />
+      )}
+      {tutorial === 4 && (
+        <TutorialBubble targetRef={betCoinRef} side="above"
+          text={t("tut_bet")}
           onDismiss={() => { setTutorial(0); setTutorialSeen(true); }} />
       )}
 
