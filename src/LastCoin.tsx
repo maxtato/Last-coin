@@ -631,10 +631,10 @@ const T = {
   record_gain:   { fr: "plus gros gain",      en: "biggest win" },
   cartes_obt:    { fr: "cartes obtenues",     en: "cards earned" },
   statut_social: { fr: "statut social",       en: "social status" },
-  tut_buy:       { fr: "Le but du jeu : monter de classe sociale en achetant des biens (vêtements, logement, véhicule, business). Chaque palier acheté te rapproche du statut suivant et débloque les jeux plus prestigieux.",
-                   en: "The goal: climb the social ladder by buying assets (clothes, housing, vehicle, business). Each tier brings you closer to the next status and unlocks more prestigious venues." },
-  tut_life:      { fr: "Ouvre cette fenêtre pour suivre ton patrimoine en détail et revendre tes biens si tu es à court. La revente est moins chère que l'achat — réfléchis bien avant de céder.",
-                   en: "Open this to track your assets in detail and sell them back if you're broke. Resale value is always lower than buy price — think before letting go." },
+  tut_buy:       { fr: "Le but du jeu : récupérer ce que tu as perdu et monter de classe sociale en achetant des biens (vêtements, logement, véhicule, business).",
+                   en: "The goal: recover what you lost and climb the social ladder by buying assets (clothes, housing, vehicle, business)." },
+  tut_life:      { fr: "Ouvre cette fenêtre pour suivre ton patrimoine en détail et revendre tes biens si tu es en difficulté. La revente est moins chère que l'achat, réfléchis bien avant de céder.",
+                   en: "Open this to track your assets in detail and sell them back if you're struggling. Resale is cheaper than the buy price — think before letting go." },
   tut_pause:     { fr: "Dans le menu pause tu retrouves les règles complètes, tes records de patrimoine et de classe sociale, ainsi que les réglages son et langue.",
                    en: "The pause menu holds the full rules, your wealth and social-class records, plus sound and language settings." },
   net:           { fr: "net",                 en: "net" },
@@ -1889,12 +1889,16 @@ function Ovl({ children, kind }) { return <div className={"lc-ovl" + (kind ? " l
 // Bulle minimaliste avec queue pointant vers un bouton (utilise pour le tutorial).
 // side='above' : bulle au-dessus du bouton, queue en bas pointant vers le bas
 // side='below' : bulle en dessous du bouton, queue en haut pointant vers le haut
+//
+// Implementation : pour 'above' on positionne le POINT D'ANCRAGE 12px au-dessus
+// du bouton et on utilise transform:translateY(-100%) pour faire grandir la
+// bulle vers le haut depuis ce point -- comme ca la hauteur reelle de la bulle
+// n'a pas besoin d'etre connue avant le rendu, donc pas de saut visuel.
 function TutorialBubble({ targetRef, side, text, onDismiss }) {
   const [pos, setPos] = useState(null);
-  const bubbleRef = useRef(null);
-  // Auto-dismiss apres 5s si l'utilisateur n'a rien fait
+  // Auto-dismiss apres 8s si l'utilisateur n'a rien fait
   useEffect(() => {
-    const id = setTimeout(() => onDismiss && onDismiss(), 5000);
+    const id = setTimeout(() => onDismiss && onDismiss(), 8000);
     return () => clearTimeout(id);
   }, [onDismiss]);
   useLayoutEffect(() => {
@@ -1912,18 +1916,18 @@ function TutorialBubble({ targetRef, side, text, onDismiss }) {
     };
   }, [targetRef]);
   if (!pos) return null;
-  const BUBBLE_W = 260;
+  const BUBBLE_W = 280;
   const MARGIN = 12;
   let left = pos.cx - BUBBLE_W / 2;
   left = Math.max(MARGIN, Math.min(window.innerWidth - BUBBLE_W - MARGIN, left));
   const arrowX = pos.cx - left;
-  const top = side === "above"
-    ? Math.max(MARGIN, pos.top - 12 - (bubbleRef.current?.offsetHeight || 80))
-    : pos.bottom + 12;
+  // Pour 'above' : anchor a target.top - 12, bulle pousse vers le haut via translateY(-100%).
+  // Pour 'below' : anchor a target.bottom + 12, bulle pousse vers le bas (transform nul).
+  const style = side === "above"
+    ? { left, top: pos.top - 12, width: BUBBLE_W, transform: "translateY(-100%)", "--arrow-x": arrowX + "px" }
+    : { left, top: pos.bottom + 12, width: BUBBLE_W, "--arrow-x": arrowX + "px" };
   return (
-    <div ref={bubbleRef} className={"lc-tut " + side}
-         style={{ left, top, width: BUBBLE_W, "--arrow-x": arrowX + "px" }}
-         onClick={onDismiss}>
+    <div className={"lc-tut " + side} style={style} onClick={onDismiss}>
       <div className="lc-tut-text">{text}</div>
       <div className="lc-tut-ok">OK</div>
     </div>

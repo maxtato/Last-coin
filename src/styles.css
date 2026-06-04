@@ -85,14 +85,17 @@
 .lc-lu-p{font-size:11px;letter-spacing:1px;color:#555;margin-top:10px;}
 @keyframes luwrap{0%{opacity:0;transform:scale(.8);}12%{opacity:1;transform:scale(1.04);}24%{transform:scale(1);}74%{opacity:1;}100%{opacity:0;transform:scale(1.02);}}
 .lc-cardnotif{position:fixed;left:50%;top:28%;transform:translateX(-50%);z-index:38;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #141414;padding:12px 20px 12px 18px;pointer-events:none;animation:cardpop 2.4s cubic-bezier(.2,.9,.2,1) forwards;box-shadow:0 4px 20px rgba(20,20,20,.15);}
-/* Tutorial bubble (queue qui pointe vers un bouton) */
-.lc-tut{position:fixed;z-index:50;background:#141414;color:#fff;padding:14px 16px 10px;font-size:12.5px;letter-spacing:.3px;line-height:1.45;box-shadow:0 6px 20px rgba(20,20,20,.25);cursor:pointer;animation:tutpop .25s ease;}
+/* Tutorial bubble (queue qui pointe vers un bouton).
+   On anime UNIQUEMENT l'opacite : si on animait le transform, ca casserait le
+   transform:translateY(-100%) que le composant utilise pour ancrer la bulle
+   au-dessus du bouton sans avoir besoin de connaitre sa hauteur a l'avance. */
+.lc-tut{position:fixed;z-index:50;background:#141414;color:#fff;padding:14px 16px 10px;font-size:12.5px;letter-spacing:.3px;line-height:1.45;box-shadow:0 6px 20px rgba(20,20,20,.25);cursor:pointer;animation:tutfade .25s ease;}
 .lc-tut::after{content:"";position:absolute;width:14px;height:14px;background:#141414;left:var(--arrow-x);transform:translateX(-7px) rotate(45deg);}
 .lc-tut.above::after{bottom:-6px;}
 .lc-tut.below::after{top:-6px;}
 .lc-tut-text{display:block;}
 .lc-tut-ok{margin-top:8px;font-size:9px;letter-spacing:3px;color:#999;text-transform:uppercase;text-align:right;}
-@keyframes tutpop{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
+@keyframes tutfade{from{opacity:0;}to{opacity:1;}}
 .lc-cn-body{display:flex;flex-direction:column;align-items:flex-start;gap:2px;}
 .lc-cn-l{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#505050;}
 .lc-cn-n{font-size:22px;font-weight:600;letter-spacing:1px;line-height:1;}
