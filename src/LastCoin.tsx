@@ -96,7 +96,7 @@ const SYM_INFO = {
 // 3 identiques (triple pur, sans joker) :
 const PAY3 = { coin: 13, star: 18, house: 25, diamond: 40, crown: 110, bolt: 18, eye: 22, joker: 140 };
 // 2 identiques sans joker (paire) : ratio bas pour creer un palier 'remboursement' (coin paye 1x = refund pur)
-const PAY2 = { coin: 1, star: 3, house: 5, diamond: 6, crown: 14, bolt: 3, eye: 3 };
+const PAY2 = { coin: 1, star: 4, house: 7, diamond: 9, crown: 20, bolt: 4, eye: 4 };
 // Paire completee par 1 joker : paye 70% du triple (palier intermediaire entre paire et triple pur)
 const PAY_JC_MULT = 0.7;
 const NEG = { skull: true, crack: true };           // symboles "danger"
@@ -637,8 +637,8 @@ const T = {
                    en: "You can raise your bet as your cash grows. Watch out — the bigger the bet, the harder the fall." },
   tut_life:      { fr: "Ouvre cette fenêtre pour suivre ton patrimoine en détail et revendre tes biens si tu es en difficulté. La revente est moins chère que l'achat, réfléchis bien avant de céder.",
                    en: "Open this to track your assets in detail and sell them back if you're struggling. Resale is cheaper than the buy price — think before letting go." },
-  tut_pause:     { fr: "Dans le menu pause tu retrouves les règles complètes, tes records de patrimoine et de classe sociale, ainsi que les réglages son et langue.",
-                   en: "The pause menu holds the full rules, your wealth and social-class records, plus sound and language settings." },
+  tut_pause:     { fr: "Dans le menu pause tu retrouves les règles complètes, tes records de patrimoine et de classe sociale.",
+                   en: "The pause menu holds the full rules and your wealth and social-class records." },
   net:           { fr: "net",                 en: "net" },
   // intro
   last_coin:     { fr: "ONE MORE PULL", en: "ONE MORE PULL" },
@@ -1031,8 +1031,12 @@ export default function LastCoin() {
 
     const big = res.kind === 3 && res.mult >= 20;
     setLastWin(payout > 0 ? { amount: payout, big } : res.kind === -1 ? { neg: res.sym, count: res.count } : { amount: 0 });
-    // Tutorial : declenche au 1er gain de la partie (apres le spin garanti)
+    // Tutorial : declenche au 1er gain de la partie (apres le spin garanti).
+    // tutorialSeen est mis a true IMMEDIATEMENT pour eviter qu'un autre gain
+    // pendant le delai de 1.8s ou entre deux bulles ne re-declenche la
+    // sequence (bug : la bulle pouvait reapparaitre apres fermeture).
     if (payout > 0 && !tutorialSeen && tutorial === 0) {
+      setTutorialSeen(true);
       setTimeout(() => setTutorial(1), 1800);
     }
     if (payout > 0) {
@@ -1310,7 +1314,7 @@ export default function LastCoin() {
         <div className="lc-bar-actions">
           <button ref={pauseBtnRef} className="lc-menu" onClick={() => {
             setConfirmReset(false); setCheatSeq([]); setScreen("pause");
-            if (tutorial === 3) { setTutorial(0); setTutorialSeen(true); }
+            if (tutorial === 3) { setTutorial(0); setTimeout(() => setTutorial(4), 1500); }
           }} aria-label={t("pause")} title={t("pause")}><i /><i /></button>
           {devUnlocked && (
             <button className="lc-dev" onClick={() => setOverlay("dev")} aria-label={t("dev")} title={t("dev")}>
