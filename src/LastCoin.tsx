@@ -96,7 +96,7 @@ const SYM_INFO = {
 // 3 identiques (triple pur, sans joker) :
 const PAY3 = { coin: 13, star: 18, house: 25, diamond: 40, crown: 110, bolt: 18, eye: 22, joker: 140 };
 // 2 identiques sans joker (paire) : ratio bas pour creer un palier 'remboursement' (coin paye 1x = refund pur)
-const PAY2 = { coin: 1, star: 3, house: 5, diamond: 6, crown: 14, bolt: 3, eye: 3 };
+const PAY2 = { coin: 1, star: 4, house: 7, diamond: 9, crown: 20, bolt: 4, eye: 4 };
 // Paire completee par 1 joker : paye 70% du triple (palier intermediaire entre paire et triple pur)
 const PAY_JC_MULT = 0.7;
 const NEG = { skull: true, crack: true };           // symboles "danger"
