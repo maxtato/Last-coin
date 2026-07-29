@@ -217,6 +217,13 @@
 .lc-up{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:none;border-bottom:1px solid #f4f4f4;cursor:pointer;font-family:inherit;padding:9px 2px;color:#141414;text-align:left;transition:.12s;}
 .lc-up:hover:not(:disabled){background:#ffffff;}
 .lc-up.off{opacity:.4;cursor:default;}
+/* Palier verrouille : encore plus efface + italique, on ne peut pas y toucher */
+.lc-up.locked{opacity:.28;}
+.lc-up.locked .lc-upn{font-style:italic;}
+/* Bandeau d'avancement du palier en cours, en tete de la boutique */
+.lc-stagebar{font-size:11px;letter-spacing:1px;color:#454545;margin:-8px 0 16px;}
+.lc-stagebar b{font-weight:600;color:#141414;text-transform:uppercase;letter-spacing:2px;}
+.lc-stagebar i{display:block;font-style:normal;font-size:10px;color:#6c6c6c;margin-top:3px;}
 .lc-upn{display:flex;flex-direction:column;gap:2px;font-size:13px;}
 .lc-upn i{font-style:normal;font-size:10px;color:#505050;}
 .lc-upp{font-size:13px;letter-spacing:1px;white-space:nowrap;}
