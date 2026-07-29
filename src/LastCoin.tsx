@@ -154,38 +154,53 @@ const luck = () => 1;
 const cashScale = () => 1;
 
 // ===== Patrimoine par FAMILLES. Un nouveau palier REMPLACE l'ancien (reprise de l'ancien). =====
-// Toutes les familles déterminent la CLASSE SOCIALE = le niveau (statut). "business" donne en plus du revenu.
+// Chaque palier appartient a un ETAGE social (st: 1..7). On ne peut acheter que
+// les paliers de l'etage courant ; l'etage suivant se debloque quand TOUS les
+// paliers de l'etage courant sont possedes. La classe sociale = l'etage le plus
+// haut que l'on possede (cf. classOf).
+//
+// Repartition des 23 paliers :
+//   st1 survie          : vetements, logement, vehicule
+//   st2 precaire        : vetements, logement, vehicule
+//   st3 classe moyenne  : + business
+//   st4 aise            : idem
+//   st5 riche           : idem (dernier palier vetements)
+//   st6 grande fortune  : logement, vehicule, business
+//   st7 empire          : business x2
+//
+// Prix : vetements << vehicule < logement <= business a chaque etage.
+// Revente uniformisee a 40% du prix d'achat sur toutes les familles.
 const FAM = [
   { id: "vetements", name: "Vêtements", name_en: "Clothing", life: true, start: "T-shirt troué", start_en: "Torn t-shirt", tiers: [
-    { n: "Fringues correctes",              n_en: "Decent clothes",            price: 60,       resale: 15,      line: "Tu ne sens plus tout à fait la défaite.", line_en: "You don't quite smell of defeat anymore." },
-    { n: "Costume bas de gamme",            n_en: "Cheap suit",                price: 18000,    resale: 3000 },
-    { n: "Montre correcte",                 n_en: "Decent watch",              price: 350000,   resale: 90000 },
-    { n: "Lunettes & chaussures de marque", n_en: "Designer glasses & shoes",  price: 1500000,  resale: 400000 },
-    { n: "Tenue sur-mesure",                n_en: "Tailored outfit",           price: 12000000, resale: 3000000 },
+    { st: 1, n: "Fringues correctes",              n_en: "Decent clothes",            price: 60,       resale: 25,      line: "Tu ne sens plus tout à fait la défaite.", line_en: "You don't quite smell of defeat anymore." },
+    { st: 2, n: "Costume bas de gamme",            n_en: "Cheap suit",                price: 500,      resale: 200 },
+    { st: 3, n: "Montre correcte",                 n_en: "Decent watch",              price: 3000,     resale: 1200 },
+    { st: 4, n: "Lunettes & chaussures de marque", n_en: "Designer glasses & shoes",  price: 20000,    resale: 8000 },
+    { st: 5, n: "Tenue sur-mesure",                n_en: "Tailored outfit",           price: 120000,   resale: 48000 },
   ] },
   { id: "logement", name: "Logement", name_en: "Housing", life: true, start: "Garage", start_en: "Garage", tiers: [
-    { n: "Matelas & frigo",     n_en: "Mattress & fridge",       price: 300,      resale: 80,      line: "Ce soir, le sol a perdu.",                                line_en: "Tonight, the floor lost." },
-    { n: "Studio humide",       n_en: "Damp studio",             price: 7500,     resale: 4500,    line: "Tu quittes le garage. Il ne te regrettera pas.",          line_en: "You leave the garage. It won't miss you." },
-    { n: "Appartement correct", n_en: "Decent flat",             price: 35000,    resale: 24000 },
-    { n: "Maison de banlieue",  n_en: "Suburban house",          price: 250000,   resale: 180000 },
-    { n: "Loft industriel",     n_en: "Industrial loft",         price: 2000000,  resale: 1350000 },
-    { n: "Villa moderne",       n_en: "Modern villa",            price: 8000000,  resale: 5600000, line: "Une villa. Le garage n'est plus qu'un mauvais rêve.",     line_en: "A villa. The garage is just a bad dream now." },
+    { st: 1, n: "Matelas & frigo",     n_en: "Mattress & fridge",       price: 700,      resale: 280,     line: "Ce soir, le sol a perdu.",                                line_en: "Tonight, the floor lost." },
+    { st: 2, n: "Studio humide",       n_en: "Damp studio",             price: 5000,     resale: 2000,    line: "Tu quittes le garage. Il ne te regrettera pas.",          line_en: "You leave the garage. It won't miss you." },
+    { st: 3, n: "Appartement correct", n_en: "Decent flat",             price: 24000,    resale: 9600 },
+    { st: 4, n: "Maison de banlieue",  n_en: "Suburban house",          price: 180000,   resale: 72000 },
+    { st: 5, n: "Loft industriel",     n_en: "Industrial loft",         price: 1500000,  resale: 600000 },
+    { st: 6, n: "Villa moderne",       n_en: "Modern villa",            price: 12000000, resale: 4800000, line: "Une villa. Le garage n'est plus qu'un mauvais rêve.",     line_en: "A villa. The garage is just a bad dream now." },
   ] },
   { id: "vehicule", name: "Véhicule", name_en: "Vehicle", life: true, start: "À pied", start_en: "On foot", tiers: [
-    { n: "Scooter fatigué",    n_en: "Tired scooter",      price: 2500,     resale: 900,     line: "Deux roues. L'une d'elles croit en toi.",                line_en: "Two wheels. One of them believes in you." },
-    { n: "Voiture cabossée",   n_en: "Dented car",         price: 12000,    resale: 5500 },
-    { n: "Voiture compacte",   n_en: "Compact car",        price: 55000,    resale: 32000 },
-    { n: "Berline d'occasion", n_en: "Used sedan",         price: 120000,   resale: 70000 },
-    { n: "SUV luxueux",        n_en: "Luxury SUV",         price: 1200000,  resale: 650000 },
-    { n: "Supercar",           n_en: "Supercar",           price: 12000000, resale: 5500000, line: "Quatre roues. Deux d'entre elles croient en toi.",      line_en: "Four wheels. Two of them believe in you." },
+    { st: 1, n: "Scooter fatigué",  n_en: "Tired scooter",  price: 250,      resale: 100,     line: "Deux roues. L'une d'elles croit en toi.",                line_en: "Two wheels. One of them believes in you." },
+    { st: 2, n: "Voiture cabossée", n_en: "Dented car",     price: 1800,     resale: 720 },
+    { st: 3, n: "Voiture compacte", n_en: "Compact car",    price: 8000,     resale: 3200 },
+    { st: 4, n: "Berline de luxe",  n_en: "Luxury sedan",   price: 60000,    resale: 24000 },
+    { st: 5, n: "SUV luxueux",      n_en: "Luxury SUV",     price: 500000,   resale: 200000 },
+    { st: 6, n: "Supercar",         n_en: "Supercar",       price: 4000000,  resale: 1600000, line: "Quatre roues. Deux d'entre elles croient en toi.",      line_en: "Four wheels. Two of them believe in you." },
   ] },
   { id: "business", name: "Business", name_en: "Business", life: false, start: "Sans revenu", start_en: "No income", tiers: [
-    { n: "Café minable",        n_en: "Sketchy café",        price: 500000,   resale: 260000,  inc: 200,    line: "De l'argent qui dort à ta place.", line_en: "Money sleeping in your place." },
-    { n: "Laverie automatique", n_en: "Laundromat",          price: 850000,   resale: 520000,  inc: 600 },
-    { n: "Bar de quartier",     n_en: "Neighborhood bar",    price: 3200000,  resale: 1700000, inc: 2500 },
-    { n: "Salle d'arcade",      n_en: "Arcade",              price: 5000000,  resale: 2400000, inc: 5000 },
-    { n: "Petit hôtel",         n_en: "Small hotel",         price: 18000000, resale: 10000000, inc: 18000 },
-    { n: "Casino clandestin",   n_en: "Underground casino",  price: 85000000, resale: 55000000, inc: 80000, line: "Tu possèdes la maison. La maison gagne toujours.", line_en: "You own the house. The house always wins." },
+    { st: 3, n: "Café minable",        n_en: "Sketchy café",        price: 20000,     resale: 8000,     inc: 200,    line: "De l'argent qui dort à ta place.", line_en: "Money sleeping in your place." },
+    { st: 4, n: "Laverie automatique", n_en: "Laundromat",          price: 180000,    resale: 72000,    inc: 600 },
+    { st: 5, n: "Bar de quartier",     n_en: "Neighborhood bar",    price: 1500000,   resale: 600000,   inc: 2500 },
+    { st: 6, n: "Salle d'arcade",      n_en: "Arcade",              price: 8000000,   resale: 3200000,  inc: 5000 },
+    { st: 7, n: "Petit hôtel",         n_en: "Small hotel",         price: 45000000,  resale: 18000000, inc: 18000 },
+    { st: 7, n: "Casino clandestin",   n_en: "Underground casino",  price: 150000000, resale: 60000000, inc: 80000, line: "Tu possèdes la maison. La maison gagne toujours.", line_en: "You own the house. The house always wins." },
   ] },
 ];
 const FAM0 = { vetements: 0, logement: 0, vehicule: 0, business: 0 };
@@ -209,9 +224,21 @@ const VENUES = {
   fr: ["garage", "bar du coin", "tripot de quartier", "salle de jeux", "casino municipal", "casino privé", "cercle de jeu", "palais du hasard"],
   en: ["garage", "corner bar", "neighborhood joint", "arcade", "town casino", "private casino", "gaming club", "palace of chance"],
 };
-const classOf = (lvl) => {
-  const s = lvl.vetements + lvl.logement + lvl.vehicule + lvl.business;   // 0..23 : tout le patrimoine compte
-  return s >= 22 ? 7 : s >= 18 ? 6 : s >= 14 ? 5 : s >= 10 ? 4 : s >= 6 ? 3 : s >= 3 ? 2 : s >= 1 ? 1 : 0;
+const MAX_STAGE = 7;
+// Classe sociale = l'etage le plus haut dont on possede au moins un palier.
+// Acheter le 1er objet d'un etage fait donc monter de classe immediatement.
+const classOf = (lvl) =>
+  FAM.reduce((mx, f) => {
+    const t = ownedTier(f, lvl);
+    return t && t.st > mx ? t.st : mx;
+  }, 0);
+// Un etage est complet quand TOUS ses paliers sont possedes.
+const stageComplete = (lvl, st) =>
+  FAM.every((f) => f.tiers.every((t, i) => t.st !== st || lvl[f.id] >= i + 1));
+// Etage achetable : le premier etage non complet. On ne peut acheter que dedans.
+const unlockedStage = (lvl) => {
+  for (let st = 1; st <= MAX_STAGE; st++) if (!stageComplete(lvl, st)) return st;
+  return MAX_STAGE + 1;   // tout possede
 };
 
 // ===== Bandes fixes des rouleaux =====
@@ -637,6 +664,11 @@ const T = {
   record_gain:   { fr: "plus gros gain",      en: "biggest win" },
   cartes_obt:    { fr: "cartes obtenues",     en: "cards earned" },
   statut_social: { fr: "statut social",       en: "social status" },
+  palier:        { fr: "palier",              en: "tier" },
+  palier_hint:   { fr: "termine ce palier pour débloquer le suivant",
+                   en: "complete this tier to unlock the next one" },
+  verrouille:    { fr: "palier suivant — verrouillé",
+                   en: "next tier — locked" },
   tut_buy:       { fr: "Accumule assez de cash pour arrêter de survivre et commence à acheter ta remontée sociale.",
                    en: "Stack enough cash to stop just surviving — then start buying your way back up." },
   tut_bet:       { fr: "Suivant ton cash disponible, tu peux augmenter la mise. Attention : plus tu mises gros, plus la chute peut être brutale.",
@@ -876,7 +908,11 @@ export default function LastCoin() {
   const income = FAM.reduce((s, f) => { const t = ownedTier(f, lvl); return s + ((t && t.inc) || 0); }, 0);
   const hasAssets = FAM.some((f) => lvl[f.id] > 0);
   const ownedCount = FAM.reduce((s, f) => s + (lvl[f.id] > 0 ? 1 : 0), 0);
-  const classIdx = classOf(lvl);          // classe sociale = niveau (via familles de vie)
+  const classIdx = classOf(lvl);          // classe sociale = etage le plus haut possede
+  const curStage = unlockedStage(lvl);    // seul etage achetable pour l'instant
+  // avancement de l'etage en cours, pour la barre "x / y" de la boutique
+  const stageOwned = FAM.reduce((s, f) => s + f.tiers.filter((t, i) => t.st === curStage && lvl[f.id] >= i + 1).length, 0);
+  const stageTotal = FAM.reduce((s, f) => s + f.tiers.filter((t) => t.st === curStage).length, 0);
   const level = classIdx + 1;
   const socialClass = CLASSES[lang][classIdx];
   const venue = VENUES[lang][classIdx];   // lieu de jeu débloqué par la classe
@@ -1166,6 +1202,7 @@ export default function LastCoin() {
     const L = lvl[f.id];
     if (L >= f.tiers.length) return;
     const tier = f.tiers[L];
+    if (tier.st !== unlockedStage(lvl)) return;   // etage verrouille : finis l'etage en cours
     const netCost = tier.price - (L > 0 ? f.tiers[L - 1].resale : 0);
     if (cash < netCost) return;
     const newClass = classOf({ ...lvl, [f.id]: L + 1 });
@@ -1643,20 +1680,28 @@ export default function LastCoin() {
           <p className="lc-el">{t("ma_vie_improve")}</p>
           <div className="lc-en">{t("monte_classe")}</div>
           <p className="lc-ms">{t("cash")} : {fmt(cash)} · {t("buy_explain")}</p>
+          {curStage <= MAX_STAGE && (
+            <p className="lc-stagebar">
+              {t("palier")} <b>{CLASSES[lang][curStage]}</b> · {stageOwned}/{stageTotal}
+              {stageOwned < stageTotal ? <i>{t("palier_hint")}</i> : null}
+            </p>
+          )}
           <div className="lc-list">
             {FAM.map((f) => {
               const L = lvl[f.id];
               const cur = L > 0 ? f.tiers[L - 1] : null;
               const next = L < f.tiers.length ? f.tiers[L] : null;
               const netCost = next ? next.price - (cur ? cur.resale : 0) : 0;
-              const ok = next && cash >= netCost;
+              // Verrouille tant que l'etage en cours n'est pas termine
+              const locked = next && next.st !== curStage;
+              const ok = next && !locked && cash >= netCost;
               return (
                 <div className="lc-fam" key={f.id}>
                   <div className="lc-famh">{famName(f)}{f.life ? "" : " · " + t("revenu")}<span>{cur ? tierName(cur) : famStart(f)}</span></div>
                   {next
-                    ? <button className={"lc-up" + (ok ? "" : " off")} disabled={!ok} onClick={() => buyNext(f)}>
-                        <span className="lc-upn">{tierName(next)}{next.inc ? " · +" + fmt(next.inc) + t("par_tour") : ""}{cur ? <i>{t("remplace")} {tierName(cur)}</i> : null}</span>
-                        <span className="lc-upp">{fmt(netCost)}</span>
+                    ? <button className={"lc-up" + (ok ? "" : " off") + (locked ? " locked" : "")} disabled={!ok} onClick={() => buyNext(f)}>
+                        <span className="lc-upn">{tierName(next)}{next.inc ? " · +" + fmt(next.inc) + t("par_tour") : ""}{locked ? <i>{t("verrouille")}</i> : cur ? <i>{t("remplace")} {tierName(cur)}</i> : null}</span>
+                        <span className="lc-upp">{locked ? "🔒" : fmt(netCost)}</span>
                       </button>
                     : <div className="lc-max">{t("max_atteint")}</div>}
                 </div>
