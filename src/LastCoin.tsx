@@ -821,6 +821,7 @@ export default function LastCoin() {
   const [pulls, setPulls] = useState(() => init.pulls || 0);
 
   const [spinning, setSpinning] = useState(false);
+  const [spinBet, setSpinBet] = useState(null);   // mise figee pendant le spin (affichage)
   const [lastWin, setLastWin] = useState(null);   // { amount, big } | { neg } | null
   const [flash, setFlash] = useState("");
   const [lampOn, setLampOn] = useState(false);
@@ -918,6 +919,10 @@ export default function LastCoin() {
   const venue = VENUES[lang][classIdx];   // lieu de jeu débloqué par la classe
   const maxBetIdx = (() => { let m = 0; for (let i = 0; i < BET_STEPS.length; i++) { if (BET_STEPS[i] <= cash) m = i; else break; } return m; })();
   const bet = cash >= 1 ? BET_STEPS[Math.min(betIdx, maxBetIdx)] : 0;
+  // Pendant le spin le cash est deja ampute de la mise, donc `bet` recalculerait
+  // une valeur plus basse (voire 0 si on a tout mise) et l'affichage changerait
+  // sous les yeux du joueur. On fige donc la mise reellement engagee.
+  const shownBet = spinning && spinBet != null ? spinBet : bet;
 
   // dimensions
   const machineH = machineW / RATIO;
@@ -996,7 +1001,7 @@ export default function LastCoin() {
     setCash(1); setLvl({ ...FAM0 }); setCharms({ ...CHARMS_0 }); setBetIdx(0); setPulls(0);
     setGameOver(false); setGameOverReason(null); setCashLoss(null); setWonEmpire(false);
     setLastWin(null); setFlash(""); setLampOn(false); setWinLine(false);
-    setStrips(REELS.map((_, r) => restStrip(r))); setReelStage([0, 0, 0]); setSpinning(false);
+    setStrips(REELS.map((_, r) => restStrip(r))); setReelStage([0, 0, 0]); setSpinning(false); setSpinBet(null);
     setHeld([false, false, false]); setHoldCharges(0); setSpinHeld([false, false, false]);
     setNudgeCharges(0); setNudgeAvail(false); setLastSpin(null); setNudgeAnim([false, false, false]);
     setRepullCharges(0); setRepullAvail(false);
@@ -1011,7 +1016,11 @@ export default function LastCoin() {
     const res = evaluate(targets);
     const scale = cashScale();                   // toujours 1 : slot machine classique
     const charmBonus = CHARM_KEYS.reduce((b, k) => charms[k] ? b * CHARMS[k].bonus : b, 1);
-    const payout = res.kind > 0 ? Math.round(spend * res.mult * lk * scale * charmBonus) : 0;
+    let payout = res.kind > 0 ? Math.round(spend * res.mult * lk * scale * charmBonus) : 0;
+    // Filet de securite : une combinaison gagnante ne doit JAMAIS rendre moins que
+    // la mise. Sans ca, un multiplicateur < 1 (ou un futur scaling) transformerait
+    // un gain affiche en perte nette, ce qui est incomprehensible pour le joueur.
+    if (res.kind > 0 && payout < spend) payout = spend;
     setCash((c) => c + payout + income);   // c = cash déjà amputé de la mise au lancement
     setPulls((p) => p + 1);
 
@@ -1119,7 +1128,11 @@ export default function LastCoin() {
         say("");
       }
     }
-  }, [income, pulls]);
+    // Deps completes : resolveAll lit cash (calcul de la perte skull/crack), charms
+    // (bonus de gain), lang, et l'etat du tutorial. Avec [income, pulls] seulement,
+    // ces valeurs restaient figees d'un tour -> montant de perte affiche faux et
+    // porte-bonheur fraichement achete non applique.
+  }, [income, pulls, cash, charms, lang, tutorial, tutorialSeen]);
 
   const spin = () => {
     if (spinning || screen !== "play" || gameOver) return;
@@ -1139,6 +1152,7 @@ export default function LastCoin() {
     setActiveAbility(null);                                          // toute capacite armee est desarmee au lancement du tour
     setPressed(true); setTimeout(() => setPressed(false), 600);
     setCash((c) => c - bet);
+    setSpinBet(bet);              // fige la mise affichee pour toute la duree du spin
     setSpinning(true);
     sfx("click");
 
@@ -1194,7 +1208,7 @@ export default function LastCoin() {
     const totalMs = Math.round((longestCruise + REEL_BRAKE_DUR) * 1000) + 120;
     setTimeout(() => {
       resolveAll(targets, bet, lk, snap);
-      setReelStage([0, 0, 0]); setSpinning(false); setSpinHeld([false, false, false]);
+      setReelStage([0, 0, 0]); setSpinning(false); setSpinBet(null); setSpinHeld([false, false, false]);
     }, totalMs);
   };
 
@@ -1587,7 +1601,7 @@ export default function LastCoin() {
                     <path d="M50 20 l1.7 4.6 4.9.3 -3.8 3.1 1.3 4.8 -4.1-2.7 -4.1 2.7 1.3-4.8 -3.8-3.1 4.9-.3z" fill="#141414" />
                     <path d="M50 64 l1.7 4.6 4.9.3 -3.8 3.1 1.3 4.8 -4.1-2.7 -4.1 2.7 1.3-4.8 -3.8-3.1 4.9-.3z" fill="#141414" />
                   </svg>
-                  <span className="lc-betnum">{fmt(bet)}</span>
+                  <span className="lc-betnum">{fmt(shownBet)}</span>
                 </div>
                 <button className="lc-bb" disabled={betIdx >= maxBetIdx} onClick={betUp}>+</button>
               </div>
