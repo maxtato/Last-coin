@@ -103,6 +103,13 @@ const PAY3 = { coin: 9, star: 12, house: 17, diamond: 30, crown: 150, bolt: 12, 
 const PAY2 = { coin: 1, star: 3, house: 5, diamond: 6, crown: 16, bolt: 3, eye: 3 };
 // Paire completee par 1 joker : paye 70% du triple (palier intermediaire entre paire et triple pur)
 const PAY_JC_MULT = 0.7;
+// Bornes affichees dans les regles. Calculees depuis les tables pour ne jamais
+// deriver quand on rebalance. Le joker est exclu de PAY3 : les 3 jokers ont leur
+// propre ligne (c_3j) dans la modale.
+const P3_VALS = Object.entries(PAY3).filter(([k]) => k !== "joker").map(([, v]) => v);
+const P2_VALS = Object.values(PAY2);
+const PAY3_RANGE = `×${Math.min(...P3_VALS)} → ×${Math.max(...P3_VALS)}`;
+const PAY2_RANGE = `×${Math.min(...P2_VALS)} → ×${Math.max(...P2_VALS)}`;
 const NEG = { skull: true, crack: true };           // symboles "danger"
 const PAY_ROW = ["coin", "star", "house", "diamond", "crown", "bolt", "eye"]; // affichés dans la mini-table
 
@@ -683,11 +690,11 @@ const T = {
   symboles:      { fr: "symboles",          en: "symbols" },
   combinaisons:  { fr: "combinaisons",      en: "combinations" },
   c_3:           { fr: "3 identiques",      en: "3 of a kind" },
-  c_3_d:         { fr: "gain selon le symbole (×12 à ×127)",
-                   en: "payout depends on symbol (×12 to ×127)" },
+  c_3_d:         { fr: "gain selon le symbole",
+                   en: "payout depends on symbol" },
   c_2:           { fr: "2 identiques",      en: "2 of a kind" },
-  c_2_d:         { fr: "gain selon le symbole (×2 à ×14) — paire",
-                   en: "payout by symbol (×2 to ×14) — pair" },
+  c_2_d:         { fr: "gain selon le symbole",
+                   en: "payout depends on symbol" },
   c_2j:          { fr: "2 + Joker",         en: "2 + Joker" },
   c_2j_d:        { fr: "compté comme 3 identiques", en: "counted as 3 of a kind" },
   c_3j:          { fr: "3 Jokers",          en: "3 Jokers" },
@@ -1735,8 +1742,8 @@ export default function LastCoin() {
               );
             })}
             <div className="lc-acth">{t("combinaisons")}</div>
-            <div className="lc-combo"><b>{t("c_3")}</b><i>{t("c_3_d")}</i></div>
-            <div className="lc-combo"><b>{t("c_2")}</b><i>{t("c_2_d")}</i></div>
+            <div className="lc-combo"><b>{t("c_3")}</b><i>{t("c_3_d")} <b className="lc-mv">{PAY3_RANGE}</b></i></div>
+            <div className="lc-combo"><b>{t("c_2")}</b><i>{t("c_2_d")} <b className="lc-mv">{PAY2_RANGE}</b></i></div>
             <div className="lc-combo"><b>{t("c_2j")}</b><i>{t("c_2j_d")}</i></div>
             <div className="lc-combo"><b>{t("c_3j")}</b><i>{t("c_3j_d")} ×{PAY3.joker}</i></div>
             <div className="lc-combo"><b>{t("c_skull_2")}</b><i>{t("c_skull_2_d")}</i></div>
