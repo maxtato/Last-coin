@@ -955,6 +955,10 @@ export default function LastCoin() {
   // avancement de l'etage en cours, pour la barre "x / y" de la boutique
   const stageOwned = FAM.reduce((s, f) => s + f.tiers.filter((t, i) => t.st === curStage && lvl[f.id] >= i + 1).length, 0);
   const stageTotal = FAM.reduce((s, f) => s + f.tiers.filter((t) => t.st === curStage).length, 0);
+  // Les bulles du tutoriel ne s'affichent que sur l'ecran de jeu, sans rien
+  // par-dessus (pause, achat, "ma vie", regles, dev, pub...). Sinon elles
+  // flotteraient au premier plan d'un menu en pointant des boutons masques.
+  const tutorialVisible = screen === "play" && !overlay && adLeft == null;
   const level = classIdx + 1;
   const socialClass = CLASSES[lang][classIdx];
   const venue = VENUES[lang][classIdx];   // lieu de jeu débloqué par la classe
@@ -2076,22 +2080,27 @@ export default function LastCoin() {
         </div>
       )}
 
-      {tutorial === 1 && (
+      {/* Les bulles pointent des boutons de l'ecran de jeu : elles ne sont rendues
+          que la. Des qu'on ouvre la pause, une modale ou une pub, la bulle est
+          demontee (donc son minuteur de 8s s'arrete via le cleanup) et remontee
+          intacte au retour -- elle ne peut plus expirer pendant qu'elle est cachee,
+          ni flotter au-dessus d'un menu. */}
+      {tutorialVisible && tutorial === 1 && (
         <TutorialBubble targetRef={buyBtnRef} side="above"
           text={t("tut_buy")}
           onDismiss={() => { setTutorial(0); setTimeout(() => setTutorial(2), 1500); }} />
       )}
-      {tutorial === 2 && (
+      {tutorialVisible && tutorial === 2 && (
         <TutorialBubble targetRef={lifeBtnRef} side="above"
           text={t("tut_life")}
           onDismiss={() => { setTutorial(0); setTimeout(() => setTutorial(3), 1500); }} />
       )}
-      {tutorial === 3 && (
+      {tutorialVisible && tutorial === 3 && (
         <TutorialBubble targetRef={pauseBtnRef} side="below"
           text={t("tut_pause")}
           onDismiss={() => { setTutorial(0); setTimeout(() => setTutorial(4), 1500); }} />
       )}
-      {tutorial === 4 && (
+      {tutorialVisible && tutorial === 4 && (
         <TutorialBubble targetRef={betCoinRef} side="above"
           text={t("tut_bet")}
           onDismiss={() => { setTutorial(0); setTutorialSeen(true); }} />
