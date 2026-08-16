@@ -145,7 +145,7 @@ const loadAdFree = () => { try { return localStorage.getItem(ADFREE_KEY) === "1"
 // Tant que c'est vide, le bouton d'achat affiche "bientot disponible" au lieu
 // d'ouvrir un lien mort.
 const PURCHASE_URL = "";
-const PURCHASE_PRICE = "2,99 €";
+const PURCHASE_PRICE = "1,99 €";
 const ADS_EVERY = 10;               // une pub tous les N tours
 const AD_MIN_SECONDS = 5;           // duree avant de pouvoir fermer la pub
 function loadBest() { try { const r = localStorage.getItem(BEST_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
