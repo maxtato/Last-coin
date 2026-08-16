@@ -854,6 +854,11 @@ export default function LastCoin() {
   // avant de pouvoir fermer la pub en cours (null = pas de pub affichee).
   const [adFree, setAdFree] = useState(loadAdFree);
   const [adLeft, setAdLeft] = useState(null);
+  // Pub programmee mais pas encore affichee (fenetre de 900ms apres la resolution).
+  // Le ref bloque le levier de facon SYNCHRONE : sans lui, un joueur rapide peut
+  // relancer un tour qui s'animerait et se resoudrait derriere la pub opaque.
+  const adPendingRef = useRef(false);
+  const [adPending, setAdPending] = useState(false);
   const [lastWin, setLastWin] = useState(null);   // { amount, big } | { neg } | null
   const [flash, setFlash] = useState("");
   const [lampOn, setLampOn] = useState(false);
@@ -990,12 +995,43 @@ export default function LastCoin() {
     return () => clearTimeout(id);
   }, [adLeft]);
 
-  // Achat "sans pub" : ouvre la page de paiement. Le deblocage reel doit etre
-  // confirme par le retour du prestataire -- ici on ne fait qu'ouvrir le lien.
+  // Ferme la pub et libere le levier.
+  const closeAd = () => {
+    adPendingRef.current = false;
+    setAdPending(false);
+    setAdLeft(null);
+  };
+
+  // Accorde l'acces sans pub et le persiste.
+  const grantAdFree = () => {
+    try { localStorage.setItem(ADFREE_KEY, "1"); } catch {}
+    setAdFree(true);
+    adPendingRef.current = false;
+    setAdPending(false);
+    setAdLeft(null);
+  };
+
+  // Achat "sans pub" : ouvre la page de paiement du prestataire.
   const buyAdFree = () => {
     if (!PURCHASE_URL) return;
     window.open(PURCHASE_URL, "_blank", "noopener");
   };
+
+  // Retour depuis la page de paiement : le prestataire redirige vers ?adfree=1.
+  // ATTENTION : ce controle est purement CLIENT, donc falsifiable en tapant l'URL
+  // a la main. Pour rendre l'achat infalsifiable il faut que le prestataire
+  // renvoie un jeton signe, verifie cote serveur avant d'appeler grantAdFree().
+  // Tant qu'il n'y a pas de backend, c'est le compromis assume.
+  useEffect(() => {
+    if (!PURCHASE_URL) return;
+    try {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get("adfree") === "1") {
+        grantAdFree();
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    } catch {}
+  }, []);
 
   // sauvegarde auto
   useEffect(() => {
@@ -1048,6 +1084,7 @@ export default function LastCoin() {
     setGameOver(false); setGameOverReason(null); setCashLoss(null); setWonEmpire(false);
     setLastWin(null); setFlash(""); setLampOn(false); setWinLine(false);
     setStrips(REELS.map((_, r) => restStrip(r))); setReelStage([0, 0, 0]); setSpinning(false); setSpinBet(null);
+    adPendingRef.current = false; setAdPending(false); setAdLeft(null);   // pas de pub en attente sur une nouvelle partie
     setHeld([false, false, false]); setHoldCharges(0); setSpinHeld([false, false, false]);
     setNudgeCharges(0); setNudgeAvail(false); setLastSpin(null); setNudgeAnim([false, false, false]);
     setRepullCharges(0); setRepullAvail(false);
@@ -1068,14 +1105,16 @@ export default function LastCoin() {
     // un gain affiche en perte nette, ce qui est incomprehensible pour le joueur.
     if (res.kind > 0 && payout < spend) payout = spend;
     setCash((c) => c + payout + income);   // c = cash déjà amputé de la mise au lancement
-    setPulls((p) => {
-      const next = p + 1;
-      // Publicite tous les ADS_EVERY tours, sauf si le joueur a achete le jeu.
-      // Declenchee ici (et non dans spin) pour tomber APRES la resolution du tour :
-      // le joueur voit son resultat avant que la pub ne s'affiche.
-      if (!adFree && next % ADS_EVERY === 0) setTimeout(() => setAdLeft(AD_MIN_SECONDS), 900);
-      return next;
-    });
+    setPulls((p) => p + 1);
+    // Publicite tous les ADS_EVERY tours, sauf si le joueur a achete le jeu.
+    // Programmee ici (et non dans spin) pour tomber APRES la resolution du tour :
+    // le joueur voit son resultat avant que la pub ne s'affiche. Le ref est pose
+    // tout de suite pour verrouiller le levier pendant les 900ms d'attente.
+    if (!adFree && (pulls + 1) % ADS_EVERY === 0) {
+      adPendingRef.current = true;
+      setAdPending(true);
+      setTimeout(() => setAdLeft(AD_MIN_SECONDS), 900);
+    }
 
     // Bolt = cartes HOLD : seules les paires et triples d'eclair sortent une carte (rare)
     const bolts = targets.filter((t) => t === "bolt").length;
@@ -1189,6 +1228,7 @@ export default function LastCoin() {
 
   const spin = () => {
     if (spinning || screen !== "play" || gameOver) return;
+    if (adPendingRef.current || adLeft != null) return;   // pub programmee ou affichee
     if (bet < 1) {                             // à sec : machine bloquee, secousse + message pour inviter a vendre
       if (hasAssets) {
         setBlockedSpin(true);
@@ -1597,7 +1637,7 @@ export default function LastCoin() {
             </svg>
           </div>
         )}
-        <button className="lc-lever" onClick={spin} disabled={spinning || gameOver} title={t("pull_lever")} aria-label="pull" />
+        <button className="lc-lever" onClick={spin} disabled={spinning || gameOver || adPending || adLeft != null} title={t("pull_lever")} aria-label="pull" />
       </div>
       </div>
 
@@ -1851,10 +1891,10 @@ export default function LastCoin() {
             {/* Emplacement de la regie publicitaire. Remplacer ce bloc par le
                 conteneur du SDK (AdSense / AdMob / autre) une fois l'ID connu. */}
             <div className="lc-ad-slot">{t("ad_slot")}</div>
-            <button className="lc-btn" disabled={adLeft > 0} onClick={() => setAdLeft(null)}>
+            <button className="lc-btn" disabled={adLeft > 0} onClick={closeAd}>
               {adLeft > 0 ? `${t("ad_wait")} ${adLeft}` : t("ad_close")}
             </button>
-            <button className="lc-ad-buy" onClick={() => { setAdLeft(null); setScreen("pause"); setOverlay("noads"); }}>
+            <button className="lc-ad-buy" onClick={() => { closeAd(); setScreen("pause"); setOverlay("noads"); }}>
               {t("noads_btn")}
             </button>
           </div>
