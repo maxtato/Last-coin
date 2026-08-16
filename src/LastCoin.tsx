@@ -828,6 +828,10 @@ const T = {
   dev_intro:     { fr: "intro",            en: "intro" },
   dev_empire:    { fr: "empire",           en: "empire" },
   dev_over:      { fr: "game over",        en: "game over" },
+  dev_monet:     { fr: "monétisation",     en: "monetisation" },
+  dev_show_ad:   { fr: "voir la pub",      en: "show ad" },
+  dev_show_buy:  { fr: "voir l'achat",     en: "show purchase" },
+  dev_adfree:    { fr: "sans pub",         en: "ad-free" },
 };
 
 // stats agregees sur la partie : alimentees par les hooks de gameplay, persistees, affichees pause/over/empire
@@ -2010,6 +2014,17 @@ export default function LastCoin() {
                 <button onClick={() => { setOverlay(null); setScreen("intro"); }}>{t("dev_intro")}</button>
                 <button onClick={() => { setOverlay(null); setScreen("empire"); }}>{t("dev_empire")}</button>
                 <button onClick={() => { setOverlay(null); setScreen("over"); }}>{t("dev_over")}</button>
+              </div>
+            </div>
+            <div className="lc-devgroup">
+              <div className="lc-devheader">{t("dev_monet")}</div>
+              <div className="lc-devbtns">
+                {/* Ouvre les fenetres de monetisation a la demande, sans attendre 10 tours */}
+                <button onClick={() => { setOverlay(null); setScreen("play"); setAdLeft(AD_MIN_SECONDS); }}>{t("dev_show_ad")}</button>
+                <button onClick={() => setOverlay("noads")}>{t("dev_show_buy")}</button>
+                <button onClick={() => { adPendingRef.current = false; setAdPending(false); setAdLeft(null); setAdFree((v) => { try { v ? localStorage.removeItem(ADFREE_KEY) : localStorage.setItem(ADFREE_KEY, "1"); } catch {} return !v; }); }}>
+                  {t("dev_adfree")} {adFree ? "✓" : "·"}
+                </button>
               </div>
             </div>
           </div>
