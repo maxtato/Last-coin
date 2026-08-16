@@ -135,6 +135,19 @@ function evaluate(t) {
 // ===== Économie =====
 const SAVE_KEY = "lastcoin.v2";
 const BEST_KEY = "lastcoin.best";   // record persiste entre les runs (survit a newGame)
+
+// ===== Monetisation =====
+// Achat unique : supprime les publicites definitivement. Stocke a part du SAVE_KEY
+// pour survivre a "Recommencer" -- on ne fait pas repayer le joueur.
+const ADFREE_KEY = "lastcoin.adfree";
+const loadAdFree = () => { try { return localStorage.getItem(ADFREE_KEY) === "1"; } catch { return false; } };
+// >>> A RENSEIGNER : page de paiement (Stripe Payment Link, Paddle, Gumroad...).
+// Tant que c'est vide, le bouton d'achat affiche "bientot disponible" au lieu
+// d'ouvrir un lien mort.
+const PURCHASE_URL = "";
+const PURCHASE_PRICE = "1,99 €";
+const ADS_EVERY = 10;               // une pub tous les N tours
+const AD_MIN_SECONDS = 5;           // duree avant de pouvoir fermer la pub
 function loadBest() { try { const r = localStorage.getItem(BEST_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
 const BET_STEPS = (() => { const out = []; for (let e = 0; e <= 12; e++) for (const u of [1, 2, 5]) out.push(u * 10 ** e); return out; })();
 function fmt(n) {
@@ -664,6 +677,21 @@ const T = {
   record_gain:   { fr: "plus gros gain",      en: "biggest win" },
   cartes_obt:    { fr: "cartes obtenues",     en: "cards earned" },
   statut_social: { fr: "statut social",       en: "social status" },
+  // monetisation
+  noads_btn:     { fr: "supprimer les pubs",  en: "remove ads" },
+  noads_title:   { fr: "sans publicité",      en: "ad-free" },
+  noads_sub:     { fr: "achat unique, définitif — conservé même si tu recommences une partie.",
+                   en: "one-time purchase, permanent — kept even if you restart a run." },
+  noads_perk1:   { fr: "Plus aucune publicité entre les tours",
+                   en: "No more ads between spins" },
+  noads_perk2:   { fr: "Soutient le développement du jeu",
+                   en: "Supports the game's development" },
+  noads_buy:     { fr: "Acheter",             en: "Buy" },
+  noads_soon:    { fr: "bientôt disponible",  en: "coming soon" },
+  ad_label:      { fr: "publicité",           en: "advertisement" },
+  ad_slot:       { fr: "emplacement publicitaire", en: "ad slot" },
+  ad_wait:       { fr: "patiente",            en: "wait" },
+  ad_close:      { fr: "Fermer",              en: "Close" },
   palier:        { fr: "palier",              en: "tier" },
   palier_hint:   { fr: "termine ce palier pour débloquer le suivant",
                    en: "complete this tier to unlock the next one" },
@@ -800,6 +828,10 @@ const T = {
   dev_intro:     { fr: "intro",            en: "intro" },
   dev_empire:    { fr: "empire",           en: "empire" },
   dev_over:      { fr: "game over",        en: "game over" },
+  dev_monet:     { fr: "monétisation",     en: "monetisation" },
+  dev_show_ad:   { fr: "voir la pub",      en: "show ad" },
+  dev_show_buy:  { fr: "voir l'achat",     en: "show purchase" },
+  dev_adfree:    { fr: "sans pub",         en: "ad-free" },
 };
 
 // stats agregees sur la partie : alimentees par les hooks de gameplay, persistees, affichees pause/over/empire
@@ -822,6 +854,15 @@ export default function LastCoin() {
 
   const [spinning, setSpinning] = useState(false);
   const [spinBet, setSpinBet] = useState(null);   // mise figee pendant le spin (affichage)
+  // Monetisation : adFree survit a newGame (achat definitif), adLeft = compte a rebours
+  // avant de pouvoir fermer la pub en cours (null = pas de pub affichee).
+  const [adFree, setAdFree] = useState(loadAdFree);
+  const [adLeft, setAdLeft] = useState(null);
+  // Pub programmee mais pas encore affichee (fenetre de 900ms apres la resolution).
+  // Le ref bloque le levier de facon SYNCHRONE : sans lui, un joueur rapide peut
+  // relancer un tour qui s'animerait et se resoudrait derriere la pub opaque.
+  const adPendingRef = useRef(false);
+  const [adPending, setAdPending] = useState(false);
   const [lastWin, setLastWin] = useState(null);   // { amount, big } | { neg } | null
   const [flash, setFlash] = useState("");
   const [lampOn, setLampOn] = useState(false);
@@ -951,6 +992,51 @@ export default function LastCoin() {
     return () => ro.disconnect();
   }, []);
 
+  // Compte a rebours de la publicite : 1 tick/s jusqu'a 0, puis le bouton Fermer s'active.
+  useEffect(() => {
+    if (adLeft == null || adLeft <= 0) return;
+    const id = setTimeout(() => setAdLeft((s) => (s == null ? null : s - 1)), 1000);
+    return () => clearTimeout(id);
+  }, [adLeft]);
+
+  // Ferme la pub et libere le levier.
+  const closeAd = () => {
+    adPendingRef.current = false;
+    setAdPending(false);
+    setAdLeft(null);
+  };
+
+  // Accorde l'acces sans pub et le persiste.
+  const grantAdFree = () => {
+    try { localStorage.setItem(ADFREE_KEY, "1"); } catch {}
+    setAdFree(true);
+    adPendingRef.current = false;
+    setAdPending(false);
+    setAdLeft(null);
+  };
+
+  // Achat "sans pub" : ouvre la page de paiement du prestataire.
+  const buyAdFree = () => {
+    if (!PURCHASE_URL) return;
+    window.open(PURCHASE_URL, "_blank", "noopener");
+  };
+
+  // Retour depuis la page de paiement : le prestataire redirige vers ?adfree=1.
+  // ATTENTION : ce controle est purement CLIENT, donc falsifiable en tapant l'URL
+  // a la main. Pour rendre l'achat infalsifiable il faut que le prestataire
+  // renvoie un jeton signe, verifie cote serveur avant d'appeler grantAdFree().
+  // Tant qu'il n'y a pas de backend, c'est le compromis assume.
+  useEffect(() => {
+    if (!PURCHASE_URL) return;
+    try {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get("adfree") === "1") {
+        grantAdFree();
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    } catch {}
+  }, []);
+
   // sauvegarde auto
   useEffect(() => {
     try { localStorage.setItem(SAVE_KEY, JSON.stringify({ cash, lvl, charms, betIdx, pulls, gameOver, gameOverReason, empire: wonEmpire, holdCharges, nudgeCharges, repullCharges, stats, soundOn, lang, devUnlocked, started, tutorialSeen })); } catch {}
@@ -1002,6 +1088,7 @@ export default function LastCoin() {
     setGameOver(false); setGameOverReason(null); setCashLoss(null); setWonEmpire(false);
     setLastWin(null); setFlash(""); setLampOn(false); setWinLine(false);
     setStrips(REELS.map((_, r) => restStrip(r))); setReelStage([0, 0, 0]); setSpinning(false); setSpinBet(null);
+    adPendingRef.current = false; setAdPending(false); setAdLeft(null);   // pas de pub en attente sur une nouvelle partie
     setHeld([false, false, false]); setHoldCharges(0); setSpinHeld([false, false, false]);
     setNudgeCharges(0); setNudgeAvail(false); setLastSpin(null); setNudgeAnim([false, false, false]);
     setRepullCharges(0); setRepullAvail(false);
@@ -1023,6 +1110,15 @@ export default function LastCoin() {
     if (res.kind > 0 && payout < spend) payout = spend;
     setCash((c) => c + payout + income);   // c = cash déjà amputé de la mise au lancement
     setPulls((p) => p + 1);
+    // Publicite tous les ADS_EVERY tours, sauf si le joueur a achete le jeu.
+    // Programmee ici (et non dans spin) pour tomber APRES la resolution du tour :
+    // le joueur voit son resultat avant que la pub ne s'affiche. Le ref est pose
+    // tout de suite pour verrouiller le levier pendant les 900ms d'attente.
+    if (!adFree && (pulls + 1) % ADS_EVERY === 0) {
+      adPendingRef.current = true;
+      setAdPending(true);
+      setTimeout(() => setAdLeft(AD_MIN_SECONDS), 900);
+    }
 
     // Bolt = cartes HOLD : seules les paires et triples d'eclair sortent une carte (rare)
     const bolts = targets.filter((t) => t === "bolt").length;
@@ -1132,10 +1228,11 @@ export default function LastCoin() {
     // (bonus de gain), lang, et l'etat du tutorial. Avec [income, pulls] seulement,
     // ces valeurs restaient figees d'un tour -> montant de perte affiche faux et
     // porte-bonheur fraichement achete non applique.
-  }, [income, pulls, cash, charms, lang, tutorial, tutorialSeen]);
+  }, [income, pulls, cash, charms, lang, tutorial, tutorialSeen, adFree]);
 
   const spin = () => {
     if (spinning || screen !== "play" || gameOver) return;
+    if (adPendingRef.current || adLeft != null) return;   // pub programmee ou affichee
     if (bet < 1) {                             // à sec : machine bloquee, secousse + message pour inviter a vendre
       if (hasAssets) {
         setBlockedSpin(true);
@@ -1544,7 +1641,7 @@ export default function LastCoin() {
             </svg>
           </div>
         )}
-        <button className="lc-lever" onClick={spin} disabled={spinning || gameOver} title={t("pull_lever")} aria-label="pull" />
+        <button className="lc-lever" onClick={spin} disabled={spinning || gameOver || adPending || adLeft != null} title={t("pull_lever")} aria-label="pull" />
       </div>
       </div>
 
@@ -1675,6 +1772,11 @@ export default function LastCoin() {
                 }}>{t("regles")}</button>
                 <button className="lc-btn ghost" onClick={() => { pushCheat("son"); setSoundOn((s) => !s); }}>{t("son")} · {soundOn ? t("on") : t("off")}</button>
                 <button className="lc-btn ghost" onClick={() => { pushCheat("langue"); setLang((l) => l === "fr" ? "en" : "fr"); }}>{t("langue")} · {lang === "fr" ? "FR" : "EN"}</button>
+                {!adFree && (
+                  <button className="lc-btn ghost lc-noads" onClick={() => setOverlay("noads")}>
+                    {t("noads_btn")}
+                  </button>
+                )}
                 <button className="lc-btn ghost" onClick={() => setConfirmReset(true)}>{t("recommencer")}</button>
               </div>
             </>
@@ -1766,6 +1868,41 @@ export default function LastCoin() {
           <p className="lc-disc" style={{ marginBottom: 18 }}>{t("sell_warn")}</p>
           <button className="lc-btn" onClick={() => setOverlay(null)}>{t("retour")}</button>
         </div></Ovl>
+      )}
+
+      {overlay === "noads" && (
+        <Ovl><div className="lc-modal">
+          <p className="lc-el">{t("noads_title")}</p>
+          <div className="lc-en">{PURCHASE_PRICE}</div>
+          <p className="lc-ms">{t("noads_sub")}</p>
+          <ul className="lc-perks">
+            <li>{t("noads_perk1")}</li>
+            <li>{t("noads_perk2")}</li>
+          </ul>
+          <div className="lc-menucol">
+            <button className="lc-btn" disabled={!PURCHASE_URL} onClick={buyAdFree}>
+              {PURCHASE_URL ? t("noads_buy") : t("noads_soon")}
+            </button>
+            <button className="lc-btn ghost" onClick={() => setOverlay(null)}>{t("retour")}</button>
+          </div>
+        </div></Ovl>
+      )}
+
+      {adLeft != null && (
+        <div className="lc-ad" role="dialog" aria-label={t("ad_label")}>
+          <div className="lc-ad-box">
+            <div className="lc-ad-tag">{t("ad_label")}</div>
+            {/* Emplacement de la regie publicitaire. Remplacer ce bloc par le
+                conteneur du SDK (AdSense / AdMob / autre) une fois l'ID connu. */}
+            <div className="lc-ad-slot">{t("ad_slot")}</div>
+            <button className="lc-btn" disabled={adLeft > 0} onClick={closeAd}>
+              {adLeft > 0 ? `${t("ad_wait")} ${adLeft}` : t("ad_close")}
+            </button>
+            <button className="lc-ad-buy" onClick={() => { closeAd(); setScreen("pause"); setOverlay("noads"); }}>
+              {t("noads_btn")}
+            </button>
+          </div>
+        </div>
       )}
 
       {overlay === "rules" && (
@@ -1877,6 +2014,17 @@ export default function LastCoin() {
                 <button onClick={() => { setOverlay(null); setScreen("intro"); }}>{t("dev_intro")}</button>
                 <button onClick={() => { setOverlay(null); setScreen("empire"); }}>{t("dev_empire")}</button>
                 <button onClick={() => { setOverlay(null); setScreen("over"); }}>{t("dev_over")}</button>
+              </div>
+            </div>
+            <div className="lc-devgroup">
+              <div className="lc-devheader">{t("dev_monet")}</div>
+              <div className="lc-devbtns">
+                {/* Ouvre les fenetres de monetisation a la demande, sans attendre 10 tours */}
+                <button onClick={() => { setOverlay(null); setScreen("play"); setAdLeft(AD_MIN_SECONDS); }}>{t("dev_show_ad")}</button>
+                <button onClick={() => setOverlay("noads")}>{t("dev_show_buy")}</button>
+                <button onClick={() => { adPendingRef.current = false; setAdPending(false); setAdLeft(null); setAdFree((v) => { try { v ? localStorage.removeItem(ADFREE_KEY) : localStorage.setItem(ADFREE_KEY, "1"); } catch {} return !v; }); }}>
+                  {t("dev_adfree")} {adFree ? "✓" : "·"}
+                </button>
               </div>
             </div>
           </div>
